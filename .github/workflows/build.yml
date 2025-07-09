@@ -1,0 +1,53 @@
+on:
+  push:
+    paths:
+      - '.github/workflows/build.yml'
+      - '**.cmake'
+      - '**.c'
+      - '**.cpp'
+      - '**.h'
+      - '**/CMakeLists.txt'
+      - '**/romfs/**'
+  pull_request:
+    paths:
+      - '.github/workflows/build.yml'
+      - '**.cmake'
+      - '**.c'
+      - '**.cpp'
+      - '**.h'
+      - '**/CMakeLists.txt'
+      - '**/romfs/**'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v4.2.2
+        with:
+          submodules: true
+      - name: Set up switch-tools
+        run: |
+          git clone https://github.com/switchbrew/switch-tools
+          cd switch-tools
+          ./autogen.sh
+          ./configure 
+          make -j $(nproc)
+      - name: Set up Clang
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 20
+          sudo apt-get install -y clang-20 llvm-20 lld-20
+      - name: Build Project
+        run: |
+          export SWITCHTOOLS=$(pwd)/switch-tools
+          cmake -B build -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20 -DCMAKE_ASM_COMPILER=clang-20 -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld-20" -DCMAKE_MODULE_LINKER_FLAGS="-fuse-ld=lld-20" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld-20"
+          cmake --build build --target all_modules -j $(nproc)
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: |
+            build/zips/*.zip

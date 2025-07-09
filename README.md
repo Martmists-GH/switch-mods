@@ -1,4 +1,6 @@
 # Martmists's Switch Mods
+![GitHub License](https://img.shields.io/github/license/Martmists-GH/switch-mods)
+![GitHub branch status](https://img.shields.io/github/checks-status/martmists-gh/switch-mods/master)
 
 This repository holds all the mods I'm currently actively developing. Some of my older mods might not be present due to the switch to hakkun.
 
@@ -20,7 +22,7 @@ Pokemon Scarlet/Violet
 - `src` - Contains all the source files for mods
   - `romfs` - Contains files that will be copied to romfs for the mod
   - `src` - Contains the code used for the custom exefs mod
-  - `sym` - Contains files required by [sail]() to generate symbols
+  - `sym` - Contains files required by [sail](https://github.com/fruityloops1/LibHakkun/tree/main/hakkun/sail) to generate symbols
 - `tools` - Contains a variety of useful scripts
 
 ## Building

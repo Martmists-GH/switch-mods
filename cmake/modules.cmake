@@ -1,4 +1,5 @@
 add_custom_target(all_modules)
+add_custom_target(all_modules_zips)
 
 function(create_mod name folder)
     cmake_parse_arguments(MODULE_ARGS "WITH_VARIANTS;WITH_OLD_SDK;WITH_NVN;WITH_DEBUGRENDERER;WITH_IMGUI;WITH_HEAPSOURCE_BSS;WITH_HEAPSOURCE_DYNAMIC;WITH_EXPHEAP" "HOOK_POOL_SIZE;BSS_HEAP_SIZE;TITLE_ID;GAME_TITLE" "INCLUDE;SOURCE;SOURCE_SHALLOW;LIBRARIES" ${ARGN})
@@ -265,13 +266,14 @@ function(create_releases_main module)
     add_custom_target(${module}_release_all)
     add_custom_target(${module}_release_variants)
     add_custom_target(${module}_zip_all)
+    add_dependencies(all_modules_zips ${module}_zip_all)
 
     function(create_release target with_ftp copy_path)
         add_custom_target(${module}_release_${target} DEPENDS ${module}_release_variants)
         add_custom_command(
             TARGET ${module}_release_${target} POST_BUILD
-            COMMAND mkdir -p "${CMAKE_CURRENT_BINARY_DIR}/${module}_releases/${target}/"
-            COMMAND sh -c 'cp -r ${CMAKE_CURRENT_BINARY_DIR}/${module}_*_releases/${target}/* ${CMAKE_CURRENT_BINARY_DIR}/${module}_releases/${target}/'
+            COMMAND mkdir -p "${CMAKE_BINARY_DIR}/${module}_releases/${target}/"
+            COMMAND sh -c 'cp -r ${CMAKE_BINARY_DIR}/${module}_*_releases/${target}/* ${CMAKE_BINARY_DIR}/${module}_releases/${target}/'
         )
 
         add_dependencies(${module}_release_all ${module}_release_${target})
@@ -279,9 +281,9 @@ function(create_releases_main module)
         add_custom_target(${module}_zip_${target} DEPENDS ${module}_release_${target})
         add_custom_command(
             TARGET ${module}_zip_${target} POST_BUILD
-            COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/zips/
-            COMMAND zip -r "${CMAKE_CURRENT_BINARY_DIR}/zips/${module}_${target}.zip" *
-            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${module}_releases/${target}/"
+            COMMAND mkdir -p ${CMAKE_BINARY_DIR}/zips/
+            COMMAND zip -r "${CMAKE_BINARY_DIR}/zips/${module}_${target}.zip" *
+            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/${module}_releases/${target}/"
         )
 
         add_dependencies(${module}_zip_all ${module}_zip_${target})
@@ -290,7 +292,7 @@ function(create_releases_main module)
             add_custom_target(
                 ${module}_ftp_${target}
                 DEPENDS ${module}_release_${target}
-                COMMAND ${python} "${PROJECT_SOURCE_DIR}/tools/send_patch.py" ${FTP_IP} ${FTP_PORT} ${FTP_USER} ${FTP_PASS} "${CMAKE_CURRENT_BINARY_DIR}/${module}_releases/${target}/"
+                COMMAND ${python} "${PROJECT_SOURCE_DIR}/tools/send_patch.py" ${FTP_IP} ${FTP_PORT} ${FTP_USER} ${FTP_PASS} "${CMAKE_BINARY_DIR}/${module}_releases/${target}/"
                 USES_TERMINAL
             )
         endif()
@@ -299,7 +301,7 @@ function(create_releases_main module)
             add_custom_target(
                 ${module}_copy_${target}
                 DEPENDS ${module}_release_${target}
-                COMMAND cp -r "${CMAKE_CURRENT_BINARY_DIR}/${module}_releases/${target}/*" "${copy_path}"
+                COMMAND cp -r "${CMAKE_BINARY_DIR}/${module}_releases/${target}/*" "${copy_path}"
             )
         endif()
     endfunction()
@@ -318,18 +320,18 @@ function(create_releases module game_name variant title_id)
         add_custom_target(${variant}_release_${target} DEPENDS ${variant}_all)
         add_custom_command(
             TARGET ${variant}_release_${target} POST_BUILD
-            COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/${variant}_releases/${target}/${folder}/exefs
-            COMMAND sh -c \"cp -r ${CMAKE_CURRENT_BINARY_DIR}/${variant}_out/* ${CMAKE_CURRENT_BINARY_DIR}/${variant}_releases/${target}/${folder}/exefs\"
+            COMMAND mkdir -p ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/exefs
+            COMMAND sh -c \"cp -r ${CMAKE_CURRENT_BINARY_DIR}/${variant}_out/* ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/exefs\"
         )
 
         get_target_property(PARENT_FOLDER ${module} MAIN_DIRECTORY)
         add_custom_command(
             TARGET ${variant}_release_${target} POST_BUILD
-            COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs
-            COMMAND sh -c \"shopt -s dotglob && cp -r -t ${CMAKE_CURRENT_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs ${CMAKE_SOURCE_DIR}/src/common/romfs/* \"
-            COMMAND sh -c \"shopt -s dotglob && cp -r -t ${CMAKE_CURRENT_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs ${CMAKE_CURRENT_SOURCE_DIR}/common/romfs/* \"
-            COMMAND sh -c \"shopt -s dotglob && cp -r -t ${CMAKE_CURRENT_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs ${CMAKE_CURRENT_SOURCE_DIR}/${PARENT_FOLDER}/romfs/* \"
-            COMMAND sh -c \"rm ${CMAKE_CURRENT_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs/.gitkeep \"
+            COMMAND mkdir -p ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs
+            COMMAND sh -c \"shopt -s dotglob && cp -r -t ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs ${CMAKE_SOURCE_DIR}/src/common/romfs/* \"
+            COMMAND sh -c \"shopt -s dotglob && cp -r -t ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs ${CMAKE_CURRENT_SOURCE_DIR}/common/romfs/* \"
+            COMMAND sh -c \"shopt -s dotglob && cp -r -t ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs ${CMAKE_CURRENT_SOURCE_DIR}/${PARENT_FOLDER}/romfs/* \"
+            COMMAND sh -c \"rm ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs/.gitkeep \"
         )
 
         add_dependencies(${variant}_release_all ${variant}_release_${target})
