@@ -3,6 +3,7 @@
 
 ### CMake
 cmake-build-*/
+config.cmake
 
 ### Toolchain
 .python_env/
