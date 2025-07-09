@@ -10,11 +10,63 @@ Pokemon Scarlet/Violet
 
 | Mod Name | Description |
 |----------|-------------|
-|
+| TODO     | Port mods   |
 
+## Repository contents
 
-TODO: Repo contents
-TODO: Build/usage instructions
-TODO: Thanks to contributors
-TODO: Donation through sponsors
-TODO: LICENSE
+- `build-files` - Contains some files used by the toolchain to build the mod
+- `cmake` - Contains the build toolchain and utilities
+- `lib` - Contains all external libraries used
+- `src` - Contains all the source files for mods
+  - `romfs` - Contains files that will be copied to romfs for the mod
+  - `src` - Contains the code used for the custom exefs mod
+  - `sym` - Contains files required by [sail]() to generate symbols
+- `tools` - Contains a variety of useful scripts
+
+## Building
+
+### Prerequisites:
+
+- A Linux-like environment (WSL should work, but is untested)
+- The clang compiler
+- Cmake
+- CLion is recommended but not strictly necessary
+
+#### Optional: Setting up CLion
+
+1. Open the project
+2. Go to `File > Settings > Build, Execution, Deployment > CMake`
+3. Add `-DCMAKE_TOOLCHAIN_FILE=cmake/toolchain.cmake` to the CMake options field. Optionally add `-DCMAKE_VERBOSE_MAKEFILE=ON`
+4. Reload the CMake project
+
+### Building the mods
+
+#### Using CLion
+
+1. Select the target in the top-right dropdown
+2. Click the 'Build Project' button next to it (the hammer icon)
+
+#### Using the command line
+
+```bash
+$ cmake -S . -B build --toolchain=cmake/toolchain.cmake
+$ cmake --build build
+```
+
+## License
+
+This project is licensed under the BSD-4-Clause license, and can be found in the [LICENSE](LICENSE) file.
+
+## Credits
+
+A huge thanks to the following people:
+
+- [Fruityloops1](https://github.com/fruityloops1) for developing Hakkun, the code injection layer used, and for sitting through my endless barrage of questions
+- [CraftyBoss](https://github.com/CraftyBoss) for implementing the ImGui backend for NVN
+- The [open-ead](https://github.com/open-ead) project, for maintaining public headers for the NX SDK
+- The [Coding Den Discord](https://discord.com/invite/code) for explaining a lot of weird C++ stuff
+
+## Donations
+
+If you'd like to support me, you can do so on my [Sponsors](https://github.com/sponsors/Martmists-GH) page.
+

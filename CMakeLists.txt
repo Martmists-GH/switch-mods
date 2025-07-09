@@ -12,7 +12,7 @@ include(cmake/tools.cmake)
 include(cmake/modules.cmake)
 
 if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/config.cmake)
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.cmake.template ${CMAKE_CURRENT_SOURCE_DIR}/config.cmake)
+    configure_file(build-files/config.cmake.template ${CMAKE_CURRENT_SOURCE_DIR}/config.cmake)
 endif ()
 include(${CMAKE_CURRENT_SOURCE_DIR}/config.cmake)
 
