@@ -1,0 +1,16 @@
+[submodule "lib/hakkun"]
+	path = lib/hakkun
+	url = https://github.com/fruityloops1/LibHakkun
+[submodule "lib/json"]
+	path = lib/json
+	url = https://github.com/nlohmann/json
+[submodule "lib/imgui"]
+	path = lib/imgui
+	url = https://github.com/ocornut/imgui
+[submodule "lib/nnsdk/submodule"]
+	path = lib/nnsdk/submodule
+	url = https://github.com/open-ead/nnheaders.git
+[submodule "lib/mbedtls"]
+	path = lib/mbedtls
+	url = https://github.com/Martmists-GH/mbedtls_nx
+	branch = hakkun

@@ -1,0 +1,30 @@
+@sdk
+// nn::fs::MountSdCardForDebug(char const*)
+_ZN2nn2fs19MountSdCardForDebugEPKc
+
+// nn::fs::CreateFile(char const*, long)
+_ZN2nn2fs10CreateFileEPKcl
+
+// nn::fs::CreateDirectory(char const*)
+_ZN2nn2fs15CreateDirectoryEPKc
+
+// nn::fs::GetEntryType(nn::fs::DirectoryEntryType*, char const*)
+_ZN2nn2fs12GetEntryTypeEPNS0_18DirectoryEntryTypeEPKc
+
+// nn::fs::OpenFile(nn::fs::FileHandle*, char const*, int)
+_ZN2nn2fs8OpenFileEPNS0_10FileHandleEPKci
+
+// nn::fs::GetFileSize(long*, nn::fs::FileHandle)
+_ZN2nn2fs11GetFileSizeEPlNS0_10FileHandleE
+
+// nn::fs::WriteFile(nn::fs::FileHandle, long, void const*, unsigned long, nn::fs::WriteOption const&)
+_ZN2nn2fs9WriteFileENS0_10FileHandleElPKvmRKNS0_11WriteOptionE
+
+// nn::fs::ReadFile(nn::fs::FileHandle, long, void*, unsigned long)
+_ZN2nn2fs8ReadFileENS0_10FileHandleElPvm
+
+// nn::fs::CloseFile(nn::fs::FileHandle)
+_ZN2nn2fs9CloseFileENS0_10FileHandleE
+
+// nn::fs::DeleteFile(char const*)
+_ZN2nn2fs10DeleteFileEPKc

@@ -1,0 +1,3 @@
+@sdk
+// nn::ro::LookupSymbol(unsigned long*, char const*)
+_ZN2nn2ro12LookupSymbolEPmPKc

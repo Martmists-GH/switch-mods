@@ -1,0 +1,3 @@
+@sdk
+// nn::crypto::GenerateCryptographicallyRandomBytes(void*, unsigned long)
+_ZN2nn6crypto36GenerateCryptographicallyRandomBytesEPvm

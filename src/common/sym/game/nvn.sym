@@ -1,0 +1,5 @@
+@sdk
+nvnBootstrapLoader
+
+// nvn::Device::GetInteger(nvn::DeviceInfo, int*) const
+_ZNK3nvn6Device10GetIntegerENS_10DeviceInfoEPi

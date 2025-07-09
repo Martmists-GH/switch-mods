@@ -1,0 +1,12 @@
+@sdk
+// nn::nifm::Initialize()
+_ZN2nn4nifm10InitializeEv
+
+// nn::nifm::SubmitNetworkRequest()
+_ZN2nn4nifm20SubmitNetworkRequestEv
+
+// nn::nifm::IsNetworkRequestOnHold()
+_ZN2nn4nifm22IsNetworkRequestOnHoldEv
+
+// nn::nifm::IsNetworkAvailable()
+_ZN2nn4nifm18IsNetworkAvailableEv

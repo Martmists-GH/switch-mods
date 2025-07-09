@@ -1,0 +1,28 @@
+@sdk
+
+// nn::socket::Socket(int, int, int)
+_ZN2nn6socket6SocketEiii
+
+// nn::socket::Close(int)
+_ZN2nn6socket5CloseEi
+
+// nn::socket::Connect(int, sockaddr const*, unsigned int)
+_ZN2nn6socket7ConnectEiPK8sockaddrj
+
+// nn::socket::Fcntl(int, int, ...)
+_ZN2nn6socket5FcntlEiiz
+
+// nn::socket::Send(int, void const*, unsigned long, int)
+_ZN2nn6socket4SendEiPKvmi
+
+// nn::socket::Recv(int, void*, unsigned long, int)
+_ZN2nn6socket4RecvEiPvmi
+
+// nn::socket::GetHostByName(char const*)
+_ZN2nn6socket13GetHostByNameEPKc
+
+// nn::socket::Initialize(void*, unsigned long, unsigned long, int)
+_ZN2nn6socket10InitializeEPvmmi
+
+// nn::socket::GetLastErrno()
+_ZN2nn6socket12GetLastErrnoEv

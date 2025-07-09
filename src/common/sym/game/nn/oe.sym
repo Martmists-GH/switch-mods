@@ -1,0 +1,3 @@
+@sdk
+// nn::oe::GetDisplayVersion(nn::oe::DisplayVersion*)
+_ZN2nn2oe17GetDisplayVersionEPNS0_14DisplayVersionE

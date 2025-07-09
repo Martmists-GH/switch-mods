@@ -1,0 +1,9 @@
+@sdk
+// nn::mem::StandardAllocator::Allocate(unsigned long)
+_ZN2nn3mem17StandardAllocator8AllocateEm
+
+// nn::mem::StandardAllocator::Free(void*)
+_ZN2nn3mem17StandardAllocator4FreeEPv
+
+// nn::mem::StandardAllocator::Reallocate(void*, unsigned long)
+_ZN2nn3mem17StandardAllocator10ReallocateEPvm

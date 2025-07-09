@@ -1,0 +1,36 @@
+@sdk
+// void nn::hid::GetNpadState(Npad___State*, const u32& port)
+_ZN2nn3hid12GetNpadStateEPNS0_16NpadFullKeyStateERKj
+_ZN2nn3hid12GetNpadStateEPNS0_17NpadHandheldStateERKj
+_ZN2nn3hid12GetNpadStateEPNS0_16NpadJoyDualStateERKj
+_ZN2nn3hid12GetNpadStateEPNS0_16NpadJoyLeftStateERKj
+_ZN2nn3hid12GetNpadStateEPNS0_17NpadJoyRightStateERKj
+
+// void nn::hid::GetNpadStates(Npad___State*, int, const u32& port)
+_ZN2nn3hid13GetNpadStatesEPNS0_16NpadFullKeyStateEiRKj
+_ZN2nn3hid13GetNpadStatesEPNS0_17NpadHandheldStateEiRKj
+_ZN2nn3hid13GetNpadStatesEPNS0_16NpadJoyDualStateEiRKj
+_ZN2nn3hid13GetNpadStatesEPNS0_16NpadJoyLeftStateEiRKj
+_ZN2nn3hid13GetNpadStatesEPNS0_17NpadJoyRightStateEiRKj
+
+// void nn::hid::detail::GetNpadStates(Npad___State*, int, const u32& port)
+_ZN2nn3hid6detail13GetNpadStatesEPiPNS0_16NpadFullKeyStateEiRKj
+_ZN2nn3hid6detail13GetNpadStatesEPiPNS0_17NpadHandheldStateEiRKj
+_ZN2nn3hid6detail13GetNpadStatesEPiPNS0_16NpadJoyDualStateEiRKj
+_ZN2nn3hid6detail13GetNpadStatesEPiPNS0_16NpadJoyLeftStateEiRKj
+_ZN2nn3hid6detail13GetNpadStatesEPiPNS0_17NpadJoyRightStateEiRKj
+
+// void nn::hid::GetMouseState(MouseState*)
+_ZN2nn3hid13GetMouseStateEPNS0_10MouseStateE
+
+// void nn::hid::GetKeyboardState(KeyboardState*)
+_ZN2nn3hid16GetKeyboardStateEPNS0_13KeyboardStateE
+
+// NpadStyleSet nn::hid::GetNpadStyleSet(const u32& port)
+_ZN2nn3hid15GetNpadStyleSetERKj
+
+// nn::hid::InitializeMouse()
+_ZN2nn3hid15InitializeMouseEv
+
+// nn::hid::InitializeKeyboard()
+_ZN2nn3hid18InitializeKeyboardEv

@@ -1,0 +1,16 @@
+@sdk
+
+// nn::err::ShowApplicationError(nn::err::ApplicationErrorArg const&)
+_ZN2nn3err20ShowApplicationErrorERKNS0_19ApplicationErrorArgE
+
+// nn::err::ApplicationErrorArg::ApplicationErrorArg()
+_ZN2nn3err19ApplicationErrorArgC1Ev
+
+// nn::err::ApplicationErrorArg::SetApplicationErrorCodeNumber(unsigned int)
+_ZN2nn3err19ApplicationErrorArg29SetApplicationErrorCodeNumberEj
+
+// nn::err::ApplicationErrorArg::SetDialogMessage(char const*)
+_ZN2nn3err19ApplicationErrorArg16SetDialogMessageEPKc
+
+// nn::err::ApplicationErrorArg::SetFullScreenMessage(char const*)
+_ZN2nn3err19ApplicationErrorArg20SetFullScreenMessageEPKc

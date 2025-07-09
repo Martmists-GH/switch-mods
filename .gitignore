@@ -1,0 +1,15 @@
+### IDE
+.idea/
+
+### CMake
+cmake-build-*/
+
+### Toolchain
+.python_env/
+tools/sail
+
+### STL
+lib/std
+
+### Outputs
+socket.log

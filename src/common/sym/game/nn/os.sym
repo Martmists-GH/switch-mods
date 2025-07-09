@@ -1,0 +1,36 @@
+@sdk
+// nn::os::SleepThread(nn::TimeSpan)
+_ZN2nn2os11SleepThreadENS_8TimeSpanE
+
+// nn::os::ConvertToTimeSpan(Tick)
+_ZN2nn2os17ConvertToTimeSpanENS0_4TickE
+
+// nn::os::GetSystemTick()
+_ZN2nn2os13GetSystemTickEv
+
+// nn::os::CreateThread(nn::os::ThreadType*, void (*)(void*), void*, void*, unsigned long, int, int)
+_ZN2nn2os12CreateThreadEPNS0_10ThreadTypeEPFvPvES3_S3_mii
+
+// nn::os::SetThreadName(nn::os::ThreadType*, char const*)
+_ZN2nn2os13SetThreadNameEPNS0_10ThreadTypeEPKc
+
+// nn::os::StartThread(nn::os::ThreadType*)
+_ZN2nn2os11StartThreadEPNS0_10ThreadTypeE
+
+// nn::os::WaitThread(nn::os::ThreadType*)
+_ZN2nn2os10WaitThreadEPNS0_10ThreadTypeE
+
+// nn::os::DestroyThread(nn::os::ThreadType*)
+_ZN2nn2os13DestroyThreadEPNS0_10ThreadTypeE
+
+// nn::os::InitializeMutex(nn::os::MutexType*, bool, int)
+_ZN2nn2os15InitializeMutexEPNS0_9MutexTypeEbi
+
+// nn::os::LockMutex(nn::os::MutexType*)
+_ZN2nn2os9LockMutexEPNS0_9MutexTypeE
+
+// nn::os::UnlockMutex(nn::os::MutexType*)
+_ZN2nn2os11UnlockMutexEPNS0_9MutexTypeE
+
+// nn::os::FinalizeMutex(nn::os::MutexType*)
+_ZN2nn2os13FinalizeMutexEPNS0_9MutexTypeE
