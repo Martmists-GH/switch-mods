@@ -1,3 +1,5 @@
+name: Build Mods
+
 on:
   push:
     paths:
@@ -26,7 +28,23 @@ jobs:
       - name: Checkout Project
         uses: actions/checkout@v4.2.2
         with:
-          submodules: true
+          submodules: recursive
+      - name: Cache Built STL
+        id: cache-stl
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-stl
+        with:
+          path: lib/stl
+          key: cache-stl
+      - name: Cache Python venv
+        id: cache-py-venv
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-py-venv
+        with:
+          path: .python_env
+          key: cache-py-venv
       - name: Set up switch-tools
         run: |
           git clone https://github.com/switchbrew/switch-tools
