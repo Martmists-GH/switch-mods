@@ -1,0 +1,23 @@
+{
+  "crowdcontrol.poll.title": "رای‌گیری برای یک رویداد!",
+  "crowdcontrol.poll.announce": "یک نظرسنجی جدید شروع شد!",
+  "crowdcontrol.poll.event": "یک اثر جدید فعال شد!",
+  "crowdcontrol.event.exp_x1000": "۱۰۰۰ برابر تجربه",
+  "crowdcontrol.event.exp_x0": "بدون کسب تجربه",
+  "crowdcontrol.event.catch_rate_zero": "نرخ تصاحب صفر درصد",
+  "crowdcontrol.event.catch_rate_always": "نرخ تصاحب ۱۰۰ درصد",
+  "crowdcontrol.event.types_invert": "معکوس شدن تأثیر نوع‌ها",
+  "crowdcontrol.event.types_none": "حذف تأثیر نوع‌ها",
+  "crowdcontrol.event.types_random": "تأثیر نوع‌های تصادفی",
+  "crowdcontrol.event.filter_random": "اعمال فیلتر تصادفی",
+  "crowdcontrol.event.stab_invert": "حمله‌های هم‌نوع مضر هستند",
+  "crowdcontrol.event.ride_disable": "غیرفعال کردن قابلیت‌های سوارشدن",
+  "crowdcontrol.event.wild_random": "تصادفی‌سازی پوکمون‌های وحشی",
+  "crowdcontrol.event.wild_increase": "۱۰ برابر پوکمون‌های وحشی بیشتر",
+  "crowdcontrol.event.shiny_increase": "فصل شاین‌ها",
+  "crowdcontrol.event.spawn_lv90": "ظاهر شدن پوکمون سطح ۹۰",
+  "crowdcontrol.event.reset_money": "تنظیم پول به صفر",
+  "crowdcontrol.event.moves_random": "تصادفی‌سازی تمام حرکت‌ها",
+  "crowdcontrol.event.team_random": "تصادفی‌سازی تیم",
+  "crowdcontrol.event.metronome_only": "فقط مترونوم"
+}
