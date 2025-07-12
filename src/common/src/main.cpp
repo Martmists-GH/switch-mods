@@ -9,8 +9,8 @@
 #include <nn/fs/fs_mount.h>
 #include <util/FileUtil.h>
 #include <util/ThreadUtil.h>
+#include <nn/diag.h>
 #include "imgui_backend/hooks.h"
-#include "api.h"
 
 #include "dirent.h"
 
@@ -33,10 +33,16 @@ HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
     }
     FileUtil::writeFile("sd:/mod.log", "");
 
+    static bool fileHadError = false;
     Logger::addListener([](const char *message, size_t len) {
+        if (fileHadError) return; // avoid recursion
+
         nn::fs::FileHandle file{};
         long size;
-        nn::fs::OpenFile(&file, "sd:/mod.log", nn::fs::OpenMode_Write | nn::fs::OpenMode_Append);
+        if (auto res = nn::fs::OpenFile(&file, "sd:/mod.log", nn::fs::OpenMode_Write | nn::fs::OpenMode_Append); res.IsFailure()) {
+            fileHadError = true;
+            return Logger::log("log open failed: %d\n", res.GetInnerValueForDebug());
+        }
         nn::fs::GetFileSize(&size, file);
 
         nn::fs::WriteFile(file, size, message, len, nn::fs::WriteOption::CreateOption(nn::fs::WriteOptionFlag_Flush));
@@ -75,9 +81,20 @@ HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
     MainInitHook.orig();
 });
 
+HkTrampoline<void, char const*, char const*, char const*, int, nn::Result const*, nn::os::UserExceptionInfo const*, char const*, std::va_list&> AbortHook = hk::hook::trampoline([](char const* cond, char const* func, char const* file, int code, nn::Result const* res, nn::os::UserExceptionInfo const* info, char const* fmt, std::va_list& args) {
+    Logger::log("!!!Abort!!!\nAbort occurred at %s in file %s\n", func, file);
+    Logger::log(fmt, args);
+    AbortHook.orig(cond, func, file, code, res, info, fmt, args);
+});
+
+extern "C" extern void nnMain();
+
+void mod_init();
 extern "C" void hkMain() {
     // Do common init/hooks
-    MainInitHook.installAtSym<"nnMain">();
+    MainInitHook.installAtPtr(&nnMain);
+    AbortHook.installAtPtr(&nn::diag::detail::VAbortImpl);
+
     mod_init();
 #ifdef IMGUI_ENABLED
     imgui_hooks();

@@ -1,0 +1,15 @@
+@game:301_s,301_v
+// hxlua::AbortApi::Abort(lua_State*);
+_ZN5hxlua8AbortApi5AbortEP9lua_State = 0x00841140
+
+// hxlua::luaB_print(lua_State*)
+_ZN5hxluaL10luaB_printEP9lua_State = 0x00046130
+
+// hxlua::State::Load(char*, unsigned long, gfl::StringHolder*)
+_ZN5hxlua5State4LoadEPcmPN3gfl12StringHolderE = 0x00e37dac
+
+// hxlua::State::OnPanic(lua_State*)
+_ZN5hxlua5State7OnPanicEP9lua_State = 0x02aae354
+
+// hxlua::State::OnPanicInline1(lua_State*)
+_ZN5hxlua5State14OnPanicInline1EP9lua_State = 0x00b5d8e0

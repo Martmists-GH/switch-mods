@@ -1,0 +1,15 @@
+@game:301_s,301_v
+// btl::Capture::JudgeCapture(btl::Capture::JudgeResult*, void*)
+_ZN3btl7Capture12JudgeCaptureEPNS0_11JudgeResultEPv = 0x0197e0f4
+
+// btl::EventLauncher::Event_CalcTypeMatchRatio(void*, unsigned short)
+_ZN3btl13EventLauncher24Event_CalcTypeMatchRatioEPvt = 0x01330100
+
+// btl::EventLauncher::Event_CheckDamageAffinity(void*, void*, unsigned char, unsigned char, bool)
+_ZN3btl13EventLauncher25Event_CheckDamageAffinityEPvS1_hhb = 0x02d0c404
+
+// btl::Exp::CalcExp(void*, btl::Exp::CalcResult*)
+_ZN3btl3Exp7CalcExpEPvPNS0_10CalcResultE = 0x01781ce8
+
+// btl::TYPE_EFFECT_TBL
+_ZN3btl15TYPE_EFFECT_TBLE = 0x03c6286c

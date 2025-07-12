@@ -1,11 +1,13 @@
 #include <hk/hook/Trampoline.h>
 #include <util/InputUtil.h>
 
+#ifdef IMGUI_ENABLED
 #include "ui/ui.h"
 #include "imgui_backend/imgui_impl_nvn.hpp"
 #include "nvn/nvn.h"
 #include "nvn/nvn_Cpp.h"
 #include "nn/hid.h"
+#include "nn/hid_detail.h"
 #include "logger/logger.h"
 
 nvn::Device *nvnDevice;
@@ -28,6 +30,7 @@ nvn::CommandBufferSetSamplerPoolFunc tempCommandSetSamplerPoolFunc;
 
 bool hasInitImGui = false;
 
+void setup_ui();
 static ui::Root root = ui::Root::single([](ui::Root& it){});
 
 void procDraw() {
@@ -222,7 +225,7 @@ HkTrampoline<void*, const char*> NvnBootstrapHook = hk::hook::trampoline([](cons
 });
 
 #define INPUT_HOOK(type) \
-HkTrampoline<int, int*, nn::hid::Npad##type*, int, int const&> Disable##type = hk::hook::trampoline([](int *unkInt, nn::hid::Npad##type *state, int count, int const &port){ \
+HkTrampoline<int, int*, nn::hid::Npad##type*, u32, u32 const&> Disable##type = hk::hook::trampoline([](int *unkInt, nn::hid::Npad##type *state, u32 count, u32 const &port){ \
     int result = Disable##type.orig(unkInt, state, count, port); \
     if (!InputUtil::isReadInputs()) { \
         if(InputUtil::isInputToggled()) { \
@@ -239,11 +242,12 @@ INPUT_HOOK(JoyLeftState);
 INPUT_HOOK(JoyRightState);
 
 void imgui_hooks() {
-    NvnBootstrapHook.installAtSym<"nvnBootstrapLoader">();
+    NvnBootstrapHook.installAtPtr(nvnBootstrapLoader);
 
-    DisableFullKeyState.installAtSym<"_ZN2nn3hid6detail13GetNpadStatesEPiPNS0_16NpadFullKeyStateEiRKj">();
-    DisableHandheldState.installAtSym<"_ZN2nn3hid6detail13GetNpadStatesEPiPNS0_17NpadHandheldStateEiRKj">();
-    DisableJoyDualState.installAtSym<"_ZN2nn3hid6detail13GetNpadStatesEPiPNS0_16NpadJoyDualStateEiRKj">();
-    DisableJoyLeftState.installAtSym<"_ZN2nn3hid6detail13GetNpadStatesEPiPNS0_16NpadJoyLeftStateEiRKj">();
-    DisableJoyRightState.installAtSym<"_ZN2nn3hid6detail13GetNpadStatesEPiPNS0_17NpadJoyRightStateEiRKj">();
+    DisableFullKeyState.installAtPtr(static_cast<int(*)(int*, nn::hid::NpadFullKeyState*, s32, const u32&)>(nn::hid::detail::GetNpadStates));
+    DisableHandheldState.installAtPtr(static_cast<int(*)(int*, nn::hid::NpadHandheldState*, s32, const u32&)>(nn::hid::detail::GetNpadStates));
+    DisableJoyDualState.installAtPtr(static_cast<int(*)(int*, nn::hid::NpadJoyDualState*, s32, const u32&)>(nn::hid::detail::GetNpadStates));
+    DisableJoyLeftState.installAtPtr(static_cast<int(*)(int*, nn::hid::NpadJoyLeftState*, s32, const u32&)>(nn::hid::detail::GetNpadStates));
+    DisableJoyRightState.installAtPtr(static_cast<int(*)(int*, nn::hid::NpadJoyRightState*, s32, const u32&)>(nn::hid::detail::GetNpadStates));
 }
+#endif

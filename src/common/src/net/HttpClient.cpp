@@ -1,5 +1,8 @@
 #include "HttpClient.h"
 #include <sstream>
+#include <hk/svc/api.h>
+#include <logger/logger.h>
+#include <nn/os.h>
 #include <nn/os/os_Mutex.h>
 
 HttpClient::HttpClient(const std::unordered_map<std::string, std::string>& defaultHeaders) {
@@ -10,16 +13,20 @@ HttpResponse HttpClient::execute(const std::string& url, const std::string& meth
     auto res = SocketBase::parseURL(url);
     if (!res.has_value() || url.starts_with("ws")) return HttpResponse::error(-1, "Invalid URL");
     auto tuple = res.value();
+    auto headersCopy = headers;
+    headersCopy.emplace("Host", std::get<1>(tuple));
 
     auto sock = makeSocket(std::get<0>(tuple));
     sock->connect(std::get<1>(tuple), std::get<2>(tuple));
 
     HttpResponse response;
 
-    auto packet = buildRequest(method, std::get<3>(tuple), headers, body);
-    if (sock->sendAll(packet) < 0) {
+    auto packet = buildRequest(method, std::get<3>(tuple), headersCopy, body);
+    Logger::log("HTTP Request:\n%s\n", packet.c_str());
+
+    if (auto sent = sock->sendAll(packet); sent < 0) {
         sock->close();
-        return HttpResponse::error(-2, "Failed to send request");
+        return HttpResponse::error(-2, "Failed to send request :" + std::to_string(sent));
     }
 
     std::string responseBody;
@@ -27,11 +34,19 @@ HttpResponse HttpClient::execute(const std::string& url, const std::string& meth
     auto readTotal = 0;
     do {
         auto read = sock->recv(buffer, sizeof(buffer));
-        if (read <= 0) break;
+        if (read < 0) {
+            break;
+        }
+        if (read == 0 && !responseBody.empty()) break;
+        if (read == 0) {
+            nn::os::SleepThread(nn::TimeSpan(1000));
+            continue;
+        }
         readTotal += read;
         responseBody.append(buffer, read);
     } while (true);
 
+    Logger::log("HTTP Response:\n%s\n", responseBody.c_str());
     auto result = parseResponse(responseBody);
 
     response.statusCode = std::get<0>(result);
@@ -75,8 +90,8 @@ std::string urlEncode(const char* value) {
     return escaped.str();
 }
 
-HttpResponse HttpClient::post(const std::string& url, const std::map<std::string, std::string>& formData, const std::unordered_map<std::string, std::string>& headers) {
-    auto headersCopy = headers;
+HttpResponse HttpClient::post(const std::string& url, const std::initializer_list<std::pair<std::string, std::string>>& formData, const std::unordered_map<std::string, std::string>& headers) {
+    auto headersCopy = std::unordered_map(headers);
     headersCopy.emplace("Content-Type", "application/x-www-form-urlencoded");
 
     std::string body;

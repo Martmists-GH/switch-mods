@@ -1,7 +1,3 @@
-//
-// Created by mart on 7/6/25.
-//
-
 #include "FileUtil.h"
 
 #include <cstdlib>
@@ -21,6 +17,22 @@ namespace FileUtil {
         nn::fs::DirectoryEntryType type;
         nn::Result result = nn::fs::GetEntryType(&type, path.c_str());
         return result.IsSuccess() && type == nn::fs::DirectoryEntryType::DirectoryEntryType_File;
+    }
+
+    size_t getFileSize(const std::string& path) {
+        if (!exists(path)) return -1;
+
+        nn::fs::FileHandle handle{};
+        long result = -1;
+
+        nn::Result openResult = nn::fs::OpenFile(&handle, path.c_str(), nn::fs::OpenMode::OpenMode_Read);
+
+        if (openResult.IsSuccess()) {
+            nn::fs::GetFileSize(&result, handle);
+            nn::fs::CloseFile(handle);
+        }
+
+        return result;
     }
 
     nn::Result deleteFile(const std::string& path) {

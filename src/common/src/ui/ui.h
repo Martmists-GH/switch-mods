@@ -23,4 +23,3 @@
 ui::Root& getRootElement();
 
 #define ROOT getRootElement()
-void setup_ui();

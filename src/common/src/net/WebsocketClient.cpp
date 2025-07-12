@@ -6,7 +6,11 @@
 #include <logger/logger.h>
 #include <nn/os/os_Mutex.h>
 
-WebsocketClient::WebsocketClient(const std::string& url) {
+void WebsocketClient::reconnect(const std::string& url) {
+    if (isOpen) {
+        close();
+    }
+
     auto res = SocketBase::parseURL(url);
     if (!res.has_value()) {
         return;
@@ -19,11 +23,11 @@ WebsocketClient::WebsocketClient(const std::string& url) {
     sock->connect(std::get<1>(tuple), std::get<2>(tuple));
 
     auto body = buildRequest("GET", std::get<3>(tuple), {
-        std::make_pair("Upgrade", "websocket"),
-        std::make_pair("Connection", "Upgrade"),
-        std::make_pair("Host", std::format("{}:{}", std::get<1>(tuple), std::get<2>(tuple))),
-        std::make_pair("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ=="),
-        std::make_pair("Sec-WebSocket-Version", "13"),
+        {"Upgrade", "websocket"},
+        {"Connection", "Upgrade"},
+        {"Host", std::format("{}:{}", std::get<1>(tuple), std::get<2>(tuple))},
+        {"Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ=="},
+        {"Sec-WebSocket-Version", "13"},
     });
 
     if (const int r = sock->sendAll(body); r < 0) {
@@ -41,11 +45,16 @@ WebsocketClient::WebsocketClient(const std::string& url) {
                 return;
             }
             collected.append(std::string(buffer, recv));
-            Logger::log("Collected response:\n%s\n", collected.c_str());
+            // Logger::log("Collected response:\n%s\n", collected.c_str());
         } while (collected.find("\r\n\r\n") == std::string::npos);
         Logger::log("Websocket ready!\n");
         isOpen = true;
     }
+}
+
+
+WebsocketClient::WebsocketClient(const std::string& url) {
+    reconnect(url);
 }
 
 WebsocketClient::~WebsocketClient() {

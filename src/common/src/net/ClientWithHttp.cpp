@@ -45,8 +45,6 @@ std::unique_ptr<SocketBase> ClientWithHttp::makeSocket(bool useSSL) {
     }
 }
 
-
-
 std::string ClientWithHttp::buildRequest(const std::string& method, const std::string& path, const std::unordered_map<std::string, std::string>& headers, const std::string& body) const {
     std::string headersAsString;
     std::unordered_map<std::string, std::string> combinedHeaders = defaultHeaders;
@@ -55,8 +53,19 @@ std::string ClientWithHttp::buildRequest(const std::string& method, const std::s
         combinedHeaders.emplace(header.first, header.second);
     }
 
+    if (!body.empty()) {
+        combinedHeaders.emplace("Content-Length", std::to_string(body.length()));
+    }
+    if (!combinedHeaders.contains("Connection")) {
+        combinedHeaders.emplace("Connection", "close");
+    }
+
     for (auto& combinedHeader : combinedHeaders) {
         headersAsString += combinedHeader.first + ": " + combinedHeader.second + "\r\n";
+    }
+
+    if (body.empty()) {
+        return std::format("{} {} HTTP/1.1\r\n{}\r\n", method, path, std::move(headersAsString));
     }
 
     return std::format("{} {} HTTP/1.1\r\n{}\r\n{}", method, path, std::move(headersAsString), body);
@@ -73,9 +82,9 @@ std::tuple<int, std::unordered_map<std::string, std::string>, std::string> Clien
     while ((j = response.find("\r\n", i)) != std::string::npos) {
         auto line = response.substr(i, j - i);
 
-        if (line == "\r\n") {
-            // Body starts after next \r\n
-            body = response.substr(j + 2, response.size() - j - 2);
+        if (line.empty()) {
+            // Body starts on next line
+            body = response.substr(j + 2);
             break;
         } else if (i == 0) {
             // HTTP Code
@@ -85,7 +94,7 @@ std::tuple<int, std::unordered_map<std::string, std::string>, std::string> Clien
             // Header
             auto delimPos = line.find(':');
             auto key = line.substr(0, delimPos);
-            auto value = line.substr(delimPos + 1, line.size() - delimPos - 1);
+            auto value = line.substr(delimPos + 2, line.size() - delimPos - 1);
             headers.emplace(std::move(key), std::move(value));
         }
 

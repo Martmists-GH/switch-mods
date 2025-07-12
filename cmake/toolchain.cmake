@@ -19,7 +19,7 @@ add_definitions(
     -D_LIBUNWIND_IS_BAREMETAL
     -D_LIBCPP_HAS_THREAD_API_PTHREAD
     -D_GNU_SOURCE
-    -D__SWITCH__
+    -D__SWITCH__=1
     -DNNSDK
 )
 

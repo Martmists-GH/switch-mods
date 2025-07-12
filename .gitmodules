@@ -14,3 +14,7 @@
 	path = lib/mbedtls
 	url = https://github.com/Martmists-GH/mbedtls_nx
 	branch = hakkun
+[submodule "lib/lua"]
+	path = lib/lua
+	url = https://github.com/Martmists-GH/lua.git
+	branch = scarlet-violet

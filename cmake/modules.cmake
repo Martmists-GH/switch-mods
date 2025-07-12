@@ -108,7 +108,7 @@ function(create_mod name folder)
 
     # Defaults
     if (NOT DEFINED MODULE_ARGS_HOOK_POOL_SIZE)
-        set(MODULE_ARGS_HOOK_POOL_SIZE 0x10)
+        set(MODULE_ARGS_HOOK_POOL_SIZE 0x40)
     endif ()
     if (NOT DEFINED MODULE_ARGS_BSS_HEAP_SIZE)
         set(MODULE_ARGS_BSS_HEAP_SIZE 0x4000000)
@@ -130,6 +130,15 @@ function(create_mod name folder)
         list(APPEND ALL_SOURCE ${SOURCE_FILES})
     endforeach()
 
+    # FIXME: This won't always regenerate files???
+    add_custom_command(
+            OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${name}/lang/strings.cpp"
+            COMMAND ${python} "${CMAKE_SOURCE_DIR}/tools/lang_generate_strings.py" "${CMAKE_CURRENT_BINARY_DIR}/${name}/lang" "${CMAKE_CURRENT_SOURCE_DIR}/common/lang" "${CMAKE_CURRENT_SOURCE_DIR}/${folder}/lang" "${PROJECT_SOURCE_DIR}/src/common/lang"
+            #        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/common/lang" "${CMAKE_CURRENT_SOURCE_DIR}/${PARENT_FOLDER}/lang" "${PROJECT_SOURCE_DIR}/src/common/lang"
+    )
+    list(APPEND ALL_INCLUDE "${CMAKE_CURRENT_BINARY_DIR}/${name}/lang")
+    list(APPEND ALL_SOURCE "${CMAKE_CURRENT_BINARY_DIR}/${name}/lang/strings.cpp")
+
     # Set up targets
     add_custom_target(${name})
     add_dependencies(all_modules ${name})
@@ -149,6 +158,10 @@ function(create_mod name folder)
     set_property(
             TARGET ${name}
             PROPERTY DEFINES ${ALL_DEFINES}
+    )
+    set_property(
+            TARGET ${name}
+            PROPERTY FOLDER ${folder}
     )
 
     create_releases_main(${name})
@@ -195,6 +208,7 @@ function(create_mod_variant module variant title_id game)
     get_target_property(PARENT_SOURCE ${module} MODULE_SOURCE)
     get_target_property(PARENT_POOL_SIZE ${module} HOOK_POOL_SIZE)
     get_target_property(PARENT_DEFINES ${module} DEFINES)
+    get_target_property(PARENT_FOLDER ${module} FOLDER)
 
     add_executable(${variant} ${ALL_SOURCE} ${PARENT_SOURCE})
     target_include_directories(${variant} PUBLIC ${ALL_INCLUDE} ${PARENT_INCLUDE})
@@ -210,6 +224,7 @@ function(create_mod_variant module variant title_id game)
         LOGGER_PORT=${LOGGER_PORT}
         ${PARENT_DEFINES}
     )
+#    add_dependencies(${variant} ${variant}_strings)
 
     string(TOLOWER "0x${title_id}" CONFIG_TITLE_ID)
 
@@ -328,10 +343,12 @@ function(create_releases module game_name variant title_id)
         add_custom_command(
             TARGET ${variant}_release_${target} POST_BUILD
             COMMAND mkdir -p ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs
+            # Copy common/game/mod romfs into one folder
             COMMAND sh -c \"shopt -s dotglob && cp -r -t ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs ${CMAKE_SOURCE_DIR}/src/common/romfs/* \"
             COMMAND sh -c \"shopt -s dotglob && cp -r -t ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs ${CMAKE_CURRENT_SOURCE_DIR}/common/romfs/* \"
             COMMAND sh -c \"shopt -s dotglob && cp -r -t ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs ${CMAKE_CURRENT_SOURCE_DIR}/${PARENT_FOLDER}/romfs/* \"
-            COMMAND sh -c \"rm ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs/.gitkeep \"
+            # Clear up .gitkeep files, if any. Touch in case none exist to prevent rm from failing this task.
+            COMMAND sh -c \"touch ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs/.gitkeep && rm ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs/.gitkeep \"
         )
 
         add_dependencies(${variant}_release_all ${variant}_release_${target})

@@ -46,7 +46,7 @@ public:
     HttpResponse get(const std::string& url, const std::unordered_map<std::string, std::string>& headers = {});
     HttpResponse post(const std::string& url, const std::string& body, const std::unordered_map<std::string, std::string>& headers = {});
     HttpResponse post(const std::string& url, const nlohmann::json& body, const std::unordered_map<std::string, std::string>& headers = {});
-    HttpResponse post(const std::string& url, const std::map<std::string, std::string>& formData, const std::unordered_map<std::string, std::string>& headers = {});
+    HttpResponse post(const std::string& url, const std::initializer_list<std::pair<std::string, std::string>>& formData, const std::unordered_map<std::string, std::string>& headers = {});
 
     static HttpClient& instance();
     // TODO: support application/form-data?

@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 import logging
 
 from websockets import ConnectionClosedError
@@ -17,16 +18,14 @@ if log_file is not None:
 
 async def handler(ws: ServerConnection):
     addr, port = ws.remote_address
-    logging.info(f"[{addr}] Connected!")
+    logging.info(f"{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} [{addr}] Connected!")
     while True:
         try:
             msg = await ws.recv()
-            if not msg:
-                logging.warning(f"[{addr}] Client sent an empty message, assuming disconnect.")
-                break
-            logging.info(f"[{addr}] {msg}".strip())
+            logging.info(f"{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} [{addr}] {msg}".strip())
         except ConnectionClosedError:
-            break
+            logging.warning(f"{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} [{addr}] Client disconnected.")
+            return
 async def main():
     async with serve(handler, "0.0.0.0", 3080) as server:
         await server.serve_forever()

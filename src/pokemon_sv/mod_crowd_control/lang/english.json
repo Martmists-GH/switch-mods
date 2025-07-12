@@ -1,0 +1,23 @@
+{
+  "crowdcontrol.poll.title": "Vote on an event!",
+  "crowdcontrol.poll.announce": "A new poll just started!",
+  "crowdcontrol.poll.event": "A new effect is active!",
+  "crowdcontrol.event.exp_x1000": "1000x Exp gain",
+  "crowdcontrol.event.exp_x0": "No exp gain",
+  "crowdcontrol.event.catch_rate_zero": "0% Catch rate",
+  "crowdcontrol.event.catch_rate_always": "100% Catch rate",
+  "crowdcontrol.event.types_invert": "Invert type matchups",
+  "crowdcontrol.event.types_none": "No more type matchups",
+  "crowdcontrol.event.types_random": "Random type matchups",
+  "crowdcontrol.event.filter_random": "Apply a random filter",
+  "crowdcontrol.event.stab_invert": "STAB is bad",
+  "crowdcontrol.event.ride_disable": "Disable ride abilities",
+  "crowdcontrol.event.wild_random": "Randomize wild pokemon",
+  "crowdcontrol.event.wild_increase": "10x more wild pokemon",
+  "crowdcontrol.event.shiny_increase": "Shiny season",
+  "crowdcontrol.event.spawn_lv90": "Spawn a lv.90 pokemon",
+  "crowdcontrol.event.reset_money": "Set money to 0",
+  "crowdcontrol.event.moves_random": "Randomize all moves",
+  "crowdcontrol.event.team_random": "Randomize team",
+  "crowdcontrol.event.metronome_only": "Metronome only"
+}

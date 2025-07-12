@@ -1,0 +1,7 @@
+@game:301_s,301_v
+// gfl::fs::Read(gfl::fs::FlatBufferLoader*, void*, unsigned long)
+_ZN3gfl2fs4ReadEPNS0_16FlatBufferLoaderEPvm = 0x00cc8274
+
+
+// gfl::fs::ReadFileToBuffer(gfl::fs::FlatBufferReadInfo*, void*, unsigned long)
+_ZN3gfl2fs16ReadFileToBufferEPNS0_18FlatBufferReadInfoEPvm = 0x00cc8f28

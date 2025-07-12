@@ -10,6 +10,9 @@ class WebsocketClient : public ClientWithHttp {
     bool isOpen = false;
 
 public:
+    // Only to be used for services like Twitch EventSub, where you need to reconnect
+    void reconnect(const std::string& url);
+
     explicit WebsocketClient(const std::string& url);
     ~WebsocketClient();
 

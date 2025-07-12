@@ -1,0 +1,23 @@
+{
+  "crowdcontrol.poll.title": "¡Vota por el próximo evento!",
+  "crowdcontrol.poll.announce": "¡Ha empezado una nueva encuesta!",
+  "crowdcontrol.poll.event": "¡Se ha activado un efecto nuevo!",
+  "crowdcontrol.event.exp_x1000": "Mult. de Exp. x1000",
+  "crowdcontrol.event.exp_x0": "No consigues Exp",
+  "crowdcontrol.event.catch_rate_zero": "Ratio de Captura al 0%",
+  "crowdcontrol.event.catch_rate_always": "Ratio de Captura al 100%",
+  "crowdcontrol.event.types_invert": "Tipos invertidos",
+  "crowdcontrol.event.types_none": "Sin comp. de tipos",
+  "crowdcontrol.event.types_random": "Comp. de tipos aleatoria",
+  "crowdcontrol.event.filter_random": "Filtro aleatorio",
+  "crowdcontrol.event.stab_invert": "STAB es malo",
+  "crowdcontrol.event.ride_disable": "No puedes usar monturas",
+  "crowdcontrol.event.wild_random": "Pkmn salvajes random",
+  "crowdcontrol.event.wild_increase": "Spawn de Pokémon x10",
+  "crowdcontrol.event.shiny_increase": "Temporada de Shinys",
+  "crowdcontrol.event.spawn_lv90": "Pkmn salvaje a nivel 90",
+  "crowdcontrol.event.reset_money": "Pierdes todo el dinero",
+  "crowdcontrol.event.moves_random": "Ataques aleatorios",
+  "crowdcontrol.event.team_random": "Equipo aleatorio",
+  "crowdcontrol.event.metronome_only": "Solo Metrónomo"
+}

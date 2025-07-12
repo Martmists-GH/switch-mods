@@ -5,17 +5,19 @@ create_mod(
     WITH_VARIANTS
     WITH_IMGUI
     WITH_HEAPSOURCE_DYNAMIC
+
+    SOURCE_SHALLOW "${CMAKE_SOURCE_DIR}/lib/lua"
 )
 
 create_mod_variant(
-        SV_Example
+    SV_Example
     Scarlet
     0100A3D008C5C000
     "Pokemon Scarlet"
 )
 
 create_mod_variant(
-        SV_Example
+    SV_Example
     Violet
     01008F6008C5E000
     "Pokemon Violet"
@@ -28,6 +30,8 @@ create_mod(
     WITH_VARIANTS
     WITH_IMGUI
     WITH_HEAPSOURCE_DYNAMIC
+
+    SOURCE_SHALLOW "${CMAKE_SOURCE_DIR}/lib/lua"
 )
 
 create_mod_variant(

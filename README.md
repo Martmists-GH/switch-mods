@@ -20,6 +20,7 @@ Pokemon Scarlet/Violet
 - `cmake` - Contains the build toolchain and utilities
 - `lib` - Contains all external libraries used
 - `src` - Contains all the source files for mods
+  - `include` - Contains includes for the specific game/mod
   - `romfs` - Contains files that will be copied to romfs for the mod
   - `src` - Contains the code used for the custom exefs mod
   - `sym` - Contains files required by [sail](https://github.com/fruityloops1/LibHakkun/tree/main/hakkun/sail) to generate symbols
@@ -30,6 +31,7 @@ Pokemon Scarlet/Violet
 ### Prerequisites:
 
 - A Linux-like environment (WSL should work, but is untested)
+- Python 3
 - The clang compiler
 - Cmake
 - CLion is recommended but not strictly necessary
