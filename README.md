@@ -10,9 +10,9 @@ This repository template is free to use under CC0, with the code in `src/` requi
 
 Pokemon Scarlet/Violet
 
-| Mod Name | Description |
-|----------|-------------|
-| TODO     | Port mods   |
+| Mod Name                                            | Description                              |
+|-----------------------------------------------------|------------------------------------------|
+| [SV_CrowdControl](src/pokemon_sv/mod_crowd_control) | Crowd Control for Pokemon Scarlet/Violet |
 
 ## Repository contents
 
@@ -21,6 +21,7 @@ Pokemon Scarlet/Violet
 - `lib` - Contains all external libraries used
 - `src` - Contains all the source files for mods
   - `include` - Contains includes for the specific game/mod
+  - `lang` - Contains translation files for mods
   - `romfs` - Contains files that will be copied to romfs for the mod
   - `src` - Contains the code used for the custom exefs mod
   - `sym` - Contains files required by [sail](https://github.com/fruityloops1/LibHakkun/tree/main/hakkun/sail) to generate symbols
@@ -31,7 +32,7 @@ Pokemon Scarlet/Violet
 ### Prerequisites:
 
 - A Linux-like environment (WSL should work, but is untested)
-- Python 3
+- Python 3.12+
 - The clang compiler
 - Cmake
 - CLion is recommended but not strictly necessary

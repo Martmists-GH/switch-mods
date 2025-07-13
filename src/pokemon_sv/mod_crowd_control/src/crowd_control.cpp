@@ -260,9 +260,4 @@ void cc_hooks() {
     CaptureHook.installAtPtr(&btl::Capture::JudgeCapture);
     TypeEffectHook.installAtPtr(pun<void*>(&btl::EventLauncher::Event_CalcTypeMatchRatio));
     STABHook.installAtPtr(pun<void*>(&btl::EventLauncher::Event_CheckDamageAffinity));
-
-    // ExpMultiplierHook::InstallAtOffset(0x01781ce8);
-    // CaptureHook::InstallAtOffset(0x0197e0f4);
-    // TypeEffectHook::InstallAtOffset(0x01330100);
-    // STABHook::InstallAtOffset(0x02d0c404);
 }
