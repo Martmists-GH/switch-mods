@@ -1,6 +1,6 @@
 # Martmists's Switch Mods
 ![GitHub License](https://img.shields.io/github/license/Martmists-GH/switch-mods)
-![GitHub branch status](https://img.shields.io/github/checks-status/martmists-gh/switch-mods/master)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/martmists-gh/switch-mods/build.yml)
 
 This repository holds all the mods I'm currently actively developing. Some of my older mods might not be present due to the switch to hakkun.
 
