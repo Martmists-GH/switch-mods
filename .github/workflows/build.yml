@@ -65,7 +65,7 @@ jobs:
       - name: Build Project
         run: |
           export SWITCHTOOLS=$(pwd)/switch-tools
-          cmake -B build -DCMAKE_BUILD_TYPE="MinSizeRel"
+          cmake -B build -DCMAKE_BUILD_TYPE="MinSizeRel" -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain.cmake
           cmake --build build --target all_modules_zips -j $(nproc)
 
       - name: Upload Artifacts
