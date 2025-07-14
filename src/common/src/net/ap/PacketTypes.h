@@ -102,10 +102,15 @@ namespace ap {
         int hintPoints;
 
         explicit Connected(const nlohmann::json& json) : team(json["team"]), slot(json["slot"]),
-                                                         players(json["players"]),
                                                          missingLocations(json["missing_locations"]),
                                                          checkedLocations(json["checked_locations"]),
-                                                         slotInfo(json["slot_info"]), hintPoints(json["hint_points"]) {
+                                                         hintPoints(json["hint_points"]) {
+            for (auto& player : json["players"]) {
+                players.emplace_back(player);
+            }
+            for (auto& entry : json["slot_info"].items()) {
+                slotInfo.emplace(entry.key(), entry.value());
+            }
             if (json.contains("slot_data")) {
                 slotData = json["slot_data"];
             }
@@ -124,12 +129,20 @@ namespace ap {
         int index;
         std::vector<NetworkItem> items;
 
-        explicit ReceivedItems(const nlohmann::json& json): index(json["index"]), items(json["items"]) {}
+        explicit ReceivedItems(const nlohmann::json& json): index(json["index"]) {
+            for (auto& item : json["items"]) {
+                items.emplace_back(item);
+            }
+        }
     };
     struct LocationInfo {
         std::vector<NetworkItem> locations;
 
-        explicit LocationInfo(const nlohmann::json& json): locations(json["locations"]) {}
+        explicit LocationInfo(const nlohmann::json& json) {
+            for (auto& location : json["locations"]) {
+                locations.emplace_back(location);
+            }
+        }
     };
     struct RoomUpdate {
         // TODO: Implement this
@@ -184,10 +197,13 @@ namespace ap {
         std::vector<std::string> tags;
         int countdown;
 
-        explicit PrintJson(const nlohmann::json& json): data(json["data"]), receiving(json["receiving"]),
+        explicit PrintJson(const nlohmann::json& json): receiving(json["receiving"]),
                                                         item(json["item"]), found(json["found"]), team(json["team"]),
                                                         slot(json["slot"]), message(json["message"]),
                                                         tags(json["tags"]), countdown(json["countdown"]) {
+            for (auto& part : json["data"]) {
+                data.emplace_back(part);
+            }
             if (json.contains("type")) {
                 type = json["type"];
             }
@@ -324,6 +340,7 @@ namespace ap {
             if (status.has_value()) {
                 payload["status"] = status.value();
             }
+            return payload;
         }
     };
     enum class ClientStatus : uint8_t {

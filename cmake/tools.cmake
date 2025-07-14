@@ -19,7 +19,7 @@ endif()
 if (NOT EXISTS "${PROJECT_SOURCE_DIR}/.python_env")
     message("Setting up Python 3 venv")
     execute_process(
-            COMMAND /usr/bin/python3 -m venv .python_env
+            COMMAND python3.12 -m venv .python_env
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     )
     message("Installing required packages")
