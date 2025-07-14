@@ -1,0 +1,18 @@
+@sdk
+// nn::swkbd::MakePreset(nn::swkbd::KeyboardConfig*, nn::swkbd::Preset)
+_ZN2nn5swkbd10MakePresetEPNS0_14KeyboardConfigENS0_6PresetE
+
+// nn::swkbd::SetHeaderTextUtf8(nn::swkbd::KeyboardConfig*, char const*)
+_ZN2nn5swkbd17SetHeaderTextUtf8EPNS0_14KeyboardConfigEPKc
+
+// nn::swkbd::SetSubTextUtf8(nn::swkbd::KeyboardConfig*, char const*)
+_ZN2nn5swkbd14SetSubTextUtf8EPNS0_14KeyboardConfigEPKc
+
+// nn::swkbd::GetRequiredWorkBufferSize(bool)
+_ZN2nn5swkbd25GetRequiredWorkBufferSizeEb
+
+// nn::swkbd::GetRequiredStringBufferSize()
+_ZN2nn5swkbd27GetRequiredStringBufferSizeEv
+
+// nn::swkbd::ShowKeyboard(nn::swkbd::String*, nn::swkbd::ShowKeyboardArg const&)
+_ZN2nn5swkbd12ShowKeyboardEPNS0_6StringERKNS0_15ShowKeyboardArgE

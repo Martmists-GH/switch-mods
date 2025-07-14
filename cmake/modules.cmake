@@ -265,6 +265,7 @@ function(create_mod_variant module variant title_id game)
         -Wl,--pie
         -Wl,--error-limit=0
         -Wl,--export-dynamic-symbol=_ZN2nn2ro6detail15g_pAutoLoadListE
+        -Wl,--unresolved-symbols=report-all
         "-Wl,--version-script=${PROJECT_SOURCE_DIR}/lib/hakkun/data/visibility.txt"
     )
 

@@ -10,6 +10,8 @@
 #include <util/FileUtil.h>
 #include <util/ThreadUtil.h>
 #include <nn/diag.h>
+#include <util/KeyboardUtil.h>
+
 #include "imgui_backend/hooks.h"
 
 #include "dirent.h"
