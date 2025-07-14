@@ -1,12 +1,14 @@
 #pragma once
 #include "net/WebsocketClient.h"
-#include "net/ap/PacketTypes.h"
+#include "net/archipelago/PacketTypes.h"
 
 namespace ap {
 
     class ArchipelagoClientBase {
         WebsocketClient client;
+        bool isDisconnected = false;
 
+        void sendPacket(const nlohmann::json& packet);
     protected:
         virtual void onRoomInfo(const RoomInfo& packet) {};
         virtual void onConnectionRefused(const ConnectionRefused& packet) {};
@@ -20,6 +22,11 @@ namespace ap {
         virtual void onInvalidPacket(const InvalidPacket& packet) {};
         virtual void onRetrieved(const Retrieved& packet) {};
         virtual void onSetReply(const SetReply& packet) {};
+
+        void handleOnePacket();
+
+        void reconnect(const std::string& url);
+        virtual void onDisconnect() {};
 
 	    // TODO: Easy to use methods that invoke these
         void sendConnect(const Connect& packet);

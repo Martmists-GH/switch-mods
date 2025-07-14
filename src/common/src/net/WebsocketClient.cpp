@@ -72,8 +72,8 @@ void WebsocketClient::close() {
     sock->close();
 }
 
-void WebsocketClient::send(const std::string& message) {
-    if (!isOpen) return;
+bool WebsocketClient::send(const std::string& message) {
+    if (!isOpen) return false;
 
     size_t payloadSize = message.size();
     std::vector<u8> frame;
@@ -103,7 +103,7 @@ void WebsocketClient::send(const std::string& message) {
         frame.push_back(maskedByte);
     }
 
-    sock->send(frame.data(), frame.size());
+    return sock->sendAll(frame.data(), frame.size()) == frame.size();
 }
 
 std::optional<std::string> WebsocketClient::receive() {
@@ -242,8 +242,8 @@ start:
     return std::nullopt;
 }
 
-void WebsocketClient::sendJson(const nlohmann::json& message) {
-    send(message.dump());
+bool WebsocketClient::sendJson(const nlohmann::json& message) {
+    return send(message.dump());
 }
 
 nlohmann::json WebsocketClient::receiveJson() {

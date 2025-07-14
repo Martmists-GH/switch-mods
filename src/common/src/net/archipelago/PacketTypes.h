@@ -11,7 +11,7 @@ namespace ap {
         explicit NetworkVersion(const nlohmann::json& json): major(json["major"]), minor(json["minor"]),
                                                              build(json["build"]) {}
 
-        nlohmann::json json() {
+        nlohmann::json json() const {
             return {
                 {"major", major},
                 {"minor", minor},
@@ -268,7 +268,7 @@ namespace ap {
         std::vector<std::string> tags;
         bool slotData;
 
-        nlohmann::json json() {
+        nlohmann::json json() const {
             nlohmann::json payload = {
                 {"cmd", "Connect"},
                 {"game", game},
@@ -289,7 +289,7 @@ namespace ap {
         int itemsHandling;
         std::vector<std::string> tags;
 
-        nlohmann::json json() {
+        nlohmann::json json() const {
             return {
                 {"cmd", "ConnectUpdate"},
                 {"items_handling", itemsHandling},
@@ -298,7 +298,7 @@ namespace ap {
         }
     };
     struct Sync {
-        nlohmann::json json() {
+        nlohmann::json json() const {
             return {
                 {"cmd", "Sync"},
             };
@@ -307,7 +307,7 @@ namespace ap {
     struct LocationChecks {
         std::vector<int> locations;
 
-        nlohmann::json json() {
+        nlohmann::json json() const {
             return {
                 {"cmd", "LocationChecks"},
                 {"locations", locations},
@@ -318,7 +318,7 @@ namespace ap {
         std::vector<int> locations;
         int createAsHint;
 
-        nlohmann::json json() {
+        nlohmann::json json() const {
             return {
                 {"cmd", "LocationChecks"},
                 {"locations", locations},
@@ -331,7 +331,7 @@ namespace ap {
         int location;
         std::optional<HintStatus> status;
 
-        nlohmann::json json() {
+        nlohmann::json json() const {
             nlohmann::json payload = {
                 {"cmd", "UpdateHint"},
                 {"player", player},
@@ -353,7 +353,7 @@ namespace ap {
     struct StatusUpdate {
         ClientStatus status;
 
-        nlohmann::json json() {
+        nlohmann::json json() const {
             return {
                 {"cmd", "StatusUpdate"},
                 {"status", status},
@@ -363,7 +363,7 @@ namespace ap {
     struct Say {
         std::string text;
 
-        nlohmann::json json() {
+        nlohmann::json json() const {
             return {
                 {"cmd", "StatusUpdate"},
                 {"text", text},
@@ -373,7 +373,7 @@ namespace ap {
     struct GetDataPackage {
         std::vector<std::string> games;
 
-        nlohmann::json json() {
+        nlohmann::json json() const {
             return {
                 {"cmd", "GetDataPackage"},
                 {"games", games},
@@ -386,7 +386,7 @@ namespace ap {
         std::vector<std::string> tags;
         nlohmann::json data;
 
-        nlohmann::json json() {
+        nlohmann::json json() const {
             return {
                 {"cmd", "Bounce"},
                 {"games", games},
@@ -399,7 +399,7 @@ namespace ap {
     struct Get {
         std::vector<std::string> keys;
 
-        nlohmann::json json() {
+        nlohmann::json json() const {
             return {
                 {"cmd", "Get"},
                 {"keys", keys},
@@ -412,7 +412,7 @@ namespace ap {
         bool wantReply;
         std::vector<nlohmann::json> operations;
 
-        nlohmann::json json() {
+        nlohmann::json json() const {
             return {
                 {"cmd", "Set"},
                 {"default", defaultValue},
@@ -424,7 +424,7 @@ namespace ap {
     struct SetNotify {
         std::vector<std::string> keys;
 
-        nlohmann::json json() {
+        nlohmann::json json() const {
             return {
                 {"cmd", "SetNotify"},
                 {"keys", keys},

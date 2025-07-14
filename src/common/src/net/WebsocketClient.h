@@ -19,9 +19,9 @@ public:
     bool open() const;
     void close();
 
-    void send(const std::string& message);
+    bool send(const std::string& message);
     std::optional<std::string> receive();
 
-    void sendJson(const nlohmann::json& message);
+    bool sendJson(const nlohmann::json& message);
     nlohmann::json receiveJson();
 };
