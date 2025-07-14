@@ -33,7 +33,7 @@ jobs:
       - name: Install packages
         run: |
           sudo apt update
-          sudo apt install -y liblz4-dev cmake
+          sudo apt install -y liblz4-dev cmake ninja-build
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
@@ -72,11 +72,15 @@ jobs:
           chmod +x llvm.sh
           sudo ./llvm.sh 20
           sudo apt install -y clang-20 llvm-20 lld-20
+          sudo update-alternatives --install /usr/bin/clang clang $(which clang-20) 100
+          sudo update-alternatives --install /usr/bin/clang++ clang++ $(which clang++-20) 100
+          sudo update-alternatives --install /usr/bin/lld lld $(which lld-20) 100
+          sudo update-alternatives --install /usr/bin/llvm-ar llvm-ar $(which llvm-ar-20) 100
 
       - name: Build Project
         run: |
           export SWITCHTOOLS=$(pwd)/switch-tools
-          cmake -B build -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20 -DCMAKE_ASM_COMPILER=clang-20 -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld-20" -DCMAKE_MODULE_LINKER_FLAGS="-fuse-ld=lld-20" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld-20"
+          cmake -B build -DCMAKE_BUILD_TYPE="Debug"
           cmake --build build --target all_modules -j $(nproc)
 
       - name: Upload Artifacts
