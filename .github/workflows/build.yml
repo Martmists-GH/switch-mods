@@ -60,6 +60,7 @@ jobs:
           sudo update-alternatives --install /usr/bin/clang++ clang++ $(which clang++-20) 100
           sudo update-alternatives --install /usr/bin/lld lld $(which lld-20) 100
           sudo update-alternatives --install /usr/bin/llvm-ar llvm-ar $(which llvm-ar-20) 100
+          sudo update-alternatives --install /usr/bin/llvm-ranlib llvm-ranlib $(which llvm-ranlib-20) 100
 
       - name: Build Project
         run: |
