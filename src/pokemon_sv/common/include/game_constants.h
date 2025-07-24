@@ -1,0 +1,6 @@
+#pragma once
+
+#define ROM_MOUNT "data"
+
+#define SCARLET 0100A3D008C5C000
+#define VIOLET 01008F6008C5E000

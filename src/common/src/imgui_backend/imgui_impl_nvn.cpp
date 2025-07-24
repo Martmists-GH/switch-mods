@@ -17,6 +17,8 @@
 #include <nn/primitives.h>
 #include "util/common_utils.h"
 
+#include "game_constants.h"
+
 #define UBOSIZE 0x1000
 
 typedef float Matrix44f[4][4];
@@ -191,7 +193,7 @@ namespace ImguiNvnBackend {
 
         Logger::log("Unable to compile shaders at runtime. falling back to pre-compiled shaders.\n");
 
-        auto handle = FileUtil::readFile("data:/shaders/imgui.bin", 0x1000);
+        auto handle = FileUtil::readFile(ROM_MOUNT ":/shaders/imgui.bin", 0x1000);
         if (handle.has_value()) {
             auto h = std::move(handle.value());
             bd->imguiShaderBinary.size = h.size;

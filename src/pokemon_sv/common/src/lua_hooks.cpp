@@ -12,6 +12,7 @@
 #include "externals/hxlua/AbortApi.h"
 
 #include "lua_utils.h"
+#include "game_constants.h"
 
 static lua_State* gLuaState = nullptr;
 lua_State* get_lua_state() {
@@ -127,7 +128,7 @@ HkTrampoline<void, hxlua::State*, char*, uint64_t, gfl::StringHolder*> AfterMain
         lua_mod_code(L);
 
         nn::fs::DirectoryHandle handle{};
-        nn::fs::OpenDirectory(&handle, "data:/script/lua/boot", nn::fs::OpenDirectoryMode_File);
+        nn::fs::OpenDirectory(&handle, ROM_MOUNT ":/script/lua/boot", nn::fs::OpenDirectoryMode_File);
         s64 entryCount;
         nn::fs::GetDirectoryEntryCount(&entryCount, handle);
         if (entryCount > 0) {
@@ -147,7 +148,7 @@ HkTrampoline<void, hxlua::State*, char*, uint64_t, gfl::StringHolder*> AfterMain
             char buffer[0x320];
             for (auto item: sortedFiles) {
                 Logger::log("Executing: %s\n", item->mName);
-                snprintf(buffer, sizeof(buffer), "data:/script/lua/boot/%s", item->mName);
+                snprintf(buffer, sizeof(buffer), ROM_MOUNT ":/script/lua/boot/%s", item->mName);
                 nn::fs::FileHandle fileHandle{};
                 nn::fs::OpenFile(&fileHandle, buffer, nn::fs::OpenMode_Read);
                 auto strBuf = new char[item->mFileSize + 1];
