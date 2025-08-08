@@ -61,7 +61,7 @@ endif()
 
 set(ARCH "--target=${TARGET_TRIPLE} -march=${MARCH} -mtune=cortex-a57 -fPIC -nodefaultlibs ${ARCH}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARCH} -Werror=return-type -Wno-invalid-offsetof")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ARCH} ${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections -fno-exceptions -fno-rtti")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ARCH} ${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections -fno-exceptions -frtti")
 set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${ARCH}")
 list(JOIN DEFAULTLIBS " " DEFAULTLIBS_STR)
 

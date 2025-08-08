@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include "ui/base/element.h"
 #include "ui/base/button.h"
 #include "ui/base/checkbox.h"
@@ -8,32 +7,26 @@
 #include "ui/base/combo_simple.h"
 #include "ui/base/input_int.h"
 #include "ui/base/menu_bar.h"
+#include "ui/base/function_wrapping_element.h"
 #include "ui/base/row.h"
-#include "ui/base/grid.h"
 #include "ui/base/slider.h"
 #include "ui/base/spacing.h"
 #include "ui/base/text.h"
 #include "ui/base/text_unformatted.h"
 #include "ui/components/string_view.h"
 
-
 namespace ui {
-    ELEMENT(CollapsingHeader) {
-        std::string label;
-        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
-
-        bool isValid()
+    ELEMENT(Row) {
+        void draw()
         override{
-                return !label.empty();
+            auto i = 0;
+            for (auto child: mChildren) {
+                if (i != 0) ImGui::SameLine();
+                child->render();
+                i++;
+            }
         }
 
-        bool beginDraw()
-        override{
-                return ImGui::CollapsingHeader(label.c_str());
-        };
-
         COMMON_ELEMENTS();
-        ELEMENT_SUPPORTS_CHILD(Row);
-        ELEMENT_SUPPORTS_CHILD(Grid);
     };
 }

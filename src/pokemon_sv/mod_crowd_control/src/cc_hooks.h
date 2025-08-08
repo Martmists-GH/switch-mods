@@ -39,7 +39,7 @@ enum CC_lang {
 
 static CC_lang CC_lang_current() {
     uint8_t langId;
-    if (is_version("3.0.1")) {
+    if (is_version("3.0.1") || is_version("4.0.0")) {
         langId = *(uint8_t*)(((uintptr_t*)(hk::ro::getMainModule()->range().start() + 0x04735140)) + 0x2c);
     } else {
         HK_ABORT("CC_lang_current not implemented for version!", nullptr);

@@ -1,5 +1,8 @@
 #pragma once
+#include <externals/util.h>
+#include "object.h"
 #include "externals/gfl/hash.h"
+
 namespace gfl {
     struct String : ExternalType<String> {
         struct vtable : gfl::ReferenceObject::vtable {};

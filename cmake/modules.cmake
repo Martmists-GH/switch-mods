@@ -2,7 +2,7 @@ add_custom_target(all_modules)
 add_custom_target(all_modules_zips)
 
 function(create_mod name folder)
-    cmake_parse_arguments(MODULE_ARGS "WITH_VARIANTS;WITH_OLD_SDK;WITH_NVN;WITH_DEBUGRENDERER;WITH_IMGUI;WITH_HEAPSOURCE_BSS;WITH_HEAPSOURCE_DYNAMIC;WITH_EXPHEAP" "HOOK_POOL_SIZE;BSS_HEAP_SIZE;TITLE_ID;GAME_TITLE" "INCLUDE;SOURCE;SOURCE_SHALLOW;LIBRARIES" ${ARGN})
+    cmake_parse_arguments(MODULE_ARGS "WITH_VARIANTS;WITH_OLD_SDK;WITH_NVN;WITH_DEBUGRENDERER;WITH_IMGUI;WITH_HEAPSOURCE_BSS;WITH_HEAPSOURCE_DYNAMIC;WITH_EXPHEAP;SDK_PAST_1900" "HOOK_POOL_SIZE;BSS_HEAP_SIZE;TITLE_ID;GAME_TITLE" "INCLUDE;SOURCE;SOURCE_SHALLOW;LIBRARIES" ${ARGN})
 
     set(ALL_INCLUDE)
     set(ALL_SOURCE)
@@ -106,6 +106,10 @@ function(create_mod name folder)
         list(APPEND ALL_DEFINES HK_ADDON_HeapSourceBss)
     endif ()
 
+    if (${MODULE_ARGS_SDK_PAST_1900})
+        list(APPEND ALL_DEFINES __RTLD_PAST_19XX__)
+    endif ()
+
     # Defaults
     if (NOT DEFINED MODULE_ARGS_HOOK_POOL_SIZE)
         set(MODULE_ARGS_HOOK_POOL_SIZE 0x40)
@@ -167,7 +171,7 @@ function(create_mod name folder)
     create_releases_main(${name})
 
     if (NOT ${MODULE_ARGS_WITH_VARIANTS})
-        create_mod_variant(${name} "" "${MODULE_ARGS_TITLE_ID}" "${MODULE_ARGS_GAME_TITLE}")
+        create_mod_variant(${name} "main" "${MODULE_ARGS_TITLE_ID}" "${MODULE_ARGS_GAME_TITLE}")
     endif ()
 endfunction()
 

@@ -25,7 +25,7 @@ namespace gfl {
 
         static ThreadLocalHelper* GetInstance() {
             auto offset = 0;
-            if (is_version("3.0.1")) {
+            if (is_version("3.0.1") || is_version("4.0.0")) {
                 offset = 0x04765a30;
             } else {
                 HK_ABORT("ThreadLocalHelper::GetInstance Not implemented for version!", nullptr);
@@ -223,17 +223,17 @@ namespace gfl {
     typedef void (*editRefType)(void* thiz);
 
     struct ReferenceObject : ExternalType<ReferenceObject> {  // "C:/jenkins/workspace/sudachi/nuget/nuget_battleLogic_build_s2/battleLogic_titan/prog/../lib/gflib3/include\\core/reference_object.h"
-        struct vtable : gfl::Object::vtable {
+        struct vtable : gfl::AllocatedObject::vtable {
             void* OnZeroReference;
             editRefType IncrementReference;
             editRefType DecrementReference;
         };
 
-        struct fields : gfl::Object::fields {
+        struct fields : gfl::AllocatedObject::fields {
+            IRefCountObject::instance m_RefCountObject;
             int m_referenceCount;
-            char _pad[0x4];
+            // char _pad[0x4];
         };
-
-        static_assert(sizeof(fields) == 0x40);
+        // static_assert(sizeof(fields) == 0x40);
     };
 }

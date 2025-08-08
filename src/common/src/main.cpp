@@ -10,25 +10,22 @@
 #include <util/FileUtil.h>
 #include <util/ThreadUtil.h>
 #include <nn/diag.h>
-#include <util/KeyboardUtil.h>
 
 #include "imgui_backend/hooks.h"
 
-#include "dirent.h"
-
-WebsocketClient& getLogWs() {
+static WebsocketClient& getLogWs() {
     static WebsocketClient logWs("ws://" LOGGER_IP ":" STR(LOGGER_PORT));
     return logWs;
 }
 
 HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
-    if (nn::fs::MountSdCardForDebug("sd")) {
-        MessageUtil::abort(1, "Unable to mount SD card!", "An error occurred mounting the SD card!");
-    }
-
     Logger::addListener([](const char *message, size_t len) {
         hk::svc::OutputDebugString(message, len);
     });
+
+    if (nn::fs::MountSdCardForDebug("sd")) {
+        MessageUtil::abort(1, "Unable to mount SD card!", "An error occurred mounting the SD card!");
+    }
 
     if (FileUtil::exists("sd:/mod.log")) {
         FileUtil::deleteFile("sd:/mod.log");

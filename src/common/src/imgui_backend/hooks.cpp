@@ -229,7 +229,9 @@ HkTrampoline<int, int*, nn::hid::Npad##type*, u32, u32 const&> Disable##type = h
     int result = Disable##type.orig(unkInt, state, count, port); \
     if (!InputUtil::isReadInputs()) { \
         if(InputUtil::isInputToggled()) { \
+            auto tmp = state->mAttributes;\
             *state = nn::hid::Npad##type(); \
+            state->mAttributes = tmp;\
         } \
     } \
     return result; \

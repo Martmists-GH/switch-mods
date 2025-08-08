@@ -25,15 +25,17 @@ void Logger::log(const char *fmt, va_list args) {
     va_copy(args_copy, args);
 
     auto size = vsnprintf(nullptr, 0, fmt, args_copy);
-    char* buffer = (char*)malloc(size + 1);
+    char buffer[size + 1];
     vsnprintf(buffer, size + 1, fmt, args);
     buffer[size] = 0;
     for (const auto& listener : instance().mListeners) {
-        listener(buffer, size);
+        if (listener != nullptr) {
+            listener(buffer, size);
+        }
     }
-    free(buffer);
 }
 
 void Logger::addListener(const LogCallback &callback) {
-    instance().mListeners.push_back(callback);
+    auto& logger = instance();
+    logger.mListeners[logger.useIndex++] = callback;
 }

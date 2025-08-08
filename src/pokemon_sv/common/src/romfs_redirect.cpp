@@ -52,7 +52,7 @@ ReadInvokeHook(2);
 void romfs_hooks() {
     FlatBufferReadHook.installAtPtr(gfl::fs::Read);
 
-    if (is_version("3.0.1")) {
+    if (is_version("3.0.1") || is_version("4.0.0")) {
         FlatBufferReadInvokeHook0.installAtMainOffset(0x00cc8138);
         FlatBufferReadInvokeHook1.installAtMainOffset(0x0203da2c);
         FlatBufferReadInvokeHook2.installAtMainOffset(0x0208a980);

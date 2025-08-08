@@ -27,12 +27,14 @@ namespace hxlua {
                 case ObjectHolderType::Unk2:  // This one is just a placeholder, doesn't seem to ever be used?
                     return (T*)m_unk2;
                 case ObjectHolderType::IndexedPtr: {
-                    auto ref = m_indexPtr->m_IObjectWithReflection;
-                    return reinterpret_cast<T*>(reinterpret_cast<ulong>(ref) - offsetof(T, fields.m_IObjectWithReflection));
+                    // auto ref = m_indexPtr->m_IObjectWithReflection;
+                    // return reinterpret_cast<T*>(reinterpret_cast<ulong>(ref) - offsetof(T, fields.m_IObjectWithReflection));
+                    return nullptr;
                 }
             }
         }
     };
+    static_assert(sizeof(ObjectHolder<void>) == 16);
 
     struct helper {
         template <typename T>
@@ -41,7 +43,7 @@ namespace hxlua {
             if (holderPtr == nullptr) {
                 return nullptr;
             }
-            return *static_cast<hxlua::ObjectHolder<T>**>(holderPtr);
+            return *(hxlua::ObjectHolder<T>**)(holderPtr);
         }
     };
 }

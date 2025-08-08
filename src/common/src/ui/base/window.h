@@ -10,6 +10,10 @@
 #include "ui/base/combo_simple.h"
 #include "ui/base/input_int.h"
 #include "ui/base/menu_bar.h"
+#include "ui/base/row.h"
+#include "ui/base/function_element.h"
+#include "ui/base/function_wrapping_element.h"
+#include "ui/base/grid.h"
 #include "ui/base/slider.h"
 #include "ui/base/spacing.h"
 #include "ui/base/text.h"
@@ -80,6 +84,8 @@ namespace ui {
         }
 
         ELEMENT_SUPPORTS_CHILD(CollapsingHeader);
+        ELEMENT_SUPPORTS_CHILD(Row);
+        ELEMENT_SUPPORTS_CHILD(Grid);
         ELEMENT_SUPPORTS_CHILD(Child);
         COMMON_ELEMENTS();
     };

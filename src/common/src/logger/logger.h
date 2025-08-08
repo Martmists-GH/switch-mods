@@ -6,8 +6,13 @@
 
 typedef std::function<void(const char *, size_t)> LogCallback;
 
+#ifndef LOGGER_CAPACITY
+#define LOGGER_CAPACITY 5
+#endif
+
 class Logger {
-    std::vector<LogCallback> mListeners;
+    int useIndex = 0;
+    std::array<LogCallback, LOGGER_CAPACITY> mListeners;
 
     static Logger &instance();
 

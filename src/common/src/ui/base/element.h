@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 #include <functional>
+#include <hk/diag/diag.h>
+
 #include "imgui.h"
 #include "logger/logger.h"
 
@@ -62,19 +64,20 @@ struct TName* TName() {                                                         
     return TName([](struct TName&){});                                                                       \
 }
 
-#define COMMON_ELEMENTS()                   \
-ELEMENT_SUPPORTS_CHILD(Button)              \
-ELEMENT_SUPPORTS_CHILD(Checkbox)            \
-ELEMENT_SUPPORTS_CHILD(Combo)               \
-ELEMENT_SUPPORTS_CHILD(ComboSimple)         \
-ELEMENT_SUPPORTS_CHILD(FunctionElement)     \
-ELEMENT_SUPPORTS_CHILD(InputInt)            \
-ELEMENT_SUPPORTS_CHILD(MenuBar)             \
-ELEMENT_SUPPORTS_CHILD(SliderFloat)         \
-ELEMENT_SUPPORTS_CHILD(SliderInt)           \
-ELEMENT_SUPPORTS_CHILD(Spacing)             \
-ELEMENT_SUPPORTS_CHILD(Text)                \
-ELEMENT_SUPPORTS_CHILD(TextUnformatted)     \
+#define COMMON_ELEMENTS()                      \
+ELEMENT_SUPPORTS_CHILD(Button)                 \
+ELEMENT_SUPPORTS_CHILD(Checkbox)               \
+ELEMENT_SUPPORTS_CHILD(Combo)                  \
+ELEMENT_SUPPORTS_CHILD(ComboSimple)            \
+ELEMENT_SUPPORTS_CHILD(FunctionElement)        \
+ELEMENT_SUPPORTS_CHILD(FunctionWrappingElement)\
+ELEMENT_SUPPORTS_CHILD(InputInt)               \
+ELEMENT_SUPPORTS_CHILD(MenuBar)                \
+ELEMENT_SUPPORTS_CHILD(SliderFloat)            \
+ELEMENT_SUPPORTS_CHILD(SliderInt)              \
+ELEMENT_SUPPORTS_CHILD(Spacing)                \
+ELEMENT_SUPPORTS_CHILD(Text)                   \
+ELEMENT_SUPPORTS_CHILD(TextUnformatted)        \
 ELEMENT_SUPPORTS_CHILD(StringView)
 
     template<typename T>
@@ -96,18 +99,18 @@ ELEMENT_SUPPORTS_CHILD(StringView)
         static T *create(std::function<void(T &)> initializer) {
             T *instance = IM_NEW(T);
             initializer(*instance);
-//            if (!instance->isValid()) {
-//                EXL_ABORT(0, "ObjectHolderType reported invalid after initializing!");
-//            }
+            if (!instance->isValid()) {
+                HK_ABORT("UI Element of type %s reported invalid after initializing!", typeid(T).name());
+            }
             return instance;
         }
 
         static T single(std::function<void(T &)> initializer) {
             T instance{};
             initializer(instance);
-//            if (!instance.isValid()) {
-//                EXL_ABORT(0, "ObjectHolderType reported invalid after initializing!");
-//            }
+            if (!instance.isValid()) {
+                HK_ABORT("UI Element of type %s reported invalid after initializing!", typeid(T).name());
+            }
             return instance;
         }
     };

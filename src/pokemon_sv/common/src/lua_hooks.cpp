@@ -39,14 +39,14 @@ HkTrampoline<int, lua_State*> LuaPrintHook = hk::hook::trampoline([](lua_State *
 
 HkTrampoline<void, lua_State*> LuaPanicHook = hk::hook::trampoline([](lua_State *L) {
     size_t size;
-    auto message = lua_tolstring(L, -1, &size);
+    auto message = lua_tolstring(L, 1, &size);
     Logger::log("Lua Panic: %.*s\n", size, message);
     LuaPanicHook.orig(L);
 });
 
 HkTrampoline<void, lua_State*> LuaPanicHookInline1 = hk::hook::trampoline([](lua_State *L) {
     size_t size;
-    auto message = lua_tolstring(L, -1, &size);
+    auto message = lua_tolstring(L, 1, &size);
     Logger::log("Lua Panic (inline): %.*s\n", size, message);
     LuaPanicHookInline1.orig(L);
 });

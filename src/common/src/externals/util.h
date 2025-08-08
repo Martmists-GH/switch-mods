@@ -1,5 +1,7 @@
 #pragma once
 
+#include <hk/ro/RoUtil.h>
+
 template <typename Ret, typename... Args>
 static Ret external(long addr, Args... args) {
     return reinterpret_cast<Ret(*)(Args...)>(hk::ro::getMainModule()->range().start() + addr)(args...);
