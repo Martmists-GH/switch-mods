@@ -30,7 +30,7 @@ include_directories(
     ${LIBSTD_PATH}/llvm-project/build/include/c++/v1
     ${LIBSTD_PATH}/llvm-project/libunwind/include
     ${LIBSTD_PATH}/llvm-project/libc/include
-    ${LIBSTD_PATH}/llvm-project/libcxx/include
+#    ${LIBSTD_PATH}/llvm-project/libcxx/include
     ${LIBSTD_PATH}/musl/include
     ${LIBSTD_PATH}/musl/obj/include
     ${LIBSTD_PATH}/musl/arch/generic
