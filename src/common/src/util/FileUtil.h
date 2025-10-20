@@ -17,6 +17,7 @@ namespace FileUtil {
     nn::Result createDirectory(const std::string& path);
 
     // Checks for files only!
+    bool exists(const char* path);
     bool exists(const std::string& path);
     size_t getFileSize(const std::string& path);
     nn::Result deleteFile(const std::string& path);

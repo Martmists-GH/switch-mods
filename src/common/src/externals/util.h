@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hk/ro/RoUtil.h>
+#include <concepts>
 
 template <typename Ret, typename... Args>
 static Ret external(long addr, Args... args) {

@@ -1,5 +1,6 @@
 #include "MemoryBuffer.h"
 
+#ifdef IMGUI_ENABLED
 #include <nn/primitives.h>
 
 #include "imgui_impl_nvn.hpp"
@@ -20,7 +21,7 @@ MemoryBuffer::MemoryBuffer(size_t size) {
             .SetStorage(memBuffer, alignedSize);
 
     if (!pool.Initialize(&bd->memPoolBuilder)) {
-        Logger::log("Failed to Create Memory Pool!\n");
+        Logger::log("Failed to Create Memory Pool! (1)\n");
         return;
     }
 
@@ -34,13 +35,20 @@ MemoryBuffer::MemoryBuffer(size_t size) {
     mIsReady = true;
 }
 
+alignas(0x1000) static char memBufferPool[0x8000];
+
 MemoryBuffer::MemoryBuffer(size_t size, nvn::MemoryPoolFlags flags) {
 
     auto *bd = ImguiNvnBackend::getBackendData();
 
     size_t alignedSize = ALIGN_UP(size, 0x1000);
 
-    memBuffer = IM_ALLOC(alignedSize);
+    if (size <= sizeof(memBufferPool)) {
+        memBuffer = &memBufferPool;
+    } else {
+        Logger::log("Memory Buffer required size is too big (0x%x), falling back to aligned_alloc (which may crash).\n", size);
+        memBuffer = aligned_alloc(alignedSize, 0x1000);
+    }
     memset(memBuffer, 0, alignedSize);
 
     bd->memPoolBuilder.SetDefaults()
@@ -49,7 +57,7 @@ MemoryBuffer::MemoryBuffer(size_t size, nvn::MemoryPoolFlags flags) {
             .SetStorage(memBuffer, alignedSize);
 
     if (!pool.Initialize(&bd->memPoolBuilder)) {
-        Logger::log("Failed to Create Memory Pool!\n");
+        Logger::log("Failed to Create Memory Pool! (2)\n");
         return;
     }
 
@@ -75,7 +83,7 @@ MemoryBuffer::MemoryBuffer(size_t size, void *bufferPtr, nvn::MemoryPoolFlags fl
             .SetStorage(memBuffer, size);
 
     if (!pool.Initialize(&bd->memPoolBuilder)) {
-        Logger::log("Failed to Create Memory Pool!\n");
+        Logger::log("Failed to Create Memory Pool! (3)\n");
         return;
     }
 
@@ -98,3 +106,4 @@ void MemoryBuffer::Finalize() {
 void MemoryBuffer::ClearBuffer() {
     memset(memBuffer, 0, pool.GetSize());
 }
+#endif

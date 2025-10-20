@@ -40,7 +40,7 @@ add_custom_target(
 if (NOT EXISTS "${PROJECT_SOURCE_DIR}/lib/std")
     message("Compiling STL")
     execute_process(
-            COMMAND ${python} lib/hakkun/tools/setup_libcxx.py
+            COMMAND ${python} tools/setup_libcxx.py
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     )
 endif ()

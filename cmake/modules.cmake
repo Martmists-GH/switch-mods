@@ -243,8 +243,8 @@ function(create_mod_variant module variant title_id game)
     add_custom_target(
         ${variant}_sail_prepare
         COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/sail_syms_${variant}
-        COMMAND sh -c "cp -r '${PROJECT_SOURCE_DIR}/src/common/sym' '${CMAKE_CURRENT_BINARY_DIR}/sail_syms_${variant}'"
-        COMMAND sh -c "cp -r '${CMAKE_CURRENT_SOURCE_DIR}/common/sym' '${CMAKE_CURRENT_BINARY_DIR}/sail_syms_${variant}'"
+        COMMAND bash -c "cp -r '${PROJECT_SOURCE_DIR}/src/common/sym' '${CMAKE_CURRENT_BINARY_DIR}/sail_syms_${variant}'"
+        COMMAND bash -c "cp -r '${CMAKE_CURRENT_SOURCE_DIR}/common/sym' '${CMAKE_CURRENT_BINARY_DIR}/sail_syms_${variant}'"
     )
     create_sail(${variant} "${CMAKE_CURRENT_BINARY_DIR}/sail_syms_${variant}/sym")
 
@@ -293,7 +293,7 @@ function(create_releases_main module)
         add_custom_command(
             TARGET ${module}_release_${target} POST_BUILD
             COMMAND mkdir -p "${CMAKE_BINARY_DIR}/${module}_releases/${target}/"
-            COMMAND sh -c 'cp -r ${CMAKE_BINARY_DIR}/${module}_*_releases/${target}/* ${CMAKE_BINARY_DIR}/${module}_releases/${target}/'
+            COMMAND bash -c 'cp -r ${CMAKE_BINARY_DIR}/${module}_*_releases/${target}/* ${CMAKE_BINARY_DIR}/${module}_releases/${target}/'
         )
 
         add_dependencies(${module}_release_all ${module}_release_${target})
@@ -341,7 +341,7 @@ function(create_releases module game_name variant title_id)
         add_custom_command(
             TARGET ${variant}_release_${target} POST_BUILD
             COMMAND mkdir -p ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/exefs
-            COMMAND sh -c \"cp -r ${CMAKE_CURRENT_BINARY_DIR}/${variant}_out/* ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/exefs\"
+            COMMAND bash -c \"cp -r ${CMAKE_CURRENT_BINARY_DIR}/${variant}_out/* ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/exefs\"
         )
 
         get_target_property(PARENT_FOLDER ${module} MAIN_DIRECTORY)
@@ -349,11 +349,11 @@ function(create_releases module game_name variant title_id)
             TARGET ${variant}_release_${target} POST_BUILD
             COMMAND mkdir -p ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs
             # Copy common/game/mod romfs into one folder
-            COMMAND sh -c \"shopt -s dotglob && cp -r -t ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs ${CMAKE_SOURCE_DIR}/src/common/romfs/* \"
-            COMMAND sh -c \"shopt -s dotglob && cp -r -t ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs ${CMAKE_CURRENT_SOURCE_DIR}/common/romfs/* \"
-            COMMAND sh -c \"shopt -s dotglob && cp -r -t ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs ${CMAKE_CURRENT_SOURCE_DIR}/${PARENT_FOLDER}/romfs/* \"
+            COMMAND bash -c \"shopt -s dotglob && cp -r -t ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs ${CMAKE_SOURCE_DIR}/src/common/romfs/* \"
+            COMMAND bash -c \"shopt -s dotglob && cp -r -t ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs ${CMAKE_CURRENT_SOURCE_DIR}/common/romfs/* \"
+            COMMAND bash -c \"shopt -s dotglob && cp -r -t ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs ${CMAKE_CURRENT_SOURCE_DIR}/${PARENT_FOLDER}/romfs/* \"
             # Clear up .gitkeep files, if any. Touch in case none exist to prevent rm from failing this task.
-            COMMAND sh -c \"touch ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs/.gitkeep && rm ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs/.gitkeep \"
+            COMMAND bash -c \"touch ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs/.gitkeep && rm ${CMAKE_BINARY_DIR}/${variant}_releases/${target}/${folder}/romfs/.gitkeep \"
         )
 
         add_dependencies(${variant}_release_all ${variant}_release_${target})

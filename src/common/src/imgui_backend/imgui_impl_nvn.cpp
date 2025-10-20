@@ -1,5 +1,7 @@
 #include <cmath>
 #include <cstring>
+
+#ifdef IMGUI_ENABLED
 #include "imgui_impl_nvn.hpp"
 
 #include <util/FileUtil.h>
@@ -650,3 +652,4 @@ namespace ImguiNvnBackend {
         bd->queue->SubmitCommands(1, &handle);
     }
 }
+#endif

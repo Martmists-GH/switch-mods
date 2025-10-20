@@ -4,6 +4,8 @@
 
 using namespace ui;
 
+int getCounter();
+
 void setup_ui() {
     ROOT.Window([](Window& _){
         _.title = "SMPJ Toolbox - By Martmists";
@@ -17,9 +19,15 @@ void setup_ui() {
         // });
 
         _.Text([](Text &_) {
-            _.content = "Press ZL+ZR to toggle all menus.";
+            _.content = "Press ZL+R to toggle all menus.";
         });
 
         _.Spacing();
+
+        _.FunctionElement([](FunctionElement& _) {
+            _.callback = []() {
+                ImGui::Text("Modules loaded: %d", getCounter());
+            };
+        });
     });
 }

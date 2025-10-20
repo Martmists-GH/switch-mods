@@ -13,6 +13,12 @@ namespace FileUtil {
         return nn::fs::CreateDirectory(path.c_str());
     }
 
+    bool exists(const char* path) {
+        nn::fs::DirectoryEntryType type;
+        nn::Result result = nn::fs::GetEntryType(&type, path);
+        return result.IsSuccess() && type == nn::fs::DirectoryEntryType::DirectoryEntryType_File;
+    }
+
     bool exists(const std::string& path) {
         nn::fs::DirectoryEntryType type;
         nn::Result result = nn::fs::GetEntryType(&type, path.c_str());

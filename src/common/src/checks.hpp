@@ -37,9 +37,9 @@ enum NXHost {
 inline NXHost get_host() {
     auto offset = hk::ro::getMainModule()->range().start();
 
-    if (offset == 0x08504000) {
+    if (offset == 0x08504000 || offset == 0x08505000) {
         return NXHost::RYUJINX;
-    } else if (offset == 0x80004000) {
+    } else if (offset == 0x80004000 || offset == 0x80005000) {
         return NXHost::YUZU;
     } else {
         return NXHost::HARDWARE;

@@ -69,28 +69,35 @@ std::optional<std::tuple<bool, const std::string, u16, const std::string>> Socke
 }
 
 static bool didInit = false;
+static nn::Result initResult = nn::ResultSuccess();
+
 nn::Result SocketBase::initCommon() {
     if (!didInit) {
         didInit = true;
 
         Logger::log("Initializing network.\n");
         if (nn::nifm::Initialize().IsFailure()) {
-            return err::ResultInitializationFailed();
+            Logger::log("Failed to initialize nifm.\n");
+            initResult = err::ResultInitializationFailed();
+            return initResult;
         };
 
         nn::nifm::SubmitNetworkRequest();
         while (nn::nifm::IsNetworkRequestOnHold()) {}
 
         if (!nn::nifm::IsNetworkAvailable()) {
-            return err::ResultUnknownError();
+            Logger::log("Network not available.\n");
+            initResult =  err::ResultUnknownError();
+            return initResult;
         }
 
         if (nn::socket::Initialize(socketPool, SocketPoolSize, SocketAllocatorSize, 0xE).IsFailure()) {
-            return err::ResultInitializationFailed();
+            Logger::log("Failed to initialize socket pool.\n");
+            initResult =  err::ResultInitializationFailed();
         }
     }
 
-    return nn::ResultSuccess();
+    return initResult;
 }
 
 int SocketBase::send(const std::string& message) {

@@ -24,6 +24,10 @@ bool SSLSocket::init() {
 }
 
 SSLSocket::SSLSocket() {
+    if (initCommon().IsFailure()) {
+        goto exit;
+    }
+
     mbedtls_ssl_config_init(&conf);
     mbedtls_ctr_drbg_init(&ctr_drbg);
     mbedtls_entropy_init(&entropy);

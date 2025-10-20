@@ -1,0 +1,9 @@
+@game:100
+// hxlua::luaB_print(lua_State*)
+_ZN5hxluaL10luaB_printEP9lua_State = 0x01687300
+
+// hxlua::State::Load(char*, unsigned long, gfl::StringHolder*)
+_ZN5hxlua5State4LoadEPcmPN3gfl12StringHolderE = 0x016b33f0
+
+// hxlua::State::OnPanic(lua_State*)
+_ZN5hxlua5State7OnPanicEP9lua_State = 0x016b26c4

@@ -1,3 +1,4 @@
+#include <checks.hpp>
 #include <hk/hook/Trampoline.h>
 #include <hk/init/module.h>
 #include <logger/logger.h>
@@ -49,6 +50,7 @@ HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
     });
 
     // Handle ws PINGs
+#ifdef HK_DEBUG
     auto& ws = getLogWs();
     if (ws.open()) {
         Logger::addListener([&ws](const char *message, size_t len) {
@@ -68,7 +70,7 @@ HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
     } else {
         Logger::log("Failed to connect to logging server!\n");
     }
-
+#endif
     Logger::log(MODULE_NAME_STR " Loaded!\n");
 
     nn::oe::DisplayVersion display_version{};
@@ -76,6 +78,17 @@ HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
     Logger::log("Detected version: %s\n", display_version.name);
 
     Logger::log("Base offset: %#010x\n", hk::ro::getMainModule()->range().start());
+    switch (get_host()) {
+        case HARDWARE:
+            Logger::log("Detected as Nintendo Switch (console)");
+            break;
+        case RYUJINX:
+            Logger::log("Detected as Ryujinx (emulator)");
+            break;
+        case YUZU:
+            Logger::log("Detected as Yuzu (emulator)");
+            break;
+    }
 
     MainInitHook.orig();
 });

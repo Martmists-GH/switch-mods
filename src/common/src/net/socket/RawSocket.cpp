@@ -5,7 +5,10 @@
 #include <logger/logger.h>
 
 RawSocket::RawSocket() {
-    initCommon();
+    if (initCommon().IsFailure()) {
+        state = ERRORED;
+        return;
+    }
 
     socket = nn::socket::Socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
     if (socket < 0) {

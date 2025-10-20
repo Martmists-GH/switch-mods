@@ -1,4 +1,6 @@
 #include "MemoryPoolMaker.h"
+
+#ifdef IMGUI_ENABLED
 #include "imgui_impl_nvn.hpp"
 
 bool MemoryPoolMaker::createPool(nvn::MemoryPool *result, size_t size,
@@ -19,3 +21,4 @@ bool MemoryPoolMaker::createPool(nvn::MemoryPool *result, size_t size,
 
     return true;
 }
+#endif

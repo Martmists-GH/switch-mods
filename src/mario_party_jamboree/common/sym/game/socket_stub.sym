@@ -1,0 +1,5 @@
+@game:200
+nnsocketInitializeStub = 0x0144ad00
+
+@game:211
+nnsocketInitializeStub = 0x0144b5e0

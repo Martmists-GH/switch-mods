@@ -1,3 +1,9 @@
 @sdk
 // nn::ro::LookupSymbol(unsigned long*, char const*)
 _ZN2nn2ro12LookupSymbolEPmPKc
+
+// nn::ro::UnloadModule(Module*)
+_ZN2nn2ro12UnloadModuleEPNS0_6ModuleE
+
+// nn::ro::LoadModule(nn::ro::Module*, void const*, void*, unsigned long, int, bool)
+_ZN2nn2ro10LoadModuleEPNS0_6ModuleEPKvPvmib

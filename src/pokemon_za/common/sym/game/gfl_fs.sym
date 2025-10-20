@@ -1,0 +1,9 @@
+@game:100
+// gfl::fs::FlatBufferLoader::Open()
+_ZN3gfl2fs16FlatBufferLoader4OpenEv = 0x0002b150
+
+// gfl::fs::FlatBufferLoader::Read(void* buffer, long bufferSize)
+_ZN3gfl2fs16FlatBufferLoader4ReadEPvl = 0x0004ab40
+
+// gfl::fs::FlatBufferReadInfo::ReadToBuffer(void* buffer, long bufferSize)
+_ZN3gfl2fs18FlatBufferReadInfo12ReadToBufferEPvl = 0x01955634

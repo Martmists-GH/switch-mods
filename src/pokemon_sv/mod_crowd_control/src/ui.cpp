@@ -41,7 +41,7 @@ void setup_ui() {
         // });
 
         _.Text([](Text &_) {
-            _.content = "Press ZL+ZR to toggle all menus.";
+            _.content = "Press ZL+R to toggle all menus.";
         });
 
         _.Spacing();

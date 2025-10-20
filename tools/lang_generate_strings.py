@@ -98,6 +98,8 @@ def main(args: List[str]):
             for lang in langs.keys():
                 f.write(f"extern struct strings_t {lang};\n")
     else:
+        if not os.path.exists(out_folder):
+            os.makedirs(out_folder)
         with open(os.path.join(out_folder, "strings.hpp"), "w") as f:
             f.write("#pragma once\n#include <string>\n")
 
