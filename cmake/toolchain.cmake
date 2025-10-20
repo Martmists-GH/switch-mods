@@ -23,7 +23,7 @@ add_definitions(
     -DNNSDK
 )
 
-set(LIBSTD_PATH "${CMAKE_SOURCE_DIR}/lib/std")
+set(LIBSTD_PATH "${CMAKE_ROOT}/lib/std")
 
 include_directories(
     SYSTEM

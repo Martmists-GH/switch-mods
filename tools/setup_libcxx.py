@@ -9,6 +9,7 @@ import importlib.util
 import shutil
 import urllib.request
 import sys
+from pathlib import Path
 
 is_aarch32 = len(sys.argv) > 1 and sys.argv[1] == 'aarch32'
 
@@ -20,7 +21,7 @@ musl_source = "https://musl.libc.org/releases/" + musl_source_tar_name
 
 llvm_source = "https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-19.1.0.zip"
 
-root_dir = os.getcwd()
+root_dir = Path(__file__).parent.parent
 
 def downloadAndCompileMusl():
     print(f"Downloading musl")
