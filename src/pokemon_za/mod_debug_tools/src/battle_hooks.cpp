@@ -1,11 +1,14 @@
 #include <hk/hook/Trampoline.h>
 #include "externals/pml/battle/Exp.h"
 #include "externals/pml/Capture.h"
+#include "externals/pml/pokepara/InitialSpec.h"
+#include "externals/pml/pokepara/CalcTool.h"
 
 // Settings
 static bool isMustCapture = false;
 static bool isExpShareOn = true;
 static int expMultiplier = 1;
+static bool isMustShiny = false;
 
 void setIsMustCapture(bool value) {
     isMustCapture = value;
@@ -17,6 +20,10 @@ void setIsExpShareOn(bool value) {
 
 void setExpMultiplier(int value) {
     expMultiplier = value;
+}
+
+void setIsMustShiny(bool value) {
+    isMustShiny = value;
 }
 
 HkTrampoline<void, pml::Capture*> CaptureHook = hk::hook::trampoline([](pml::Capture* param_1) {
@@ -40,7 +47,15 @@ HkTrampoline<void, pml::battle::Exp::CalcResult*, pml::battle::Exp::CalcParam*> 
     }
 });
 
+HkTrampoline<void, pml::pokepara::InitialSpec*> ForceShinyHook = hk::hook::trampoline([](pml::pokepara::InitialSpec* param_1) {
+    ForceShinyHook.orig(param_1);
+    if (isMustShiny) {
+        param_1->colorRnd = pml::pokepara::CalcTool::CorrectColorRndForRare(param_1->id, param_1->colorRnd);
+    }
+});
+
 void battle_hooks() {
     CaptureHook.installAtPtr(pun<void*>(&pml::Capture::Judge));
     ExpCalcHook.installAtPtr(&pml::battle::Exp::CalcExp);
+    ForceShinyHook.installAtPtr(pun<void*>(&pml::pokepara::InitialSpec::FixInitSpec));
 }

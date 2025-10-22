@@ -42,8 +42,8 @@ namespace gfl::fs {
         char unk3[0x8c];
         char mode;
         char unk4[0x30];
-        long mSize;
-        long mPosition;
+        ulong mSize;
+        ulong mPosition;
 
         gfl::fs::Result Open();
         gfl::fs::Result Read(void* buffer, long bufferSize);
@@ -56,12 +56,15 @@ namespace gfl::fs {
 }
 
 HkTrampoline<gfl::fs::Result, gfl::fs::FlatBufferLoader *> FlatBufferOpenHook = hk::hook::trampoline([](gfl::fs::FlatBufferLoader *thisPtr) {
+    auto res = FlatBufferOpenHook.orig(thisPtr);
+
     std::string path = std::string(ROM_MOUNT) + ":/" + thisPtr->path.m_stringHolder.m_content.m_string;
     if (FileUtil::exists(path)) {
-        Logger::log("Changing file size for %s\n", thisPtr->path.m_stringHolder.m_content.m_string);
-        thisPtr->mSize = FileUtil::getFileSize(path);
+        auto newSize = FileUtil::getFileSize(path);
+        thisPtr->mSize = newSize;
     }
-    return FlatBufferOpenHook.orig(thisPtr);;
+
+    return res;
 });
 
 HkTrampoline<gfl::fs::Result, gfl::fs::FlatBufferLoader*, void*, long> FlatBufferReadHook = hk::hook::trampoline([](gfl::fs::FlatBufferLoader* p1, void* p2, long p3) {
@@ -74,8 +77,6 @@ HkTrampoline<gfl::fs::Result, gfl::fs::FlatBufferLoader*, void*, long> FlatBuffe
             if (res.IsSuccess()) {
                 auto result = info.ReadToBuffer(p2, p3);
                 nn::fs::CloseFile(info.mHandle);
-
-                Logger::log("Result: %d, %d\n", result.unk1, result.unk2);
                 p1->mPosition = info.mPosition;
                 return result;
             }

@@ -1,3 +1,6 @@
+#include <externals/gfl/string.h>
+#include <externals/gfl/text/StrBuf.h>
+#include <externals/pe/text/lua/Text.h>
 #include <hk/hook/Trampoline.h>
 #include <logger/logger.h>
 #include <nn/fs/fs_files.h>

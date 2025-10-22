@@ -7,26 +7,22 @@
 namespace gfl {
     struct SizedHeap;
 
-    struct IRefCountObject : ExternalType<IRefCountObject> {
+    struct IRefCountObject : ExternalInterface<IRefCountObject> {
         struct vtable {
             void* unk1;  // Destructor?
             void* unk2;  // Destructor?
             void* IncrementReference;
             void* DecrementReference;
         };
-
-        struct fields { };
     };
 
-    struct IObjectHandler : ExternalType<IObjectHandler> {
+    struct IObjectHandler : ExternalInterface<IObjectHandler> {
         struct vtable : gfl::IRefCountObject::vtable {
             void* GetHandle;
             void* GetWeakHandle;
             void* unk7;  // GetReflection?
             void* unk8;
         };
-
-        struct fields : gfl::IRefCountObject::fields { };
     };
 
     struct Reflection {
@@ -170,7 +166,7 @@ namespace gfl {
 
     struct ReferenceObject : ExternalType<ReferenceObject> {
         struct vtable : gfl::AllocatedObject::vtable {
-            void* OnZeroReference;
+            editRefType OnZeroReference;
             editRefType IncrementReference;
             editRefType DecrementReference;
         };
@@ -180,5 +176,17 @@ namespace gfl {
             int m_referenceCount;
             // char _pad[0x4];
         };
+    };
+
+
+    template <typename T = ReferenceObject>
+    struct RefPointer {
+        typename T::instance* m_ptr;
+
+        ~RefPointer() {
+            if (m_ptr != nullptr) {
+                m_ptr->vtable->DecrementReference(m_ptr);
+            }
+        }
     };
 }

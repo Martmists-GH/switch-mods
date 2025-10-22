@@ -1,0 +1,4 @@
+@game:100
+
+// pe::text::lua::Text::GetText(gfl::StringHolder*, gfl::StringHolder*)
+_ZN2pe4text3lua4Text7GetTextEPN3gfl12StringHolderES5_ = 0x00a5b370

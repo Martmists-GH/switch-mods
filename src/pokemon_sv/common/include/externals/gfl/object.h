@@ -45,26 +45,22 @@ namespace gfl {
         }
     };
 
-    struct IRefCountObject : ExternalType<IRefCountObject> {
+    struct IRefCountObject : ExternalInterface<IRefCountObject> {
         struct vtable {
             void* unk1;  // Destructor?
             void* unk2;  // Destructor?
             void* IncrementReference;
             void* DecrementReference;
         };
-
-        struct fields { };
     };
 
-    struct IObjectHandler : ExternalType<IObjectHandler> {
+    struct IObjectHandler : ExternalInterface<IObjectHandler> {
         struct vtable : gfl::IRefCountObject::vtable {
             void* GetHandle;
             void* GetWeakHandle;
             void* unk7;  // GetReflection?
             void* unk8;
         };
-
-        struct fields : gfl::IRefCountObject::fields { };
     };
 
     struct Reflection {

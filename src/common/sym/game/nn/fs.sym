@@ -40,3 +40,15 @@ _ZN2nn2fs13ReadDirectoryEPlPNS0_14DirectoryEntryENS0_15DirectoryHandleEl
 
 // nn::fs::CloseDirectory(nn::fs::DirectoryHandle)
 _ZN2nn2fs14CloseDirectoryENS0_15DirectoryHandleE
+
+// nn::fs::detail::LogResultErrorMessage(nn::Result, char const*)
+_ZN2nn2fs6detail21LogResultErrorMessageENS_6ResultEPKc
+
+// nn::fs::detail::LogResultErrorMessage(nn::Result, char const*, ...)
+_ZN2nn2fs6detail15LogErrorMessageENS_6ResultEPKcz
+
+// nn::fs::detail::IsEnabledAccessLog
+_ZN2nn2fs6detail18IsEnabledAccessLogEv
+
+// nn::fs::detail::OutputAccessLogToOnlySdCard(char const*, ...)
+_ZN2nn2fs6detail27OutputAccessLogToOnlySdCardEPKcz

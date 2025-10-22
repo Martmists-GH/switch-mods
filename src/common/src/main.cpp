@@ -8,9 +8,11 @@
 #include <nn/os.h>
 #include <nn/fs/fs_files.h>
 #include <nn/fs/fs_mount.h>
+#include <nn/fs_detail.h>
 #include <util/FileUtil.h>
 #include <util/ThreadUtil.h>
 #include <nn/diag.h>
+#include "game_constants.h"
 
 #include "imgui_backend/hooks.h"
 
@@ -94,10 +96,56 @@ HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
 });
 
 HkTrampoline<void, char const*, char const*, char const*, int, nn::Result const*, nn::os::UserExceptionInfo const*, char const*, std::va_list&> AbortHook = hk::hook::trampoline([](char const* cond, char const* func, char const* file, int code, nn::Result const* res, nn::os::UserExceptionInfo const* info, char const* fmt, std::va_list& args) {
-    Logger::log("!!!Abort!!!\nAbort occurred at %s in file %s\n", func, file);
-    Logger::log(fmt, args);
+    const char* funcLog;
+    const char* fileLog;
+    if (strlen(func) == 0) {
+        funcLog = "[unknown function]";  // TODO: Print offset from module?
+    } else {
+        funcLog = func;
+    }
+    if (strlen(file) == 0) {
+        fileLog = "[unknown file]";
+    } else {
+        fileLog = file;
+    }
+    Logger::log("!!!Abort!!!\nAbort occurred at %s in file %s\n", funcLog, fileLog);
+    if (strlen(fmt) > 0) {
+        Logger::log(fmt, args);
+    }
     AbortHook.orig(cond, func, file, code, res, info, fmt, args);
 });
+
+#ifdef ENABLE_FS_LOG
+
+static char buffer[0x200];
+HkTrampoline<void, nn::Result, char const*> fsErrorResultLogHook = hk::hook::trampoline([](nn::Result r, char const* msg) {
+    Logger::log("FS Access Error: %s (%d)\n", msg, r.GetInnerValueForDebug());
+    fsErrorResultLogHook.orig(r, msg);
+});
+
+HkTrampoline<void, nn::Result, char const*> fsErrorLogHook = hk::hook::trampoline([](nn::Result r, char const* msg) {
+    snprintf(buffer, sizeof(buffer) - 1, msg);
+    buffer[0x200 - 1] = 0;
+    Logger::log("FS Access Error: %s (%d)\n", buffer, r.GetInnerValueForDebug());
+    fsErrorLogHook.orig(r, msg);
+});
+
+HkTrampoline<bool> fsEnableDebugLogHook = hk::hook::trampoline([]() {
+    return true;
+});
+
+HkTrampoline<void, char const*> fsDebugLogHook = hk::hook::trampoline([](char const* msg) {
+    // va_list args;
+    // va_start(args, msg);
+    // char buffer[0x200];
+    // vsnprintf(buffer, sizeof(buffer) - 1, msg, args);
+    snprintf(buffer, sizeof(buffer) - 1, msg);
+    buffer[0x200 - 1] = 0;
+    Logger::log("FS Access Debug: %s", buffer);
+    // va_end(args);
+});
+
+#endif
 
 extern "C" extern void nnMain();
 
@@ -106,6 +154,13 @@ extern "C" void hkMain() {
     // Do common init/hooks
     MainInitHook.installAtPtr(&nnMain);
     AbortHook.installAtPtr(&nn::diag::detail::VAbortImpl);
+
+#ifdef ENABLE_FS_LOG
+    fsErrorResultLogHook.installAtPtr(&nn::fs::detail::LogResultErrorMessage);
+    fsErrorLogHook.installAtPtr(&nn::fs::detail::LogErrorMessage);
+    fsEnableDebugLogHook.installAtPtr(&nn::fs::detail::IsEnabledAccessLog);
+    fsDebugLogHook.installAtPtr(&nn::fs::detail::OutputAccessLogToOnlySdCard);
+#endif
 
     mod_init();
 #ifdef IMGUI_ENABLED
