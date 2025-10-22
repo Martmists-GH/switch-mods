@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utility>
 #include <vector>
 #include <string>
 #include <functional>
@@ -18,5 +19,8 @@ namespace ui {
         override{
                 callback();
         }
+
+        FunctionElement() = default;
+        explicit FunctionElement(std::function<void()> callback) : callback(std::move(callback)) {};
     };
 }

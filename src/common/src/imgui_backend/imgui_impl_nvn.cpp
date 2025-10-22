@@ -579,7 +579,7 @@ namespace ImguiNvnBackend {
 
         // if we fail to resize/init either buffers, end execution before we try to use said invalid buffer(s)
         if (!(bd->vtxBuffer->IsBufferReady() && bd->idxBuffer->IsBufferReady())) {
-            Logger::log("Cannot Draw Data! Buffers are not Ready.\n");
+            Logger::log("Cannot Draw Data! Buffers are not Ready. (%d. %d)\n", bd->vtxBuffer->IsBufferReady(), bd->idxBuffer->IsBufferReady());
             return;
         }
 

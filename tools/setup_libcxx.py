@@ -21,7 +21,7 @@ musl_source = "https://musl.libc.org/releases/" + musl_source_tar_name
 
 llvm_source = "https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-19.1.0.zip"
 
-root_dir = Path(__file__).parent.parent
+root_dir = Path(__file__).parent.parent.absolute()
 
 def downloadAndCompileMusl():
     print(f"Downloading musl")

@@ -8,6 +8,7 @@
 #include "ui/base/collapsing_header.h"
 #include "ui/base/combo.h"
 #include "ui/base/combo_simple.h"
+#include "ui/base/group.h"
 #include "ui/base/input_int.h"
 #include "ui/base/menu_bar.h"
 #include "ui/base/row.h"
@@ -86,6 +87,7 @@ namespace ui {
         ELEMENT_SUPPORTS_CHILD(CollapsingHeader);
         ELEMENT_SUPPORTS_CHILD(Row);
         ELEMENT_SUPPORTS_CHILD(Grid);
+        ELEMENT_SUPPORTS_CHILD(Group);
         ELEMENT_SUPPORTS_CHILD(Child);
         COMMON_ELEMENTS();
     };

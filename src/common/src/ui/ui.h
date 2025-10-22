@@ -6,6 +6,7 @@
 #include "ui/base/collapsing_header.h"
 #include "ui/base/combo.h"
 #include "ui/base/combo_simple.h"
+#include "ui/base/group.h"
 #include "ui/base/function_element.h"
 #include "ui/base/input_int.h"
 #include "ui/base/menu.h"

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utility>
 #include <vector>
 #include <string>
 #include <functional>
@@ -21,5 +22,9 @@ namespace ui {
                     onClick();
                 }
         }
+
+        Button() = default;
+        explicit Button(std::string label, std::function<void()> onClick) : label(std::move(label)), onClick(std::move(onClick)) {}
+        explicit Button(const char* label, std::function<void()> onClick) : label(label), onClick(std::move(onClick)) {}
     };
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utility>
 #include <vector>
 #include <string>
 #include <functional>
@@ -24,5 +25,11 @@ namespace ui {
                     }
                 }
         }
+
+        Checkbox() = default;
+        explicit Checkbox(std::string label, std::function<void(bool)> onChange) : label(std::move(label)), onChange(std::move(onChange)) {};
+        explicit Checkbox(const char* label, std::function<void(bool)> onChange) : label(label), onChange(std::move(onChange)) {};
+        explicit Checkbox(std::string label, bool enabled, std::function<void(bool)> onChange) : label(std::move(label)), enabled(enabled), onChange(std::move(onChange)) {};
+        explicit Checkbox(const char* label, bool enabled, std::function<void(bool)> onChange) : label(label), enabled(enabled), onChange(std::move(onChange)) {};
     };
 }

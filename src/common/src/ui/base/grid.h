@@ -7,6 +7,7 @@
 #include "ui/base/checkbox.h"
 #include "ui/base/combo.h"
 #include "ui/base/combo_simple.h"
+#include "ui/base/group.h"
 #include "ui/base/input_int.h"
 #include "ui/base/menu_bar.h"
 #include "ui/base/row.h"

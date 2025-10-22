@@ -18,5 +18,9 @@ namespace ui {
         override{
                 ImGui::TextUnformatted(content.c_str(), content.c_str() + content.size());
         }
+
+        TextUnformatted() = default;
+        explicit TextUnformatted(std::string content) : content(std::move(content)) {};
+        explicit TextUnformatted(const char* content) : content(content) {};
     };
 }

@@ -1,0 +1,9 @@
+@game:100
+// ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(uint32_t)
+_ZN2ik5event24IkkakuEventScriptCommand17AddAndShowMonyeUIEj = 0x027f1e24
+
+// ik::event::IkkakuEventScriptCommand::GetCurrentMoney()
+_ZN2ik5event24IkkakuEventScriptCommand15GetCurrentMoneyEv = 0x027f1edc
+
+// ik::event::IkkakuEventScriptCommand::AddItem(uint32_t, uint32_t)
+_ZN2ik5event24IkkakuEventScriptCommand7AddItemEjj = 0x027f2654

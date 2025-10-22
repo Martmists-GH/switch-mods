@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utility>
 #include <vector>
 #include <string>
 #include <functional>
@@ -18,5 +19,9 @@ namespace ui {
         override{
                 ImGui::Text("%s", content.c_str());
         }
+
+        Text() = default;
+        explicit Text(std::string content) : content(std::move(content)) {};
+        explicit Text(const char* content) : content(content) {};
     };
 }

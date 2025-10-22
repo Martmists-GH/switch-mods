@@ -54,14 +54,20 @@ namespace ui {
     };
 
 #define ELEMENT(TName, ...) struct TName : public ui::Factory<TName> __VA_OPT__(,) __VA_ARGS__
-#define ELEMENT_SUPPORTS_CHILD(TName) struct TName* TName(const std::function<void(struct TName&)>& initializer) { \
-    struct TName* instance = TName::create(initializer);                                                     \
-    mChildren.push_back(instance);                                                                           \
-    mOwnedChildren.push_back(instance);                                                                      \
-    return instance;                                                                                         \
-}                                                                                                            \
-struct TName* TName() {                                                                                      \
-    return TName([](struct TName&){});                                                                       \
+#define ELEMENT_SUPPORTS_CHILD(TName)                                                                              \
+template<std::invocable<TName&> T>\
+struct TName* TName(T&& initializer) {                                       \
+    struct TName* instance = TName::create(initializer);                                                           \
+    mChildren.push_back(instance);                                                                                 \
+    mOwnedChildren.push_back(instance);                                                                            \
+    return instance;                                                                                               \
+}                                                                                                                  \
+template <typename ...Args>                                                                                        \
+struct TName* TName(Args... args) {                                                                                \
+    struct TName* instance = TName::createArgs<Args...>(args...);                                                           \
+    mChildren.push_back(instance);                                                                                 \
+    mOwnedChildren.push_back(instance);                                                                            \
+    return instance;                                                                                               \
 }
 
 #define COMMON_ELEMENTS()                      \
@@ -96,7 +102,8 @@ ELEMENT_SUPPORTS_CHILD(StringView)
         }
 
     public:
-        static T *create(std::function<void(T &)> initializer) {
+        template<std::invocable<T&> F>
+        static T *create(F&& initializer) {
             T *instance = IM_NEW(T);
             initializer(*instance);
             if (!instance->isValid()) {
@@ -105,9 +112,28 @@ ELEMENT_SUPPORTS_CHILD(StringView)
             return instance;
         }
 
-        static T single(std::function<void(T &)> initializer) {
+        template <typename ...Args>
+        static T *createArgs(Args... args) {
+            T *instance = new(T)(args...);
+            if (!instance->isValid()) {
+                HK_ABORT("UI Element of type %s reported invalid after initializing!", typeid(T).name());
+            }
+            return instance;
+        }
+
+        template<std::invocable<T&> F>
+        static T single(F&& initializer) {
             T instance{};
             initializer(instance);
+            if (!instance.isValid()) {
+                HK_ABORT("UI Element of type %s reported invalid after initializing!", typeid(T).name());
+            }
+            return instance;
+        }
+
+        template <typename ...Args>
+        static T single(Args... args) {
+            T instance(args...);
             if (!instance.isValid()) {
                 HK_ABORT("UI Element of type %s reported invalid after initializing!", typeid(T).name());
             }

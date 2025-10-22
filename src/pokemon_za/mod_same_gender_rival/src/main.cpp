@@ -12,8 +12,8 @@ void setGenderModShouldPatch(bool shouldPatch) {
     s_shouldPatch = shouldPatch;
 }
 
-HkTrampoline<bool, void*> GenderPatchHookForModel = hk::hook::trampoline([](void* param_1) {
-    const auto r = GenderPatchHookForModel.orig(param_1);
+HkTrampoline<bool, void*, void*> GenderPatchHookForModel = hk::hook::trampoline([](void* param_1, void* param_2) {
+    const auto r = GenderPatchHookForModel.orig(param_1, param_2);
     if (s_shouldPatch) {
         return !r;
     } else {
@@ -23,5 +23,5 @@ HkTrampoline<bool, void*> GenderPatchHookForModel = hk::hook::trampoline([](void
 
 void mod_init() {
     common_hooks();
-    GenderPatchHookForModel.installAtMainOffset(0x00462620);
+    GenderPatchHookForModel.installAtMainOffset(0x00a97dd0);
 }

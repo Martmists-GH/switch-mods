@@ -2,6 +2,8 @@
 #include <util/InputUtil.h>
 
 #ifdef IMGUI_ENABLED
+#include <nn/primitives.h>
+
 #include "ui/ui.h"
 #include "imgui_backend/imgui_impl_nvn.hpp"
 #include "nvn/nvn.h"
@@ -51,6 +53,7 @@ bool InitImGui() {
 
         ImGuiMemAllocFunc allocFunc = [](size_t size, void *user_data) {
             return malloc(size);
+            // return (void*)ALIGN_UP(malloc(size + 0x1000), 0x1000);
         };
 
         ImGuiMemFreeFunc freeFunc = [](void *ptr, void *user_data) {
