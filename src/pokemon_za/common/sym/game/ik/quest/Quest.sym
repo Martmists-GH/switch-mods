@@ -1,0 +1,3 @@
+@game:100
+// ik::quest::Quest::GetCurrentProgress
+_ZN2ik5quest5Quest18GetCurrentProgressEv = 0x002af544

@@ -16,6 +16,10 @@ namespace gfl {
             gfl::StringContent m_content;
         };
     };
+    static_assert(offsetof(String::instance, fields.m_content) == 0x30);
+
+    // static_assert(offsetof(String::instance, fields.m_content) == 0x30);
+    // static_assert(offsetof(String::instance, fields.m_content.m_string) == 0x38);
 
     struct StringHolder {
         gfl::StringContent m_content;

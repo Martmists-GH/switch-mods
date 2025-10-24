@@ -14,11 +14,15 @@ function(create_mod name folder)
     list(APPEND ALL_INCLUDE "${HAKKUN_LIB_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/common/include" "${CMAKE_CURRENT_SOURCE_DIR}/${folder}/include")
     list(APPEND ALL_SOURCE
         "${HAKKUN_LIB_DIR}/src/hk/diag/diag.cpp"
+        "${HAKKUN_LIB_DIR}/src/hk/diag/ipclogger.cpp"
+        "${HAKKUN_LIB_DIR}/src/hk/diag/ResultName.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/hook/MapUtil.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/hook/Trampoline.cpp"
-        "${HAKKUN_LIB_DIR}/src/hk/init/module.S"
+        "${HAKKUN_LIB_DIR}/src/hk/init/mod0.S"
+        "${HAKKUN_LIB_DIR}/src/hk/init/moduleEntry.S"
         "${HAKKUN_LIB_DIR}/src/hk/init/module.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/os/Libcxx.cpp"
+        "${HAKKUN_LIB_DIR}/src/hk/os/Thread.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/ro/RoUtil.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/ro/RoModule.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/sail/detail.cpp"
@@ -251,6 +255,7 @@ function(create_mod_variant module variant title_id game)
     target_link_libraries(
         ${variant} PUBLIC
 
+        "${CMAKE_CURRENT_BINARY_DIR}/sail_output_${variant}/datablocks.o"
         "${CMAKE_CURRENT_BINARY_DIR}/sail_output_${variant}/fakesymbols.so"
         "${CMAKE_CURRENT_BINARY_DIR}/sail_output_${variant}/symboldb.o"
         nnsdk
@@ -270,7 +275,6 @@ function(create_mod_variant module variant title_id game)
         -Wl,--error-limit=0
         -Wl,--export-dynamic-symbol=_ZN2nn2ro6detail15g_pAutoLoadListE
         -Wl,--unresolved-symbols=report-all
-        "-Wl,--version-script=${PROJECT_SOURCE_DIR}/lib/hakkun/data/visibility.txt"
     )
 
     create_nso(${variant} "subsdk9")

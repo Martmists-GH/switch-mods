@@ -2,6 +2,11 @@
 
 namespace gfl {
     struct FnvHash64 {
+        long value;
+
+        explicit FnvHash64(long value) : value(value) {}
+        explicit FnvHash64(const char* content) : value(gfl::FnvHash64::hash(content)) {}
+
         static long GetEmptyString() {
             return FNV_BASIS;
         }

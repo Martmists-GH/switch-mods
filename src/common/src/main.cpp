@@ -73,7 +73,7 @@ HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
         Logger::log("Failed to connect to logging server!\n");
     }
 #endif
-    Logger::log(MODULE_NAME_STR " Loaded!\n");
+    Logger::log(STR(MODULE_NAME) " Loaded!\n");
 
     nn::oe::DisplayVersion display_version{};
     nn::oe::GetDisplayVersion(&display_version);

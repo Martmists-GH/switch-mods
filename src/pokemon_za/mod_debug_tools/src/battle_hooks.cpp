@@ -8,6 +8,7 @@
 static bool isMustCapture = false;
 static bool isExpShareOn = true;
 static int expMultiplier = 1;
+static bool expMultiplierInvert = false;
 static bool isMustShiny = false;
 
 void setIsMustCapture(bool value) {
@@ -20,6 +21,10 @@ void setIsExpShareOn(bool value) {
 
 void setExpMultiplier(int value) {
     expMultiplier = value;
+}
+
+void setExpMultiplierInvert(bool value) {
+    expMultiplierInvert = value;
 }
 
 void setIsMustShiny(bool value) {
@@ -43,7 +48,16 @@ HkTrampoline<void, pml::battle::Exp::CalcResult*, pml::battle::Exp::CalcParam*> 
     if (!param->didFight && !isExpShareOn) {
         result->exp = 0;
     } else {
-        result->exp *= expMultiplier;
+        if (expMultiplier == 0) {
+            result->exp = 0;
+        } else {
+            if (expMultiplierInvert) {
+                auto expf = (float)result->exp;
+                result->exp = (int)(expf / (float)expMultiplier);
+            } else {
+                result->exp *= expMultiplier;
+            }
+        }
     }
 });
 

@@ -58,8 +58,9 @@ function(create_sail variant module_folder)
     add_custom_command(
         OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/sail_output_${variant}/fakesymbols.so"
         OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/sail_output_${variant}/symboldb.o"
+        OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/sail_output_${variant}/datablocks.o"
         COMMAND mkdir -p "${CMAKE_CURRENT_BINARY_DIR}/sail_output_${variant}"
-        COMMAND ${sail} ${module_folder}/ModuleList.sym ${module_folder}/VersionList.sym "${CMAKE_CURRENT_BINARY_DIR}/sail_output_${variant}" ${CMAKE_C_COMPILER} 0 E "${module_folder}/game"
+        COMMAND ${sail} ${module_folder}/ModuleList.sym ${module_folder}/VersionList.sym "${CMAKE_CURRENT_BINARY_DIR}/sail_output_${variant}" ${CMAKE_C_COMPILER} 0 I "${module_folder}/game"
         DEPENDS ${SAIL_FILES} ${variant}_sail_prepare
     )
     add_custom_target(

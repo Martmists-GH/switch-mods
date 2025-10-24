@@ -178,6 +178,10 @@ namespace gfl {
         };
     };
 
+    template <typename T>
+    struct Pointer {
+        T* m_ptr;
+    };
 
     template <typename T = ReferenceObject>
     struct RefPointer {
@@ -188,5 +192,13 @@ namespace gfl {
                 m_ptr->vtable->DecrementReference(m_ptr);
             }
         }
+    };
+
+    template <typename T>
+    struct Singleton {
+        void** vtable;
+        gfl::SizedHeap* m_resource;
+
+        static T s_instance;
     };
 }

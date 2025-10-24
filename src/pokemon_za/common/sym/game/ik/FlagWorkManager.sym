@@ -1,0 +1,6 @@
+@game:100
+// ik::FlagWorkManager::s_instance
+_ZN2ik15FlagWorkManager10s_instanceE = 0x05f0eb80
+
+// ik::FlagWorkManager::SetWorkValue(gfl::StringHolder*, uint32_t)
+_ZN2ik15FlagWorkManager12SetWorkValueEPN3gfl12StringHolderEj = 0x0085c1fc

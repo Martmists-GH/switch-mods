@@ -1,0 +1,22 @@
+@game:100
+
+// gfl::Singleton<ik::ResearchLevelManager>::s_instance
+_ZN3gfl9SingletonIN2ik20ResearchLevelManagerEE10s_instanceE = 0x05f2d040
+
+// ik::ResearchLevelManager::GetLevel()
+_ZN2ik20ResearchLevelManager8GetLevelEv = 0x007ac2ac
+
+// ik::ResearchLevelManager::GetPoint()
+_ZN2ik20ResearchLevelManager8GetPointEv = 0x0072baa8
+
+// ik::ResearchLevelManager::GetNextLevelPoint()
+_ZN2ik20ResearchLevelManager17GetNextLevelPointEv = 0x007d3984
+
+// ik::ResearchLevelManager::GetNextLevelProgress()
+_ZN2ik20ResearchLevelManager20GetNextLevelProgressEv = 0x0072b868
+
+// ik::ResearchLevelManager::CanLevelUp()
+_ZN2ik20ResearchLevelManager10CanLevelUpEv = 0x007d3a1c
+
+// ik::ResearchLevelManager::ExecuteLevelUp()
+_ZN2ik20ResearchLevelManager14ExecuteLevelUpEv = 0x007d5f24

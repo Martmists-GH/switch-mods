@@ -1,0 +1,7 @@
+@game:100
+
+// ik::HudMomijiQuestAchievementUIAccessor::s_instance
+_ZN2ik35HudMomijiQuestAchievementUIAccessor10s_instanceE = 0x05f0e808
+
+// ik::HudMomijiQuestAchievementUIAccessor::AddCompletion(ik::QuestCompletion*)
+_ZN2ik35HudMomijiQuestAchievementUIAccessor13AddCompletionEPNS_15QuestCompletionE = 0x007d3fe8

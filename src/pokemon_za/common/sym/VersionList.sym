@@ -1,2 +1,5 @@
-@game
+@game = main_app.nss
+// 100 and 101 have the same ID
 100 = 7222E13ECF6ADB3249B5DD5C57FA40B1
+
+@sdk = nnSdk

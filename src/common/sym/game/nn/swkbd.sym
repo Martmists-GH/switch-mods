@@ -8,6 +8,9 @@ _ZN2nn5swkbd17SetHeaderTextUtf8EPNS0_14KeyboardConfigEPKc
 // nn::swkbd::SetSubTextUtf8(nn::swkbd::KeyboardConfig*, char const*)
 _ZN2nn5swkbd14SetSubTextUtf8EPNS0_14KeyboardConfigEPKc
 
+// nn::swkbd::SetInitialTextUtf8(nn::swkbd::ShowKeyboardArg*, char const*)
+_ZN2nn5swkbd18SetInitialTextUtf8EPNS0_15ShowKeyboardArgEPKc
+
 // nn::swkbd::GetRequiredWorkBufferSize(bool)
 _ZN2nn5swkbd25GetRequiredWorkBufferSizeEb
 
