@@ -2,3 +2,5 @@
 @game
 200 = 1c6a3dbf8839aa7065385b6bc57de750
 211 = d70ce1726c979e45ed4200e9c2b23b2a
+
+@sdk = nnSdk

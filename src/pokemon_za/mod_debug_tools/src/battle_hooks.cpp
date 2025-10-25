@@ -10,6 +10,7 @@ static bool isExpShareOn = true;
 static int expMultiplier = 1;
 static bool expMultiplierInvert = false;
 static bool isMustShiny = false;
+static int shinyMultiplier = 1;
 
 void setIsMustCapture(bool value) {
     isMustCapture = value;
@@ -29,6 +30,10 @@ void setExpMultiplierInvert(bool value) {
 
 void setIsMustShiny(bool value) {
     isMustShiny = value;
+}
+
+void setShinyMultiplier(int value) {
+    shinyMultiplier = value;
 }
 
 HkTrampoline<void, pml::Capture*> CaptureHook = hk::hook::trampoline([](pml::Capture* param_1) {
@@ -62,6 +67,7 @@ HkTrampoline<void, pml::battle::Exp::CalcResult*, pml::battle::Exp::CalcParam*> 
 });
 
 HkTrampoline<void, pml::pokepara::InitialSpec*> ForceShinyHook = hk::hook::trampoline([](pml::pokepara::InitialSpec* param_1) {
+    param_1->rareTryCount *= shinyMultiplier;
     ForceShinyHook.orig(param_1);
     if (isMustShiny) {
         param_1->colorRnd = pml::pokepara::CalcTool::CorrectColorRndForRare(param_1->id, param_1->colorRnd);

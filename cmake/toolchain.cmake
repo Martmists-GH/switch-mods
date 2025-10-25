@@ -5,9 +5,11 @@ set(CMAKE_SYSTEM_PROCESSOR aarch64)
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_VERSION "NX/Clang")
 
-set(CMAKE_ASM_COMPILER "clang")
-set(CMAKE_C_COMPILER "clang")
-set(CMAKE_CXX_COMPILER "clang++")
+# FIXME: Apparently everything breaks on clang 21 onwards?
+set(CMAKE_ASM_COMPILER "/usr/lib/llvm20/bin/clang-20")
+set(CMAKE_C_COMPILER "/usr/lib/llvm20/bin/clang-20")
+set(CMAKE_CXX_COMPILER "/usr/lib/llvm20/bin/clang++")
+set(CMAKE_LINKER "ld.lld")
 set(CMAKE_EXECUTABLE_SUFFIX ".nss")
 
 set(CMAKE_C_STANDARD 17)

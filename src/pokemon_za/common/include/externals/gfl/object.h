@@ -178,11 +178,6 @@ namespace gfl {
         };
     };
 
-    template <typename T>
-    struct Pointer {
-        T* m_ptr;
-    };
-
     template <typename T = ReferenceObject>
     struct RefPointer {
         typename T::instance* m_ptr;

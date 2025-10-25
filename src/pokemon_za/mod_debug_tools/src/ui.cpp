@@ -22,6 +22,7 @@ void setIsExpShareOn(bool value);
 void setExpMultiplier(int value);
 void setExpMultiplierInvert(bool value);
 void setIsMustShiny(bool value);
+void setShinyMultiplier(int value);
 
 namespace ik::ItemId {
     extern char* names[2635];
@@ -117,6 +118,15 @@ void setup_ui() {
             });
             _.Checkbox("100% Shiny Rate", false, [](bool it) {
                 setIsMustShiny(it);
+            });
+            _.SliderInt([](SliderInt &_) {
+                _.label = "Shiny rate Multiplier";
+                _.min = 0;
+                _.max = 30;
+                _.value = 1;
+                _.onChange = [](int mult) {
+                    setShinyMultiplier(mult);
+                };
             });
             _.Checkbox("Enable EXP Share", true, [](bool it) {
                 setIsExpShareOn(it);

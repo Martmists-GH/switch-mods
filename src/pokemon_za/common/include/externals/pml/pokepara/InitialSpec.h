@@ -6,7 +6,9 @@ namespace pml::pokepara {
         uint32_t id;
         int unk1;
         uint32_t colorRnd;
-        char unk3[0xd4];
+        char unk3[0x4];
+        uint8_t rareTryCount;
+        char unk4[0xcf];
 
         void FixInitSpec();
     };
