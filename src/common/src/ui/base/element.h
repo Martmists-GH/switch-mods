@@ -48,7 +48,7 @@ namespace ui {
             mChildren.push_back(child);
         }
 
-        void clearChildren() {
+        virtual void clearChildren() {
             mChildren.clear();
         }
     };
@@ -102,9 +102,17 @@ ELEMENT_SUPPORTS_CHILD(StringView)
         }
 
     public:
+        void clearChildren() override {
+            mChildren.clear();
+            for (auto owned: mOwnedChildren) {
+                delete owned;
+            }
+            mOwnedChildren.clear();
+        }
+
         template<std::invocable<T&> F>
         static T *create(F&& initializer) {
-            T *instance = IM_NEW(T);
+            T *instance = new T;
             initializer(*instance);
             if (!instance->isValid()) {
                 HK_ABORT("UI Element of type %s reported invalid after initializing!", typeid(T).name());

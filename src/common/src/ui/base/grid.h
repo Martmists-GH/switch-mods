@@ -11,6 +11,7 @@
 #include "ui/base/input_int.h"
 #include "ui/base/menu_bar.h"
 #include "ui/base/row.h"
+#include "ui/base/group.h"
 #include "ui/base/function_wrapping_element.h"
 #include "ui/base/slider.h"
 #include "ui/base/spacing.h"
@@ -21,9 +22,10 @@
 namespace ui {
     ELEMENT(Grid) {
         int columns;
+        int flags = ImGuiOldColumnFlags_NoBorder;
 
         bool beginDraw() override {
-            ImGui::BeginColumns(nullptr, columns, 0);
+            ImGui::BeginColumns(nullptr, columns, flags);
             return true;
         }
 
@@ -39,5 +41,7 @@ namespace ui {
         }
 
         COMMON_ELEMENTS();
+        ELEMENT_SUPPORTS_CHILD(Group);
+        ELEMENT_SUPPORTS_CHILD(Row);
     };
 }

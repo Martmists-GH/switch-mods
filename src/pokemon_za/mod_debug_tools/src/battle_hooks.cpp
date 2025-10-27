@@ -1,3 +1,4 @@
+#include <hook_util.h>
 #include <hk/hook/Trampoline.h>
 #include "externals/pml/battle/Exp.h"
 #include "externals/pml/Capture.h"
@@ -9,8 +10,6 @@ static bool isMustCapture = false;
 static bool isExpShareOn = true;
 static int expMultiplier = 1;
 static bool expMultiplierInvert = false;
-static bool isMustShiny = false;
-static int shinyMultiplier = 1;
 
 void setIsMustCapture(bool value) {
     isMustCapture = value;
@@ -28,13 +27,7 @@ void setExpMultiplierInvert(bool value) {
     expMultiplierInvert = value;
 }
 
-void setIsMustShiny(bool value) {
-    isMustShiny = value;
-}
-
-void setShinyMultiplier(int value) {
-    shinyMultiplier = value;
-}
+PokemonData s_dataForEncounter = {};
 
 HkTrampoline<void, pml::Capture*> CaptureHook = hk::hook::trampoline([](pml::Capture* param_1) {
     CaptureHook.orig(param_1);
@@ -66,11 +59,23 @@ HkTrampoline<void, pml::battle::Exp::CalcResult*, pml::battle::Exp::CalcParam*> 
     }
 });
 
-HkTrampoline<void, pml::pokepara::InitialSpec*> ForceShinyHook = hk::hook::trampoline([](pml::pokepara::InitialSpec* param_1) {
-    param_1->rareTryCount *= shinyMultiplier;
-    ForceShinyHook.orig(param_1);
-    if (isMustShiny) {
-        param_1->colorRnd = pml::pokepara::CalcTool::CorrectColorRndForRare(param_1->id, param_1->colorRnd);
+HkTrampoline<void, pml::pokepara::InitialSpec*> ForceShinyHook = hk::hook::trampoline([](pml::pokepara::InitialSpec* spec) {
+    spec->rareTryCount *= s_dataForEncounter.shinyMultiplier;
+    ForceShinyHook.orig(spec);
+    if (s_dataForEncounter.forceShiny) {
+        spec->colorRnd = pml::pokepara::CalcTool::CorrectColorRndForRare(spec->id, spec->colorRnd);
+    }
+    if (s_dataForEncounter.forceModify) {
+        spec->monsNo = s_dataForEncounter.species;
+        spec->formNo = s_dataForEncounter.form;
+        spec->level = s_dataForEncounter.level;
+        spec->sex = s_dataForEncounter.sex;
+        spec->nature = s_dataForEncounter.nature;
+        spec->abilityIndex = s_dataForEncounter.ability;
+        for (int i = 0; i < 6; i++) {
+            spec->iv[i] = s_dataForEncounter.iv[i];
+            spec->ev[i] = s_dataForEncounter.ev[i];
+        }
     }
 });
 

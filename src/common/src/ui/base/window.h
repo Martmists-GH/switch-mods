@@ -43,6 +43,7 @@ namespace ui {
         void render()
         override{
                 if (this->beginDraw()) {
+                    ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.2f);
                     this->draw();
                 }
                 if (_didBegin) {

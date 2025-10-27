@@ -1,0 +1,3 @@
+@game:100
+// pml::personal::PersonalSystem::CheckPokeExist(uint32_t, uint32_t)
+_ZN3pml8personal14PersonalSystem14CheckPokeExistEjj = 0x002aa84c

@@ -20,6 +20,7 @@
 #include "ui/base/text_unformatted.h"
 #include "ui/base/window.h"
 #include "ui/components/string_view.h"
+#include "ui/components/builder.h"
 
 ui::Root& getRootElement();
 
