@@ -115,13 +115,12 @@ void presentTexture(nvn::Queue *queue, nvn::Window *window, int texIndex) {
 
     if (hasInitImGui) {
         procDraw();
+        buf->BeginRecording();
+        setTexturePool(buf, pool);
+        setSamplerPool(buf, samplerPool);
+        auto handle = buf->EndRecording();
+        queue->SubmitCommands(1, &handle);
     }
-
-    buf->BeginRecording();
-    setTexturePool(buf, pool);
-    setSamplerPool(buf, samplerPool);
-    auto handle = buf->EndRecording();
-    queue->SubmitCommands(1, &handle);
     tempPresentTexFunc(queue, window, texIndex);
 }
 

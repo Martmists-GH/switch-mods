@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <format>
 #include <hook_util.h>
+#include <numeric>
 #include <externals/gfl/string.h>
 #include <externals/ik/QuestManager.h>
 #include <util/common_utils.h>
@@ -235,19 +236,128 @@ void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
     });
 }
 
+std::string memorySize(uint64_t numBytes) {
+    if (numBytes < 1024) {
+        return std::format("{} bytes", numBytes);
+    } else if (numBytes < 1024 * 1024) {
+        return std::format("{:.2f} kB", numBytes / 1024.0f);
+    } else if (numBytes < 1024 * 1024 * 1024) {
+        return std::format("{:.2f} MB", numBytes / 1024.0f / 1024.0f);
+    } else {
+        return std::format("{:.2f} GB", numBytes / 1024.0f / 1024.0f / 1024.0f);
+    }
+}
+
+struct HeapMeta {
+    uint64_t allocPeak;
+    uint64_t lastAllocSize;
+};
+
 void setup_ui() {
+    static nn::TimeSpan lastTick = nn::os::ConvertToTimeSpan(nn::os::GetSystemTick());
+    static std::array<float, 120> counts = {0};
+    static std::array<HeapMeta, 4> heapInfo = {};
+    static auto perfWindow = ROOT.Window([](Window &_) {
+        _.title = "Performance";
+        _.sticky = true;
+        _.open = false;
+        _.toggleable = true;
+        _.initialPos = ImVec2(800, 50);
+        _.initialSize = ImVec2(450, 280);
+
+        _.FunctionElement([]() {
+            nn::TimeSpan curTick = nn::os::ConvertToTimeSpan(nn::os::GetSystemTick());
+            float deltaTime = (curTick.nanoseconds - lastTick.nanoseconds) / 1e9f;
+            lastTick = curTick;
+
+            for (size_t i = 0; i < counts.size() - 1; ++i) {
+                counts[i] = counts[i + 1];
+            }
+            counts.back() = deltaTime;
+
+            float sum = 0.0f, minFT = FLT_MAX, maxFT = 0.0f;
+            for (float t : counts) {
+                sum += t;
+                minFT = std::min(minFT, t);
+                maxFT = std::max(maxFT, t);
+            }
+
+            float avgFT = sum / counts.size();
+            float fps = 1.0f / avgFT;
+
+            std::array<float, 120> sorted = counts;
+            std::sort(sorted.begin(), sorted.end());
+            auto pct = [&](float p) {
+                float idx = p * (sorted.size() - 1);
+                size_t i0 = idx;
+                size_t i1 = std::min(i0 + 1, sorted.size() - 1);
+                float t = idx - i0;
+                return std::lerp(sorted[i0], sorted[i1], t);
+            };
+
+            float p50 = pct(0.50f);
+            float p90 = pct(0.90f);
+            float p99 = pct(0.99f);
+
+            const size_t shortWindow = 30;
+            float shortSum = 0.0f;
+            for (size_t i = counts.size() - shortWindow; i < counts.size(); ++i) {
+                shortSum += counts[i];
+            }
+            float shortAvg = shortSum / shortWindow;
+            float shortFPS = 1.0f / shortAvg;
+
+            ImGui::Text("FPS (120-frame avg): %.2f", fps);
+            ImGui::Text("FPS (last 30): %.2f", shortFPS);
+            ImGui::Text("Frame Time: avg %.3f ms | min %.3f | max %.3f", avgFT * 1000.0f, minFT * 1000.0f, maxFT * 1000.0f);
+            ImGui::Text("Percentiles: P50 %.3f ms | P90 %.3f ms | P99 %.3f ms", p50 * 1000.0f, p90 * 1000.0f, p99 * 1000.0f);
+
+            ImGui::PlotLines("Frame Times (ms)", counts.data(), counts.size(), 0,
+                             nullptr, 0.0f, 0.2f);
+        });
+        _.Spacing();
+        _.Text("Memory");
+        auto mgr = gfl::HeapManager::s_instance;
+        for (int i = 0; i < 4; i++) {
+            auto& heap = mgr->fields.heaps[i];
+            auto& meta = heapInfo[i];
+            if (heap.m_heap == nullptr) continue;
+            _.FunctionElement([heap, &meta]() {
+                ImGui::Text("HEAP: %s", heap.m_heap->fields.label);
+                auto currentAlloc = heap.m_heap->AllocSize();
+                auto memAlloced = memorySize(currentAlloc);
+                auto memAvailable = memorySize(heap.m_heap->fields.allocMax);
+                auto memPeak = memorySize(meta.allocPeak);
+                auto delta = static_cast<long>(currentAlloc) - static_cast<long>(meta.lastAllocSize);
+                auto deltaString = memorySize(std::abs(delta));
+                ImGui::Text(" Usage: %s / %s", memAlloced.c_str(), memAvailable.c_str());
+                ImGui::Text(" Peak: %s", memPeak.c_str());
+                ImGui::Text(" Change: %s%s", delta < 0 ? "-" : "", deltaString.c_str());
+
+                meta.allocPeak = std::max(meta.allocPeak, currentAlloc);
+                meta.lastAllocSize = currentAlloc;
+            });
+        }
+    });
+
     ROOT.Window([](Window& _){
         _.title = "ZA Toolbox - By Martmists";
         _.toggleable = false;
-        //_.flags |= ImGuiWindowFlags_MenuBar;
+        _.flags |= ImGuiWindowFlags_MenuBar;
         _.initialPos = ImVec2(50, 50);
         _.initialSize = ImVec2(400, 450);
 
         _.MenuBar([](MenuBar &_) {
-
+            _.Menu([](Menu &_) {
+                _.label = "Windows";
+                _.MenuItem([](MenuItem &_) {
+                    _.label = "Performance";
+                    _.checked = &perfWindow->open;
+                });
+            });
         });
 
-        _.Text("Press ZL+R to toggle all menus. Hold Y to move or resize.");
+        _.Text("Press ZL+R to toggle all menus.\nHold Y to move or resize.");
 
         _.Spacing();
 

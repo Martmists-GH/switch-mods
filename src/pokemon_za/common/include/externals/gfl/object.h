@@ -114,16 +114,21 @@ namespace gfl {
         struct fields {
             void* unk1;
             char* label;
-            char unk2[0x38];
-            uint64_t allocSize;
+            char unk2[0x28];
+            uint64_t size;
+            char unk3[0x8];
+            uint64_t allocSizeCount;
             uint64_t allocMax;
         };
+
+        uint64_t AllocSize() { return impl()->fields.allocSizeCount & 0x3fffffffff; }
+        uint64_t AllocCount() { return impl()->fields.allocSizeCount >> 38; }
     };
 
     struct HeapManager : ExternalType<HeapManager> {
         struct childHeap {
-            SizedHeap* m_heap;
-            SizedHeap* m_parentHeap;
+            gfl::SizedHeap::instance* m_heap;
+            gfl::SizedHeap::instance* m_parentHeap;
             void* unk1;
             long unk2;
         };
@@ -136,7 +141,7 @@ namespace gfl {
         };
 
 
-        static HeapManager* GetInstance();
+        static gfl::HeapManager::instance* s_instance;
     };
 
     template <typename T>

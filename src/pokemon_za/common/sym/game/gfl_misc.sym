@@ -1,0 +1,3 @@
+@game:100
+// gfl::HeapManager::s_instance
+_ZN3gfl11HeapManager10s_instanceE = 0x03da1b48
