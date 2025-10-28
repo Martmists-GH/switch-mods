@@ -16,7 +16,7 @@ namespace pml::pokepara {
         short level;
         short sex;
         short nature;
-        short unk6;
+        short natureMint;
         char abilityIndex;
         char unk7[0x7];
         short iv[6];

@@ -4,12 +4,14 @@
 #include "externals/pml/Capture.h"
 #include "externals/pml/pokepara/InitialSpec.h"
 #include "externals/pml/pokepara/CalcTool.h"
+#include "externals/ik/TrainerComponent.h"
 
 // Settings
 static bool isMustCapture = false;
 static bool isExpShareOn = true;
 static int expMultiplier = 1;
 static bool expMultiplierInvert = false;
+static bool alwaysMaxEnergy = false;
 
 void setIsMustCapture(bool value) {
     isMustCapture = value;
@@ -25,6 +27,10 @@ void setExpMultiplier(int value) {
 
 void setExpMultiplierInvert(bool value) {
     expMultiplierInvert = value;
+}
+
+void setAlwaysMaxEnergy(bool value) {
+    alwaysMaxEnergy = value;
 }
 
 PokemonData s_dataForEncounter = {};
@@ -71,6 +77,7 @@ HkTrampoline<void, pml::pokepara::InitialSpec*> ForceShinyHook = hk::hook::tramp
         spec->level = s_dataForEncounter.level;
         spec->sex = s_dataForEncounter.sex;
         spec->nature = s_dataForEncounter.nature;
+        spec->natureMint = s_dataForEncounter.nature;
         spec->abilityIndex = s_dataForEncounter.ability;
         for (int i = 0; i < 6; i++) {
             spec->iv[i] = s_dataForEncounter.iv[i];
@@ -79,8 +86,17 @@ HkTrampoline<void, pml::pokepara::InitialSpec*> ForceShinyHook = hk::hook::tramp
     }
 });
 
+HkTrampoline<void, ik::TrainerComponent*, float> MegaEnergySetHook = hk::hook::trampoline([](ik::TrainerComponent* param_1, float param_2){
+    if (alwaysMaxEnergy) {
+        MegaEnergySetHook.orig(param_1, param_1->m_megaEnergyMax);
+    } else {
+        MegaEnergySetHook.orig(param_1, param_2);
+    }
+});
+
 void battle_hooks() {
     CaptureHook.installAtPtr(pun<void*>(&pml::Capture::Judge));
     ExpCalcHook.installAtPtr(&pml::battle::Exp::CalcExp);
     ForceShinyHook.installAtPtr(pun<void*>(&pml::pokepara::InitialSpec::FixInitSpec));
+    MegaEnergySetHook.installAtPtr(pun<void*>(&ik::TrainerComponent::SetMegaEnergy));
 }

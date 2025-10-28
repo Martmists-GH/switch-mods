@@ -112,10 +112,31 @@ namespace gfl {
         };
 
         struct fields {
-            char* unk1;
-            bool unk2;
-            bool unk3;
+            void* unk1;
+            char* label;
+            char unk2[0x38];
+            uint64_t allocSize;
+            uint64_t allocMax;
         };
+    };
+
+    struct HeapManager : ExternalType<HeapManager> {
+        struct childHeap {
+            SizedHeap* m_heap;
+            SizedHeap* m_parentHeap;
+            void* unk1;
+            long unk2;
+        };
+
+        struct vtable {
+            // TODO
+        };
+        struct fields {
+            childHeap heaps[4];
+        };
+
+
+        static HeapManager* GetInstance();
     };
 
     template <typename T>

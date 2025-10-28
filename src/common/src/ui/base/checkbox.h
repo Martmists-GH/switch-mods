@@ -27,6 +27,8 @@ namespace ui {
         }
 
         Checkbox() = default;
+        explicit Checkbox(std::string label) : label(std::move(label)) {};
+        explicit Checkbox(const char* label) : label(label) {};
         explicit Checkbox(std::string label, std::function<void(bool)> onChange) : label(std::move(label)), onChange(std::move(onChange)) {};
         explicit Checkbox(const char* label, std::function<void(bool)> onChange) : label(label), onChange(std::move(onChange)) {};
         explicit Checkbox(std::string label, bool enabled, std::function<void(bool)> onChange) : label(std::move(label)), enabled(enabled), onChange(std::move(onChange)) {};

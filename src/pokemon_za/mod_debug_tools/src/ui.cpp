@@ -23,6 +23,7 @@ void setIsMustCapture(bool value);
 void setIsExpShareOn(bool value);
 void setExpMultiplier(int value);
 void setExpMultiplierInvert(bool value);
+void setAlwaysMaxEnergy(bool value);
 
 namespace ik::ItemId {
     extern char* names[2635];
@@ -73,7 +74,8 @@ static const char* STAT[6] = {
 
 template <typename T = ui::Builder>
 void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
-    _.Grid([data](Grid &_) {
+    auto invalidAllowed = _.Checkbox("Allow invalid forms");
+    _.Grid([data, invalidAllowed](Grid &_) {
         _.columns = 2;
         auto monsno = _.InputInt([data](InputInt &_) {
             _.label = "Species ID";
@@ -93,10 +95,12 @@ void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
                 data->form = value;
             };
         });
-        _.FunctionElement([data, formno] {
-            if (!pml::personal::PersonalSystem::CheckPokeExist(data->species, data->form)) {
-                formno->value = 0;
-                formno->onValueChanged(0);
+        _.FunctionElement([data, formno, invalidAllowed] {
+            if (!invalidAllowed) {
+                if (!pml::personal::PersonalSystem::CheckPokeExist(data->species, data->form)) {
+                    formno->value = 0;
+                    formno->onValueChanged(0);
+                }
             }
             if (!pml::personal::PersonalSystem::CheckPokeExist(data->species, data->form)) {
                 ImGui::Text("[Invalid Pokemon]");
@@ -339,6 +343,9 @@ void setup_ui() {
                 _.Checkbox("Invert (x2 -> x0.5)", [](bool value) {
                     setExpMultiplierInvert(value);
                 });
+            });
+            _.Checkbox("Always Max Mega Energy", [](bool it){
+                setAlwaysMaxEnergy(it);
             });
         });
 
