@@ -37,32 +37,18 @@ MemoryBuffer::MemoryBuffer(size_t size) {
     mIsReady = true;
 }
 
-alignas(0x1000) static char memBufferPool[0x8000];
-
 MemoryBuffer::MemoryBuffer(size_t size, nvn::MemoryPoolFlags flags) {
 
     auto *bd = ImguiNvnBackend::getBackendData();
 
     size_t alignedSize = ALIGN_UP(size, 0x1000);
+    memBuffer = IM_ALLOC(alignedSize + 0x1000);
+    memset(memBuffer, 0, alignedSize + 0x1000);
 
-    if (size <= sizeof(memBufferPool)) {
-        memBuffer = &memBufferPool;
-        memset(memBuffer, 0, alignedSize);
-
-        bd->memPoolBuilder.SetDefaults()
-                .SetDevice(bd->device)
-                .SetFlags(flags)
-                .SetStorage(memBuffer, alignedSize);
-    } else {
-        Logger::log("Memory Buffer required size is too big (0x%x), falling back to aligned_alloc (which may crash).\n", size);
-        alignedSize = ALIGN_UP(size, 0x1000);
-        memBuffer = IM_ALLOC(alignedSize + 0x1000);
-        memset(memBuffer, 0, alignedSize + 0x1000);
-        bd->memPoolBuilder.SetDefaults()
-                .SetDevice(bd->device)
-                .SetFlags(flags)
-                .SetStorage((void*)ALIGN_UP(memBuffer, 0x1000), alignedSize);
-    }
+    bd->memPoolBuilder.SetDefaults()
+            .SetDevice(bd->device)
+            .SetFlags(flags)
+            .SetStorage((void*)ALIGN_UP(memBuffer, 0x1000), alignedSize);
 
 
     if (!pool.Initialize(&bd->memPoolBuilder)) {

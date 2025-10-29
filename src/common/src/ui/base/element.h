@@ -112,7 +112,7 @@ ELEMENT_SUPPORTS_CHILD(StringView)
 
         template<std::invocable<T&> F>
         static T *create(F&& initializer) {
-            T *instance = new T;
+            T *instance = IM_NEW(T);
             initializer(*instance);
             if (!instance->isValid()) {
                 HK_ABORT("UI Element of type %s reported invalid after initializing!", typeid(T).name());
@@ -122,7 +122,7 @@ ELEMENT_SUPPORTS_CHILD(StringView)
 
         template <typename ...Args>
         static T *createArgs(Args... args) {
-            T *instance = new(T)(args...);
+            T *instance = IM_NEW(T)(args...);
             if (!instance->isValid()) {
                 HK_ABORT("UI Element of type %s reported invalid after initializing!", typeid(T).name());
             }

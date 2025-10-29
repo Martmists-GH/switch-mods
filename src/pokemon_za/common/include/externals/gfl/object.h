@@ -80,7 +80,7 @@ namespace gfl {
             void* unk1;
             void* unk2;
             void*(*allocate)(gfl::SizedHeap*, int size, int align);
-            void* deallocate;
+            void (*deallocate)(gfl::SizedHeap*, void* ptr, int size, int align);
             void* unk5;
             void* unk6;
             void* unk7;
@@ -121,6 +121,10 @@ namespace gfl {
             uint64_t allocMax;
         };
 
+        static SizedHeap::instance* s_globalHeap;
+
+        void* Allocate(int size, int align) { return impl()->vtable->allocate(this, size, align); }
+        void Deallocate(void* arg, int size, int align) { impl()->vtable->deallocate(this, arg, size, align); }
         uint64_t AllocSize() { return impl()->fields.allocSizeCount & 0x3fffffffff; }
         uint64_t AllocCount() { return impl()->fields.allocSizeCount >> 38; }
     };
@@ -134,14 +138,24 @@ namespace gfl {
         };
 
         struct vtable {
-            // TODO
+            int32_t(*GetCount)(gfl::HeapManager*);
+            gfl::SizedHeap::instance*(*GetHeap)(gfl::HeapManager*, int32_t index);
+            void* unk2;
+            void* unk3;
         };
         struct fields {
             childHeap heaps[4];
         };
 
+        int32_t GetCount() { return impl()->vtable->GetCount(this); }
+        gfl::SizedHeap::instance* GetHeap(int32_t index) { return impl()->vtable->GetHeap(this, index); }
 
         static gfl::HeapManager::instance* s_instance;
+        static gfl::HeapManager::instance* s_instance2;
+        static gfl::HeapManager::instance* s_instance3;
+        static gfl::HeapManager::instance* s_instance4;
+        static gfl::HeapManager::instance* s_instance5;
+        static gfl::HeapManager::instance* s_instance6;
     };
 
     template <typename T>

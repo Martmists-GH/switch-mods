@@ -35,6 +35,7 @@ namespace ui {
         }
 
         COMMON_ELEMENTS();
+        ELEMENT_SUPPORTS_CHILD(CollapsingHeader);
         ELEMENT_SUPPORTS_CHILD(Row);
         ELEMENT_SUPPORTS_CHILD(Grid);
         ELEMENT_SUPPORTS_CHILD(Group);

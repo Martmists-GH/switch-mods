@@ -8,6 +8,7 @@ config.cmake
 ### Toolchain
 .python_env/
 tools/sail
+tools/compress_font
 
 ### STL
 lib/std

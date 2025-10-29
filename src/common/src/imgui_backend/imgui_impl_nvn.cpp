@@ -5,7 +5,7 @@
 #include "imgui_impl_nvn.hpp"
 
 #include <util/FileUtil.h>
-
+#include "fonts/migu_1p.h"
 #include "imgui_hid_mappings.h"
 
 #include "nn/os.h"
@@ -402,6 +402,12 @@ namespace ImguiNvnBackend {
 
         io.Fonts->AddFontDefault();
 
+        Logger::log("Adding Migu 1P Font\n");
+        ImFontConfig config;
+        config.MergeMode = true;
+        io.Fonts->AddFontFromMemoryCompressedTTF(&migu_1p_compressed_data, migu_1p_compressed_size, 18.0f, &config, io.Fonts->GetGlyphRangesJapanese());
+        io.Fonts->AddFontFromMemoryCompressedTTF(&migu_1p_compressed_data, migu_1p_compressed_size, 18.0f, &config, io.Fonts->GetGlyphRangesChineseFull());
+
         Logger::log("Creating Shaders.\n");
 
         if (createShaders()) {
@@ -442,20 +448,25 @@ namespace ImguiNvnBackend {
 
         InputUtil::getScrollDelta(&scrollDelta.x, &scrollDelta.y);
 
-        if (scrollDelta.x > 0.0f || scrollDelta.y > 0.0f) {
-            io.AddMouseWheelEvent(scrollDelta.x, scrollDelta.y);
-        }
+        io.AddMouseWheelEvent(scrollDelta.x, scrollDelta.y);
 
         for (auto [im_k, nx_k]: mouse_mapping) {
-            if (InputUtil::isMousePress(static_cast<nn::hid::MouseButton>(nx_k)))
+            if (InputUtil::isMousePress(static_cast<nn::hid::MouseButton>(nx_k))) {
                 io.AddMouseButtonEvent(im_k, true);
-            else if (InputUtil::isMouseRelease(static_cast<nn::hid::MouseButton>(nx_k)))
+            } else if (InputUtil::isMouseRelease(static_cast<nn::hid::MouseButton>(nx_k))) {
                 io.AddMouseButtonEvent(im_k, false);
+            }
         }
 
         for (auto [im_k, nx_k]: key_mapping) {
             if (InputUtil::isKeyPress(static_cast<nn::hid::KeyboardKey>(nx_k))) {
                 io.AddKeyEvent(static_cast<ImGuiKey>(im_k), true);
+                for (const auto& [key, ch] : key_char_mapping) {
+                    if (key == static_cast<nn::hid::KeyboardKey>(nx_k)) {
+                        io.AddInputCharacter(ch);
+                        break;
+                    }
+                }
             } else if (InputUtil::isKeyRelease(static_cast<nn::hid::KeyboardKey>(nx_k))) {
                 io.AddKeyEvent(static_cast<ImGuiKey>(im_k), false);
             }

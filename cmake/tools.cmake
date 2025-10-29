@@ -45,6 +45,15 @@ if (NOT EXISTS "${PROJECT_SOURCE_DIR}/lib/std")
     )
 endif ()
 
+# Font compressor
+if (NOT EXISTS "${PROJECT_SOURCE_DIR}/tools/compress_font")
+    message("Setting up imgui font compressor")
+    execute_process(
+            COMMAND clang ${PROJECT_SOURCE_DIR}/lib/imgui/misc/fonts/binary_to_compressed_c.cpp -lstdc++ -o ${PROJECT_SOURCE_DIR}/tools/compress_font
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    )
+endif()
+
 # Sail
 if (NOT EXISTS "${PROJECT_SOURCE_DIR}/tools/sail")
     message ("Building sail")

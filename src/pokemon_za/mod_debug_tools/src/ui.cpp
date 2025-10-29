@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <format>
 #include <hook_util.h>
+#include <map>
 #include <numeric>
 #include <externals/gfl/string.h>
 #include <externals/ik/QuestManager.h>
@@ -75,8 +76,10 @@ static const char* STAT[6] = {
 
 template <typename T = ui::Builder>
 void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
-    auto invalidAllowed = _.Checkbox("Allow invalid forms");
-    _.Grid([data, invalidAllowed](Grid &_) {
+    _.Checkbox("Allow invalid forms", data->allowInvalidForms, [data](bool value) {
+        data->allowInvalidForms = value;
+    });
+    _.Grid([data](Grid &_) {
         _.columns = 2;
         auto monsno = _.InputInt([data](InputInt &_) {
             _.label = "Species ID";
@@ -96,8 +99,8 @@ void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
                 data->form = value;
             };
         });
-        _.FunctionElement([data, formno, invalidAllowed] {
-            if (!invalidAllowed) {
+        _.FunctionElement([data, formno] {
+            if (!data->allowInvalidForms) {
                 if (!pml::personal::PersonalSystem::CheckPokeExist(data->species, data->form)) {
                     formno->value = 0;
                     formno->onValueChanged(0);
@@ -166,13 +169,6 @@ void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
                 data->ability = value;
             };
         });
-        // Validation function
-        _.FunctionElement([monsno, formno]() {
-            if (!pml::personal::PersonalSystem::CheckPokeExist(monsno->value, formno->value)) {
-                formno->value = 0;
-                formno->onValueChanged(0);
-            }
-        });
     });
     if (withShinySetting) {
         _.Checkbox("Shiny", data->forceShiny, [data](bool value) {
@@ -236,7 +232,7 @@ void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
     });
 }
 
-std::string memorySize(uint64_t numBytes) {
+static std::string memorySize(uint64_t numBytes) {
     if (numBytes < 1024) {
         return std::format("{} bytes", numBytes);
     } else if (numBytes < 1024 * 1024) {
@@ -253,10 +249,34 @@ struct HeapMeta {
     uint64_t lastAllocSize;
 };
 
+static bool ImguiHeapData(gfl::SizedHeap::instance* heap, HeapMeta &meta) {
+    if (heap == nullptr) return false;
+    ImGui::Text("%s", heap->fields.label);
+    auto currentAlloc = heap->AllocSize();
+    auto memAlloced = memorySize(currentAlloc);
+    auto memAvailable = memorySize(heap->fields.allocMax);
+    auto memPeak = memorySize(meta.allocPeak);
+    auto delta = static_cast<long>(currentAlloc) - static_cast<long>(meta.lastAllocSize);
+    auto deltaString = memorySize(std::abs(delta));
+    ImGui::Text(" Usage: %s / %s", memAlloced.c_str(), memAvailable.c_str());
+    ImGui::Text(" Peak: %s", memPeak.c_str());
+    ImGui::Text(" Change: %s%s", delta < 0 ? "-" : "", deltaString.c_str());
+
+    meta.allocPeak = std::max(meta.allocPeak, currentAlloc);
+    meta.lastAllocSize = currentAlloc;
+    return true;
+}
+
 void setup_ui() {
-    static nn::TimeSpan lastTick = nn::os::ConvertToTimeSpan(nn::os::GetSystemTick());
-    static std::array<float, 120> counts = {0};
-    static std::array<HeapMeta, 4> heapInfo = {};
+    static std::map<void*, int> s_allocMap = {};
+    ImGui::SetAllocatorFunctions([](uint64_t size, void* arg) {
+        auto ptr = gfl::SizedHeap::s_globalHeap->Allocate(size, 8);
+        s_allocMap[ptr] = size;
+        return ptr;
+    }, [](void* param, void* arg) {
+        gfl::SizedHeap::s_globalHeap->Deallocate(param, s_allocMap[param], 8);
+    });
+
     static auto perfWindow = ROOT.Window([](Window &_) {
         _.title = "Performance";
         _.sticky = true;
@@ -265,79 +285,102 @@ void setup_ui() {
         _.initialPos = ImVec2(800, 50);
         _.initialSize = ImVec2(450, 280);
 
-        _.FunctionElement([]() {
-            nn::TimeSpan curTick = nn::os::ConvertToTimeSpan(nn::os::GetSystemTick());
-            float deltaTime = (curTick.nanoseconds - lastTick.nanoseconds) / 1e9f;
-            lastTick = curTick;
+        // _.CollapsingHeader([](CollapsingHeader &_) {
+            // _.label = "FPS";
 
-            for (size_t i = 0; i < counts.size() - 1; ++i) {
-                counts[i] = counts[i + 1];
-            }
-            counts.back() = deltaTime;
+            static nn::TimeSpan lastTick = nn::os::ConvertToTimeSpan(nn::os::GetSystemTick());
+            static std::array<float, 120> counts = {0};
+            _.FunctionElement([]() {
+                nn::TimeSpan curTick = nn::os::ConvertToTimeSpan(nn::os::GetSystemTick());
+                float deltaTime = (curTick.nanoseconds - lastTick.nanoseconds) / 1e9f;
+                lastTick = curTick;
 
-            float sum = 0.0f, minFT = FLT_MAX, maxFT = 0.0f;
-            for (float t : counts) {
-                sum += t;
-                minFT = std::min(minFT, t);
-                maxFT = std::max(maxFT, t);
-            }
+                for (size_t i = 0; i < counts.size() - 1; ++i) {
+                    counts[i] = counts[i + 1];
+                }
+                counts.back() = deltaTime;
 
-            float avgFT = sum / counts.size();
-            float fps = 1.0f / avgFT;
+                float sum = 0.0f, minFT = FLT_MAX, maxFT = 0.0f;
+                for (float t : counts) {
+                    sum += t;
+                    minFT = std::min(minFT, t);
+                    maxFT = std::max(maxFT, t);
+                }
 
-            std::array<float, 120> sorted = counts;
-            std::sort(sorted.begin(), sorted.end());
-            auto pct = [&](float p) {
-                float idx = p * (sorted.size() - 1);
-                size_t i0 = idx;
-                size_t i1 = std::min(i0 + 1, sorted.size() - 1);
-                float t = idx - i0;
-                return std::lerp(sorted[i0], sorted[i1], t);
-            };
+                float avgFT = sum / counts.size();
+                float fps = 1.0f / avgFT;
 
-            float p50 = pct(0.50f);
-            float p90 = pct(0.90f);
-            float p99 = pct(0.99f);
+                std::array<float, 120> sorted = counts;
+                std::sort(sorted.begin(), sorted.end());
+                auto pct = [&](float p) {
+                    float idx = p * (sorted.size() - 1);
+                    size_t i0 = idx;
+                    size_t i1 = std::min(i0 + 1, sorted.size() - 1);
+                    float t = idx - i0;
+                    return std::lerp(sorted[i0], sorted[i1], t);
+                };
 
-            const size_t shortWindow = 30;
-            float shortSum = 0.0f;
-            for (size_t i = counts.size() - shortWindow; i < counts.size(); ++i) {
-                shortSum += counts[i];
-            }
-            float shortAvg = shortSum / shortWindow;
-            float shortFPS = 1.0f / shortAvg;
+                float p50 = pct(0.50f);
+                float p90 = pct(0.90f);
+                float p99 = pct(0.99f);
 
-            ImGui::Text("FPS (120-frame avg): %.2f", fps);
-            ImGui::Text("FPS (last 30): %.2f", shortFPS);
-            ImGui::Text("Frame Time: avg %.3f ms | min %.3f | max %.3f", avgFT * 1000.0f, minFT * 1000.0f, maxFT * 1000.0f);
-            ImGui::Text("Percentiles: P50 %.3f ms | P90 %.3f ms | P99 %.3f ms", p50 * 1000.0f, p90 * 1000.0f, p99 * 1000.0f);
+                const size_t shortWindow = 30;
+                float shortSum = 0.0f;
+                for (size_t i = counts.size() - shortWindow; i < counts.size(); ++i) {
+                    shortSum += counts[i];
+                }
+                float shortAvg = shortSum / shortWindow;
+                float shortFPS = 1.0f / shortAvg;
 
-            ImGui::PlotLines("Frame Times (ms)", counts.data(), counts.size(), 0,
-                             nullptr, 0.0f, 0.2f);
-        });
-        _.Spacing();
-        _.Text("Memory");
-        auto mgr = gfl::HeapManager::s_instance;
-        for (int i = 0; i < 4; i++) {
-            auto& heap = mgr->fields.heaps[i];
-            auto& meta = heapInfo[i];
-            if (heap.m_heap == nullptr) continue;
-            _.FunctionElement([heap, &meta]() {
-                ImGui::Text("HEAP: %s", heap.m_heap->fields.label);
-                auto currentAlloc = heap.m_heap->AllocSize();
-                auto memAlloced = memorySize(currentAlloc);
-                auto memAvailable = memorySize(heap.m_heap->fields.allocMax);
-                auto memPeak = memorySize(meta.allocPeak);
-                auto delta = static_cast<long>(currentAlloc) - static_cast<long>(meta.lastAllocSize);
-                auto deltaString = memorySize(std::abs(delta));
-                ImGui::Text(" Usage: %s / %s", memAlloced.c_str(), memAvailable.c_str());
-                ImGui::Text(" Peak: %s", memPeak.c_str());
-                ImGui::Text(" Change: %s%s", delta < 0 ? "-" : "", deltaString.c_str());
+                ImGui::Text("FPS (120-frame avg): %.2f", fps);
+                ImGui::Text("FPS (last 30): %.2f", shortFPS);
+                ImGui::Text("Frame Time:\n avg %.3f ms\n min %.3f\n max %.3f", avgFT * 1000.0f, minFT * 1000.0f, maxFT * 1000.0f);
+                ImGui::Text("Percentiles:\n P50 %.3f ms\n P90 %.3f ms\n P99 %.3f ms", p50 * 1000.0f, p90 * 1000.0f, p99 * 1000.0f);
 
-                meta.allocPeak = std::max(meta.allocPeak, currentAlloc);
-                meta.lastAllocSize = currentAlloc;
+                ImGui::PlotLines("Frame Times (ms)", counts.data(), counts.size(), 0,
+                                 nullptr, 0.0f, 0.2f);
             });
-        }
+        // });
+
+        _.Spacing();
+
+        // _.CollapsingHeader([](CollapsingHeader &_) {
+            // _.label = "Memory";
+
+            static std::array<HeapMeta, 0x20> heapInfo = {};
+            _.FunctionElement([]() {
+                ImGui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoBorder);
+                auto j = 0;
+                if (ImguiHeapData(gfl::SizedHeap::s_globalHeap, heapInfo[j++])) ImGui::NextColumn();
+                for (int i = 0; i < gfl::HeapManager::s_instance->GetCount(); i++) {
+                    auto heap = gfl::HeapManager::s_instance->GetHeap(i);
+                    if (ImguiHeapData(heap, heapInfo[j++])) ImGui::NextColumn();
+                }
+                for (int i = 0; i < gfl::HeapManager::s_instance2->GetCount(); i++) {
+                    auto heap = gfl::HeapManager::s_instance2->GetHeap(i);
+                    if (ImguiHeapData(heap, heapInfo[j++])) ImGui::NextColumn();
+                }
+                for (int i = 0; i < gfl::HeapManager::s_instance3->GetCount(); i++) {
+                    auto heap = gfl::HeapManager::s_instance3->GetHeap(i);
+                    if (ImguiHeapData(heap, heapInfo[j++])) ImGui::NextColumn();
+                }
+                for (int i = 0; i < gfl::HeapManager::s_instance4->GetCount(); i++) {
+                    auto heap = gfl::HeapManager::s_instance4->GetHeap(i);
+                    if (ImguiHeapData(heap, heapInfo[j++])) ImGui::NextColumn();
+                }
+                for (int i = 0; i < gfl::HeapManager::s_instance5->GetCount(); i++) {
+                    auto heap = gfl::HeapManager::s_instance5->GetHeap(i);
+                    if (ImguiHeapData(heap, heapInfo[j++])) ImGui::NextColumn();
+                }
+
+                // Skipping this one because it's weird
+                // for (int i = 0; i < gfl::HeapManager::s_instance6->GetCount(); i++) {
+                //     auto heap = gfl::HeapManager::s_instance6->GetHeap(i);
+                //     if (ImguiHeapData(heap, heapInfo[j++])) ImGui::NextColumn();
+                // }
+                // ImGui::Text("Heaps: %d", j);
+            });
+        // });
     });
 
     ROOT.Window([](Window& _){

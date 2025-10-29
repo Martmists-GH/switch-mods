@@ -4,6 +4,7 @@
 struct PokemonData {
     bool forceShiny = false;
     bool forceModify = false;  // Does not affect shinyness
+    bool allowInvalidForms = false;
     int shinyMultiplier = 1;
     int species = 1;
     int form = 0;
