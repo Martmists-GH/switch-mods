@@ -22,6 +22,10 @@ namespace ui {
         int columns;
         int flags = ImGuiOldColumnFlags_NoBorder;
 
+        bool isValid() override {
+            return columns > 0;
+        }
+
         bool beginDraw() override {
             ImGui::BeginColumns(nullptr, columns, flags);
             return true;
