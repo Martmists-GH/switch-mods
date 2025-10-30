@@ -125,6 +125,7 @@ namespace gfl {
 
         void* Allocate(int size, int align) { return impl()->vtable->allocate(this, size, align); }
         void Deallocate(void* arg, int size, int align) { impl()->vtable->deallocate(this, arg, size, align); }
+
         uint64_t AllocSize() { return impl()->fields.allocSizeCount & 0x3fffffffff; }
         uint64_t AllocCount() { return impl()->fields.allocSizeCount >> 38; }
     };

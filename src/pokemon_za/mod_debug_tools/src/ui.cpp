@@ -268,15 +268,6 @@ static bool ImguiHeapData(gfl::SizedHeap::instance* heap, HeapMeta &meta) {
 }
 
 void setup_ui() {
-    static std::map<void*, int> s_allocMap = {};
-    ImGui::SetAllocatorFunctions([](uint64_t size, void* arg) {
-        auto ptr = gfl::SizedHeap::s_globalHeap->Allocate(size, 8);
-        s_allocMap[ptr] = size;
-        return ptr;
-    }, [](void* param, void* arg) {
-        gfl::SizedHeap::s_globalHeap->Deallocate(param, s_allocMap[param], 8);
-    });
-
     static auto perfWindow = ROOT.Window([](Window &_) {
         _.title = "Performance";
         _.sticky = true;
@@ -407,7 +398,7 @@ void setup_ui() {
         _.CollapsingHeader([](CollapsingHeader &_) {
             _.label = "Money";
             _.Grid([](Grid &_) {
-                _.columns = 3;
+                _.columns = 5;
                 _.Text("Money");
                 _.FunctionElement([](FunctionElement &_) {
                     _.callback = [] {
@@ -415,30 +406,28 @@ void setup_ui() {
                         ImGui::Text("%d", numCurrency);
                     };
                 });
-                _.Row([](Row &_) {
-                    _.Group([](Group &_) {
-                        _.Button("+1000##Money", [] {
-                            ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(1000);
-                        });
-                        _.Button("-1000##Money", [] {
-                            ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(-1000);
-                        });
+                _.Group([](Group &_) {
+                    _.Button("+1000##Money", [] {
+                        ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(1000);
                     });
-                    _.Group([](Group &_) {
-                        _.Button("+10000##Money", [] {
-                            ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(10000);
-                        });
-                        _.Button("-10000##Money", [] {
-                            ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(-10000);
-                        });
+                    _.Button("-1000##Money", [] {
+                        ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(-1000);
                     });
-                    _.Group([](Group &_) {
-                        _.Button("+100000##Money", [] {
-                            ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(100000);
-                        });
-                        _.Button("-100000##Money", [] {
-                            ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(-100000);
-                        });
+                });
+                _.Group([](Group &_) {
+                    _.Button("+10000##Money", [] {
+                        ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(10000);
+                    });
+                    _.Button("-10000##Money", [] {
+                        ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(-10000);
+                    });
+                });
+                _.Group([](Group &_) {
+                    _.Button("+100000##Money", [] {
+                        ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(100000);
+                    });
+                    _.Button("-100000##Money", [] {
+                        ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(-100000);
                     });
                 });
 
@@ -449,28 +438,31 @@ void setup_ui() {
                         ImGui::Text("%d", numMedals);
                     };
                 });
-                _.Row([](Row &_) {
-                    _.Group([](Group &_) {
-                        _.Button("+100##Medals", [] {
-                            auto newValue = ik::ZARoyaleSaveAccessor::GetMedalNum() + 100;
-                            ik::ZARoyaleSaveAccessor::SetMedalNum(std::clamp(newValue, 0u, 9999u));
-                        });
-                        _.Button("-100##Medals", [] {
-                            auto newValue = ik::ZARoyaleSaveAccessor::GetMedalNum() - 100;
-                            ik::ZARoyaleSaveAccessor::SetMedalNum(std::clamp(newValue, 0u, 9999u));
-                        });
+                _.Group([](Group &_) {
+                    _.Button("+100##Medals", [] {
+                        auto newValue = ik::ZARoyaleSaveAccessor::GetMedalNum() + 100;
+                        ik::ZARoyaleSaveAccessor::SetMedalNum(std::clamp(newValue, 0u, 9999u));
                     });
-                    _.Group([](Group &_) {
-                        _.Button("+1000##Medals", [] {
-                            auto newValue = ik::ZARoyaleSaveAccessor::GetMedalNum() + 1000;
-                            ik::ZARoyaleSaveAccessor::SetMedalNum(std::clamp(newValue, 0u, 9999u));
-                        });
-                        _.Button("-1000##Medals", [] {
-                            auto newValue = ik::ZARoyaleSaveAccessor::GetMedalNum() - 1000;
-                            ik::ZARoyaleSaveAccessor::SetMedalNum(std::clamp(newValue, 0u, 9999u));
-                        });
+                    _.Button("-100##Medals", [] {
+                        auto newValue = ik::ZARoyaleSaveAccessor::GetMedalNum() - 100;
+                        ik::ZARoyaleSaveAccessor::SetMedalNum(std::clamp(newValue, 0u, 9999u));
                     });
                 });
+                _.Group([](Group &_) {
+                    _.Button("+1000##Medals", [] {
+                        auto newValue = ik::ZARoyaleSaveAccessor::GetMedalNum() + 1000;
+                        ik::ZARoyaleSaveAccessor::SetMedalNum(std::clamp(newValue, 0u, 9999u));
+                    });
+                    _.Button("-1000##Medals", [] {
+                        auto newValue = ik::ZARoyaleSaveAccessor::GetMedalNum() - 1000;
+                        ik::ZARoyaleSaveAccessor::SetMedalNum(std::clamp(newValue, 0u, 9999u));
+                    });
+                });
+                _.Group([](Group &_) {
+                    // Empty to match number of columns
+                });
+
+                // TODO: Tickets?
             });
         });
 
@@ -524,11 +516,8 @@ void setup_ui() {
             });
 
             _.FunctionElement([]() {
-                static Builder instance = Builder::single();
-
-                instance.clearChildren();
+                auto instance = Builder::single();
                 PokemonEditor(&s_dataForEncounter, instance, false);
-
                 instance.render();
             });
         });
@@ -563,6 +552,7 @@ void setup_ui() {
                     ImGui::Text("%s", text.c_str());
                 }
             });
+            // TODO: Remove items
             _.Row([itemID](Row &_) {
                 _.Button("Add 1##Items", [itemID]() {
                     ik::event::IkkakuEventScriptCommand::AddItem(itemID->value, 1);

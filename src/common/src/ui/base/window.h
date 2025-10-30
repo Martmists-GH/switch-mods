@@ -7,7 +7,6 @@
 #include "ui/base/child.h"
 #include "ui/base/collapsing_header.h"
 #include "ui/base/combo.h"
-#include "ui/base/combo_simple.h"
 #include "ui/base/group.h"
 #include "ui/base/input_int.h"
 #include "ui/base/menu_bar.h"
@@ -18,7 +17,6 @@
 #include "ui/base/slider.h"
 #include "ui/base/spacing.h"
 #include "ui/base/text.h"
-#include "ui/base/text_unformatted.h"
 #include "ui/components/string_view.h"
 #include "util/InputUtil.h"
 

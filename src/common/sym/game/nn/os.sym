@@ -23,6 +23,9 @@ _ZN2nn2os10WaitThreadEPNS0_10ThreadTypeE
 // nn::os::DestroyThread(nn::os::ThreadType*)
 _ZN2nn2os13DestroyThreadEPNS0_10ThreadTypeE
 
+// nn::os::Mutex::~Mutex();
+_ZN2nn2os5MutexD1Ev
+
 // nn::os::InitializeMutex(nn::os::MutexType*, bool, int)
 _ZN2nn2os15InitializeMutexEPNS0_9MutexTypeEbi
 

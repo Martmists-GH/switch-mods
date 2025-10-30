@@ -82,13 +82,13 @@ HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
     Logger::log("Base offset: %#010x\n", hk::ro::getMainModule()->range().start());
     switch (get_host()) {
         case HARDWARE:
-            Logger::log("Detected as Nintendo Switch (console)");
+            Logger::log("Detected as Nintendo Switch (console)\n");
             break;
         case RYUJINX:
-            Logger::log("Detected as Ryujinx (emulator)");
+            Logger::log("Detected as Ryujinx (emulator)\n");
             break;
         case YUZU:
-            Logger::log("Detected as Yuzu (emulator)");
+            Logger::log("Detected as Yuzu (emulator)\n");
             break;
     }
 
