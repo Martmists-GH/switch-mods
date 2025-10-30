@@ -82,8 +82,10 @@ ELEMENT_SUPPORTS_CHILD(MenuBar)                \
 ELEMENT_SUPPORTS_CHILD(SliderFloat)            \
 ELEMENT_SUPPORTS_CHILD(SliderInt)              \
 ELEMENT_SUPPORTS_CHILD(Spacing)                \
+ELEMENT_SUPPORTS_CHILD(Separator)              \
 ELEMENT_SUPPORTS_CHILD(Text)                   \
 ELEMENT_SUPPORTS_CHILD(TextUnformatted)        \
+ELEMENT_SUPPORTS_CHILD(TextSeparator)          \
 ELEMENT_SUPPORTS_CHILD(StringView)
 
     template<typename T>

@@ -126,7 +126,7 @@ namespace gfl {
         void* Allocate(int size, int align) { return impl()->vtable->allocate(this, size, align); }
         void Deallocate(void* arg, int size, int align) { impl()->vtable->deallocate(this, arg, size, align); }
 
-        uint64_t AllocSize() { return impl()->fields.allocSizeCount & 0x3fffffffff; }
+        uint64_t AllocSize() { return impl()->fields.allocSizeCount & ((~0ull) >> 38); }
         uint64_t AllocCount() { return impl()->fields.allocSizeCount >> 38; }
     };
 
@@ -151,12 +151,8 @@ namespace gfl {
         int32_t GetCount() { return impl()->vtable->GetCount(this); }
         gfl::SizedHeap::instance* GetHeap(int32_t index) { return impl()->vtable->GetHeap(this, index); }
 
-        static gfl::HeapManager::instance* s_instance;
-        static gfl::HeapManager::instance* s_instance2;
-        static gfl::HeapManager::instance* s_instance3;
-        static gfl::HeapManager::instance* s_instance4;
-        static gfl::HeapManager::instance* s_instance5;
-        static gfl::HeapManager::instance* s_instance6;
+        static gfl::HeapManager::instance* s_managerList;
+        static uint32_t s_managerCount;
     };
 
     template <typename T>

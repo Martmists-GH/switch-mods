@@ -9,6 +9,7 @@
 #include <externals/gfl/string.h>
 #include <externals/ik/QuestManager.h>
 #include <util/common_utils.h>
+#include "GlobalHeap_Utils.h"
 
 #include "externals/ik/event/IkkakuEventScriptCommand.h"
 #include "externals/ik/EventSystemCallFunctions.h"
@@ -79,6 +80,7 @@ void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
     _.Checkbox("Allow invalid forms", data->allowInvalidForms, [data](bool value) {
         data->allowInvalidForms = value;
     });
+    _.TextSeparator("Pokemon");
     _.Grid([data](Grid &_) {
         _.columns = 2;
         auto monsno = _.InputInt([data](InputInt &_) {
@@ -133,6 +135,10 @@ void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
                 }
             }
         });
+    });
+    _.TextSeparator("Stats");
+    _.Grid([data, withShinySetting](Grid &_) {
+        _.columns = 2;
         _.ComboSimple([data](ComboSimple &_) {
             _.label = "Sex";
             _.items = SEX_LIST;
@@ -169,12 +175,14 @@ void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
                 data->ability = value;
             };
         });
+        if (withShinySetting) {
+            _.Checkbox("Shiny", data->forceShiny, [data](bool value) {
+                data->forceShiny = value;
+            });
+        }
     });
-    if (withShinySetting) {
-        _.Checkbox("Shiny", data->forceShiny, [data](bool value) {
-            data->forceShiny = value;
-        });
-    }
+
+    _.TextSeparator("IVs/EVs");
     _.Grid([data](Grid &_) {
         _.columns = 3;
 
@@ -203,7 +211,7 @@ void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
             });
         }
     });
-    _.Text("Moves");
+    _.TextSeparator("Moves");
     _.Grid([data](Grid &_) {
         _.columns = 4;
         for (int i = 0; i < 4; i++) {
@@ -261,6 +269,7 @@ static bool ImguiHeapData(gfl::SizedHeap::instance* heap, HeapMeta &meta) {
     ImGui::Text(" Usage: %s / %s", memAlloced.c_str(), memAvailable.c_str());
     ImGui::Text(" Peak: %s", memPeak.c_str());
     ImGui::Text(" Change: %s%s", delta < 0 ? "-" : "", deltaString.c_str());
+    ImGui::Text(" # of objects: %ld", heap->AllocCount());
 
     meta.allocPeak = std::max(meta.allocPeak, currentAlloc);
     meta.lastAllocSize = currentAlloc;
@@ -276,102 +285,87 @@ void setup_ui() {
         _.initialPos = ImVec2(800, 50);
         _.initialSize = ImVec2(450, 280);
 
-        // _.CollapsingHeader([](CollapsingHeader &_) {
-            // _.label = "FPS";
+        _.TextSeparator("FPS");
 
-            static nn::TimeSpan lastTick = nn::os::ConvertToTimeSpan(nn::os::GetSystemTick());
-            static std::array<float, 120> counts = {0};
-            _.FunctionElement([]() {
-                nn::TimeSpan curTick = nn::os::ConvertToTimeSpan(nn::os::GetSystemTick());
-                float deltaTime = (curTick.nanoseconds - lastTick.nanoseconds) / 1e9f;
-                lastTick = curTick;
+        static nn::TimeSpan lastTick = nn::os::ConvertToTimeSpan(nn::os::GetSystemTick());
+        static std::array<float, 120> counts = {0};
+        _.FunctionElement([]() {
+            nn::TimeSpan curTick = nn::os::ConvertToTimeSpan(nn::os::GetSystemTick());
+            float deltaTime = (curTick.nanoseconds - lastTick.nanoseconds) / 1e9f;
+            lastTick = curTick;
 
-                for (size_t i = 0; i < counts.size() - 1; ++i) {
-                    counts[i] = counts[i + 1];
+            for (size_t i = 0; i < counts.size() - 1; ++i) {
+                counts[i] = counts[i + 1];
+            }
+            counts.back() = deltaTime;
+
+            float sum = 0.0f, minFT = FLT_MAX, maxFT = 0.0f;
+            for (float t : counts) {
+                sum += t;
+                minFT = std::min(minFT, t);
+                maxFT = std::max(maxFT, t);
+            }
+
+            float avgFT = sum / counts.size();
+            float fps = 1.0f / avgFT;
+
+            std::array<float, 120> sorted = counts;
+            std::sort(sorted.begin(), sorted.end());
+            auto pct = [&](float p) {
+                float idx = p * (sorted.size() - 1);
+                size_t i0 = idx;
+                size_t i1 = std::min(i0 + 1, sorted.size() - 1);
+                float t = idx - i0;
+                return std::lerp(sorted[i0], sorted[i1], t);
+            };
+
+            float p50 = pct(0.50f);
+            float p90 = pct(0.90f);
+            float p99 = pct(0.99f);
+
+            const size_t shortWindow = 30;
+            float shortSum = 0.0f;
+            for (size_t i = counts.size() - shortWindow; i < counts.size(); ++i) {
+                shortSum += counts[i];
+            }
+            float shortAvg = shortSum / shortWindow;
+            float shortFPS = 1.0f / shortAvg;
+
+            ImGui::Text("FPS (120-frame avg): %.2f", fps);
+            ImGui::Text("FPS (last 30): %.2f", shortFPS);
+            ImGui::Text("Frame Time:\n avg %.3f ms\n min %.3f\n max %.3f", avgFT * 1000.0f, minFT * 1000.0f, maxFT * 1000.0f);
+            ImGui::Text("Percentiles:\n P50 %.3f ms\n P90 %.3f ms\n P99 %.3f ms", p50 * 1000.0f, p90 * 1000.0f, p99 * 1000.0f);
+
+            ImGui::PlotLines("Frame Times (ms)", counts.data(), counts.size(), 0,
+                             nullptr, 0.0f, 0.2f);
+        });
+
+        _.TextSeparator("Memory");
+
+        constexpr size_t HEAPMETA_MAX = 550;
+        static std::array<HeapMeta, HEAPMETA_MAX> heapInfo = {};
+        _.FunctionElement([]() {
+            ImGui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoBorder);
+            uint32_t j = 0;
+            if (ImguiHeapData(gfl::SizedHeap::s_globalHeap, heapInfo[j++])) ImGui::NextColumn();
+            for (uint32_t i = 0; i < gfl::HeapManager::s_managerCount; i++) {
+                auto manager = (&gfl::HeapManager::s_managerList)[i];
+                for (int k = 0; k < manager->GetCount(); k++) {
+                    auto heap = manager->GetHeap(k);
+                    if (j + 1 >= HEAPMETA_MAX) {
+                        j++;
+                    } else {
+                        if (ImguiHeapData(heap, heapInfo[j++])) ImGui::NextColumn();
+                    }
                 }
-                counts.back() = deltaTime;
+            }
+            ImGui::EndColumns();
 
-                float sum = 0.0f, minFT = FLT_MAX, maxFT = 0.0f;
-                for (float t : counts) {
-                    sum += t;
-                    minFT = std::min(minFT, t);
-                    maxFT = std::max(maxFT, t);
-                }
-
-                float avgFT = sum / counts.size();
-                float fps = 1.0f / avgFT;
-
-                std::array<float, 120> sorted = counts;
-                std::sort(sorted.begin(), sorted.end());
-                auto pct = [&](float p) {
-                    float idx = p * (sorted.size() - 1);
-                    size_t i0 = idx;
-                    size_t i1 = std::min(i0 + 1, sorted.size() - 1);
-                    float t = idx - i0;
-                    return std::lerp(sorted[i0], sorted[i1], t);
-                };
-
-                float p50 = pct(0.50f);
-                float p90 = pct(0.90f);
-                float p99 = pct(0.99f);
-
-                const size_t shortWindow = 30;
-                float shortSum = 0.0f;
-                for (size_t i = counts.size() - shortWindow; i < counts.size(); ++i) {
-                    shortSum += counts[i];
-                }
-                float shortAvg = shortSum / shortWindow;
-                float shortFPS = 1.0f / shortAvg;
-
-                ImGui::Text("FPS (120-frame avg): %.2f", fps);
-                ImGui::Text("FPS (last 30): %.2f", shortFPS);
-                ImGui::Text("Frame Time:\n avg %.3f ms\n min %.3f\n max %.3f", avgFT * 1000.0f, minFT * 1000.0f, maxFT * 1000.0f);
-                ImGui::Text("Percentiles:\n P50 %.3f ms\n P90 %.3f ms\n P99 %.3f ms", p50 * 1000.0f, p90 * 1000.0f, p99 * 1000.0f);
-
-                ImGui::PlotLines("Frame Times (ms)", counts.data(), counts.size(), 0,
-                                 nullptr, 0.0f, 0.2f);
-            });
-        // });
-
-        _.Spacing();
-
-        // _.CollapsingHeader([](CollapsingHeader &_) {
-            // _.label = "Memory";
-
-            static std::array<HeapMeta, 0x20> heapInfo = {};
-            _.FunctionElement([]() {
-                ImGui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoBorder);
-                auto j = 0;
-                if (ImguiHeapData(gfl::SizedHeap::s_globalHeap, heapInfo[j++])) ImGui::NextColumn();
-                for (int i = 0; i < gfl::HeapManager::s_instance->GetCount(); i++) {
-                    auto heap = gfl::HeapManager::s_instance->GetHeap(i);
-                    if (ImguiHeapData(heap, heapInfo[j++])) ImGui::NextColumn();
-                }
-                for (int i = 0; i < gfl::HeapManager::s_instance2->GetCount(); i++) {
-                    auto heap = gfl::HeapManager::s_instance2->GetHeap(i);
-                    if (ImguiHeapData(heap, heapInfo[j++])) ImGui::NextColumn();
-                }
-                for (int i = 0; i < gfl::HeapManager::s_instance3->GetCount(); i++) {
-                    auto heap = gfl::HeapManager::s_instance3->GetHeap(i);
-                    if (ImguiHeapData(heap, heapInfo[j++])) ImGui::NextColumn();
-                }
-                for (int i = 0; i < gfl::HeapManager::s_instance4->GetCount(); i++) {
-                    auto heap = gfl::HeapManager::s_instance4->GetHeap(i);
-                    if (ImguiHeapData(heap, heapInfo[j++])) ImGui::NextColumn();
-                }
-                for (int i = 0; i < gfl::HeapManager::s_instance5->GetCount(); i++) {
-                    auto heap = gfl::HeapManager::s_instance5->GetHeap(i);
-                    if (ImguiHeapData(heap, heapInfo[j++])) ImGui::NextColumn();
-                }
-
-                // Skipping this one because it's weird
-                // for (int i = 0; i < gfl::HeapManager::s_instance6->GetCount(); i++) {
-                //     auto heap = gfl::HeapManager::s_instance6->GetHeap(i);
-                //     if (ImguiHeapData(heap, heapInfo[j++])) ImGui::NextColumn();
-                // }
-                // ImGui::Text("Heaps: %d", j);
-            });
-        // });
+            ImGui::Separator();
+            auto stats = GetGlobalHeapState();
+            ImGui::Text("GlobalHeap Wrapper: Allocated %d/%d objects", stats.first, stats.second);
+            ImGui::Text("HeapMeta: Using %d/%d heaps", j, HEAPMETA_MAX);
+        });
     });
 
     ROOT.Window([](Window& _){
@@ -511,14 +505,19 @@ void setup_ui() {
                 });
             });
             // TODO: 100% Alpha
+            _.Separator();
             _.Checkbox("Force modify encounter", [](bool value) {
                 s_dataForEncounter.forceModify = value;
             });
 
             _.FunctionElement([]() {
-                auto instance = Builder::single();
-                PokemonEditor(&s_dataForEncounter, instance, false);
-                instance.render();
+                auto instance = Builder::createArgs();
+                PokemonEditor(&s_dataForEncounter, *instance, false);
+                instance->render();
+                IM_DELETE(instance);
+                // auto instance = Builder::single();
+                // PokemonEditor(&s_dataForEncounter, instance, false);
+                // instance.render();
             });
         });
 
@@ -553,7 +552,8 @@ void setup_ui() {
                 }
             });
             // TODO: Remove items
-            _.Row([itemID](Row &_) {
+            _.Grid([itemID](Grid &_) {
+                _.columns = 3;
                 _.Button("Add 1##Items", [itemID]() {
                     ik::event::IkkakuEventScriptCommand::AddItem(itemID->value, 1);
                 });
@@ -562,6 +562,15 @@ void setup_ui() {
                 });
                 _.Button("Add 100##Items", [itemID]() {
                     ik::event::IkkakuEventScriptCommand::AddItem(itemID->value, 100);
+                });
+                _.Button("Remove 1##Items", [itemID]() {
+                    ik::event::IkkakuEventScriptCommand::AddItem(itemID->value, -1);
+                });
+                _.Button("Remove 10##Items", [itemID]() {
+                    ik::event::IkkakuEventScriptCommand::AddItem(itemID->value, -10);
+                });
+                _.Button("Remove 100##Items", [itemID]() {
+                    ik::event::IkkakuEventScriptCommand::AddItem(itemID->value, -100);
                 });
             });
         });

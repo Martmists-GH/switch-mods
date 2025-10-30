@@ -9,4 +9,10 @@ namespace ui {
                 ImGui::Spacing();
         }
     };
+    ELEMENT(Separator) {
+        void draw()
+        override{
+                ImGui::Separator();
+        }
+    };
 };

@@ -69,7 +69,6 @@ void* aligned_alloc(size_t alignment, size_t size) {
     // std::lock_guard lock(m_heapMutex);
     if (m_heapAllocCount < MAX_HEAP_TRACKED) {
         m_heapAllocData[m_heapAllocCount++] = { ptr, size, alignment };
-        Logger::log("Alloc count: %d\n", m_heapAllocCount);
     }
     return ptr;
 }
@@ -162,4 +161,8 @@ void _ZdaPv(void* ptr) {
     free(ptr);
 }
 
+}
+
+std::pair<size_t, size_t> GetGlobalHeapState() {
+    return {m_heapAllocCount, MAX_HEAP_TRACKED};
 }

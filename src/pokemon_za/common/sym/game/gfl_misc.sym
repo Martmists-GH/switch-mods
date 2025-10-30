@@ -1,21 +1,9 @@
 @game:100
-// gfl::HeapManager::s_instance
-_ZN3gfl11HeapManager10s_instanceE = 0x03da1b48
+// gfl::HeapManager::s_managerList
+_ZN3gfl11HeapManager13s_managerListE = 0x03d993f8
 
-// gfl::HeapManager::s_instance2
-_ZN3gfl11HeapManager11s_instance2E = 0x05f0afd8
-
-// gfl::HeapManager::s_instance3
-_ZN3gfl11HeapManager11s_instance3E = 0x03da1b40
-
-// gfl::HeapManager::s_instance4
-_ZN3gfl11HeapManager11s_instance4E = 0x05f10420
-
-// gfl::HeapManager::s_instance5
-_ZN3gfl11HeapManager11s_instance5E = 0x05f2c5b8
-
-// gfl::HeapManager::s_instance6
-_ZN3gfl11HeapManager11s_instance6E = 0x03d9ad10
+// gfl::HeapManager::s_managerCount
+_ZN3gfl11HeapManager14s_managerCountE = 0x03d99bf8
 
 // gfl::SizedHeap::s_globalHeap
 _ZN3gfl9SizedHeap12s_globalHeapE = 0x03d993e8

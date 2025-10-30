@@ -56,4 +56,22 @@ namespace ui {
         explicit TextUnformatted(std::string content) : content(std::move(content)) {};
         explicit TextUnformatted(const char* content) : content(content) {};
     };
+
+    ELEMENT(TextSeparator) {
+        std::string content;
+
+        bool isValid()
+        override{
+            return !content.empty();
+        }
+
+        void draw()
+        override{
+            ImGui::SeparatorText(content.c_str());
+        }
+
+        TextSeparator() = default;
+        explicit TextSeparator(std::string content) : content(std::move(content)) {};
+        explicit TextSeparator(const char* content) : content(content) {};
+    };
 }
