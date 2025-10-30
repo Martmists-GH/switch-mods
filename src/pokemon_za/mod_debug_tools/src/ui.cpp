@@ -503,7 +503,7 @@ void setup_ui() {
                 _.SliderInt([](SliderInt &_) {
                     _.label = "Shiny rate Multiplier";
                     _.min = 0;
-                    _.max = 30;
+                    _.max = 60;
                     _.value = 1;
                     _.onChange = [](int mult) {
                         s_dataForEncounter.shinyMultiplier = mult;
