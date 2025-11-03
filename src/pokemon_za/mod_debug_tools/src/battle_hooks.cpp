@@ -73,6 +73,12 @@ HkTrampoline<void, pml::pokepara::InitialSpec*> ForceShinyHook = hk::hook::tramp
     }
     if (s_dataForEncounter.forceAlpha) {
         spec->oybn = true;
+        spec->attributeScaling = 0xFF;
+        spec->ev[0] = 0xFC;
+        spec->level = std::min(spec->level + 10, 100);  // This seems to be loaded from romfs, but I cba to write parsing for that mess
+        for (int i = 0; i < 6; i++) {  // This is also loaded from romfs but uses this logic as fallback
+            spec->iv[i] = 0x1F;
+        }
     }
     if (s_dataForEncounter.forceModify) {
         spec->monsNo = s_dataForEncounter.species;

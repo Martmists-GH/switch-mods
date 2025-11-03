@@ -17,7 +17,12 @@ public:
 
     nvn::BufferAddress GetBufferAddress() const { return buffer.GetAddress(); };
 
-    u8 *GetMemPtr() const { return (u8 *) pool.Map(); }
+    u8 *GetMemPtr() {
+        if (mMemPtr == nullptr) {
+            mMemPtr = pool.Map();
+        }
+        return (u8*) mMemPtr;
+    };
 
     bool IsBufferReady() { return mIsReady; }
 
@@ -30,5 +35,6 @@ private:
     nvn::Buffer buffer;
 
     void *memBuffer;
+    void * mMemPtr = nullptr;
     bool mIsReady = false;
 };

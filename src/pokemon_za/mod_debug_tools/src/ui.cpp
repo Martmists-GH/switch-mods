@@ -197,7 +197,7 @@ void PokemonEditor(PokemonData* data, T& _, bool withExtraSettings) {
             _.InputInt([i, data](InputInt &_) {
                 _.min = 0;
                 _.value = data->ev[i];
-                _.max = 255;
+                _.max = 252;
                 _.label = "##EV" + std::to_string(i);
                 _.onValueChanged = [i, data](int value) {
                     data->ev[i] = value;
