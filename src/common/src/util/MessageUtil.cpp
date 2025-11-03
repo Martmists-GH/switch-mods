@@ -26,6 +26,26 @@ namespace MessageUtil {
         )");
     }
 
+    NORETURN void abort(const char *message, const char *description, ...) {
+        va_list args;
+        va_start(args, description);
+        abort(0, message, description, args);
+    }
+
+    NORETURN void abort(const char *message, const char *description, va_list args) {
+        abort(0, message, description, args);
+    }
+
+    NORETURN void abort(const char *message, ...) {
+        va_list args;
+        va_start(args, message);
+        abort(0, "ABORT!", message, args);
+    }
+
+    NORETURN void abort(const char *message, va_list args) {
+        abort(0, "ABORT!", message, args);
+    }
+
     void popup(u32 errcode, const std::string& message, const std::string& description) {
         popup(errcode, message.c_str(), description.c_str());
     }

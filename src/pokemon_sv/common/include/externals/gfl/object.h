@@ -28,7 +28,7 @@ namespace gfl {
             if (is_version("3.0.1") || is_version("4.0.0")) {
                 offset = 0x04765a30;
             } else {
-                HK_ABORT("ThreadLocalHelper::GetInstance Not implemented for version!", nullptr);
+                MessageUtil::abort("ThreadLocalHelper::GetInstance Not implemented for version!");
             }
             auto tlsPtr = reinterpret_cast<nn::os::TlsSlot*>(hk::ro::getMainModule()->range().start() + offset);
             return reinterpret_cast<ThreadLocalHelper*>(nn::os::GetTlsValue(*tlsPtr));

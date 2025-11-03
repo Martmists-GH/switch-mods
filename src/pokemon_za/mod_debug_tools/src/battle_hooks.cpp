@@ -71,6 +71,9 @@ HkTrampoline<void, pml::pokepara::InitialSpec*> ForceShinyHook = hk::hook::tramp
     if (s_dataForEncounter.forceShiny) {
         spec->colorRnd = pml::pokepara::CalcTool::CorrectColorRndForRare(spec->id, spec->colorRnd);
     }
+    if (s_dataForEncounter.forceAlpha) {
+        spec->oybn = true;
+    }
     if (s_dataForEncounter.forceModify) {
         spec->monsNo = s_dataForEncounter.species;
         spec->formNo = s_dataForEncounter.form;

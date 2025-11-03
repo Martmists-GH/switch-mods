@@ -3,6 +3,7 @@
 // Used to communicate between UI and hooks
 struct PokemonData {
     bool forceShiny = false;
+    bool forceAlpha = false;
     bool forceModify = false;  // Does not affect shinyness
     bool allowInvalidForms = false;
     int shinyMultiplier = 1;

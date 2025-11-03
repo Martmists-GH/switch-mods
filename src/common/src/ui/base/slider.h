@@ -36,7 +36,7 @@ namespace ui {
 
         void render()
         override{
-            ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.2f);
+            ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.3f);
             if (ImGui::SliderInt(label.c_str(), &value, min, max)) {
                 onChange(value);
             }

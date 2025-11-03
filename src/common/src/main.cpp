@@ -33,7 +33,7 @@ HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
     if (FileUtil::exists("sd:/mod.log")) {
         FileUtil::deleteFile("sd:/mod.log");
     }
-    FileUtil::writeFile("sd:/mod.log", "");
+    FileUtil::writeFile("sd:/mod.log", "[Start of logger output]\n");
 
     static bool fileHadError = false;
     Logger::addListener([](const char *message, size_t len) {

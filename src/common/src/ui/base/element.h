@@ -4,6 +4,7 @@
 #include <string>
 #include <functional>
 #include <hk/diag/diag.h>
+#include <util/MessageUtil.h>
 
 #include "imgui.h"
 #include "logger/logger.h"
@@ -117,7 +118,7 @@ ELEMENT_SUPPORTS_CHILD(StringView)
             T *instance = IM_NEW(T);
             initializer(*instance);
             if (!instance->isValid()) {
-                HK_ABORT("UI Element of type %s reported invalid after initializing!", typeid(T).name());
+                MessageUtil::abort("UI Element of type %s reported invalid after initializing!", typeid(T).name());
             }
             return instance;
         }
@@ -126,7 +127,7 @@ ELEMENT_SUPPORTS_CHILD(StringView)
         static T *createArgs(Args... args) {
             T *instance = IM_NEW(T)(args...);
             if (!instance->isValid()) {
-                HK_ABORT("UI Element of type %s reported invalid after initializing!", typeid(T).name());
+                MessageUtil::abort("UI Element of type %s reported invalid after initializing!", typeid(T).name());
             }
             return instance;
         }
@@ -136,7 +137,7 @@ ELEMENT_SUPPORTS_CHILD(StringView)
             T instance{};
             initializer(instance);
             if (!instance.isValid()) {
-                HK_ABORT("UI Element of type %s reported invalid after initializing!", typeid(T).name());
+                MessageUtil::abort("UI Element of type %s reported invalid after initializing!", typeid(T).name());
             }
             return instance;
         }
@@ -145,7 +146,7 @@ ELEMENT_SUPPORTS_CHILD(StringView)
         static T single(Args... args) {
             T instance(args...);
             if (!instance.isValid()) {
-                HK_ABORT("UI Element of type %s reported invalid after initializing!", typeid(T).name());
+                MessageUtil::abort("UI Element of type %s reported invalid after initializing!", typeid(T).name());
             }
             return instance;
         }

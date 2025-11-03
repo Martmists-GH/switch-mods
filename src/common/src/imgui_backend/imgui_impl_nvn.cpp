@@ -402,7 +402,7 @@ namespace ImguiNvnBackend {
 
         io.Fonts->AddFontDefault();
 
-        Logger::log("Adding Migu 1P Font\n");
+        Logger::log("Adding Migu 1P Font.\n");
         ImFontConfig config;
         config.MergeMode = true;
         io.Fonts->AddFontFromMemoryCompressedTTF(&migu_1p_compressed_data, migu_1p_compressed_size, 18.0f, &config, io.Fonts->GetGlyphRangesJapanese());

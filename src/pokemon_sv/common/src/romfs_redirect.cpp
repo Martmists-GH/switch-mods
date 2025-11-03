@@ -57,6 +57,6 @@ void romfs_hooks() {
         FlatBufferReadInvokeHook1.installAtMainOffset(0x0203da2c);
         FlatBufferReadInvokeHook2.installAtMainOffset(0x0208a980);
     } else {
-        HK_ABORT("ReadInvokeHook Not implemented for version!", nullptr);
+        MessageUtil::abort("ReadInvokeHook Not implemented for version!");
     }
 }

@@ -6,9 +6,16 @@ set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_VERSION "NX/Clang")
 
 # FIXME: Apparently everything breaks on clang 21 onwards?
-set(CMAKE_ASM_COMPILER "/usr/lib/llvm20/bin/clang-20")
-set(CMAKE_C_COMPILER "/usr/lib/llvm20/bin/clang-20")
-set(CMAKE_CXX_COMPILER "/usr/lib/llvm20/bin/clang++")
+
+find_program(CLANG_PATH NAMES clang-20 clang)
+cmake_path(SET ${CLANG_PATH} ${CLANG_PATH})
+cmake_path(GET ${CLANG_PATH} PARENT_PATH CLANG_DIR)
+
+message("Found clang: ${CLANG_PATH}/clang")
+
+set(CMAKE_ASM_COMPILER "${CLANG_DIR}/clang")
+set(CMAKE_C_COMPILER "${CLANG_DIR}/clang")
+set(CMAKE_CXX_COMPILER "${CLANG_DIR}/clang++")
 set(CMAKE_LINKER "ld.lld")
 set(CMAKE_EXECUTABLE_SUFFIX ".nss")
 

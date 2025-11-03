@@ -21,7 +21,9 @@ namespace pml::pokepara {
         char unk7[0x7];
         short iv[6];
         short ev[6];
-        char unk8[0x98];
+        char unk8[0x3e];
+        bool oybn;
+        char unk9[0x59];
 
         void FixInitSpec();
     };

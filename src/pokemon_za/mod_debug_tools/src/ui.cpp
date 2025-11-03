@@ -19,6 +19,7 @@
 #include "externals/ik/ZARoyaleSaveAccessor.h"
 #include "externals/pe/text/lua/Text.h"
 #include "externals/pml/personal/PersonalSystem.h"
+#include "imgui_ext.h"
 
 using namespace ui;
 
@@ -39,44 +40,17 @@ static const char* SEX_LIST[3] = {
     "Female",
     "Unknown",
 };
-static const char* NATURE_LIST[25] = {
-    "Hardy",
-    "Lonely",
-    "Brave",
-    "Adamant",
-    "Naughty",
-    "Bold",
-    "Docile",
-    "Relaxed",
-    "Impish",
-    "Lax",
-    "Timid",
-    "Hasty",
-    "Serious",
-    "Jolly",
-    "Naive",
-    "Modest",
-    "Mild",
-    "Quiet",
-    "Bashful",
-    "Rash",
-    "Calm",
-    "Gentle",
-    "Sassy",
-    "Careful",
-    "Quirky",
-};
-static const char* STAT[6] = {
-    "HP",
-    "Atk",
-    "Def",
-    "SpAtk",
-    "SpDef",
-    "Agi",
+static const char* STAT_KEY[6] = {
+    "msg_ui_status_pokemon_hp_00",
+    "msg_ui_status_pokemon_attack_00",
+    "msg_ui_status_pokemon_defense_00",
+    "msg_ui_status_pokemon_spdefense_00",
+    "msg_ui_status_pokemon_spattack_00",
+    "msg_ui_status_pokemon_speed_00",
 };
 
 template <typename T = ui::Builder>
-void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
+void PokemonEditor(PokemonData* data, T& _, bool withExtraSettings) {
     _.Checkbox("Allow invalid forms", data->allowInvalidForms, [data](bool value) {
         data->allowInvalidForms = value;
     });
@@ -113,10 +87,8 @@ void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
                 ImGui::NextColumn();
                 ImGui::Text("[Invalid Form]");
             } else {
-                auto monsFile = gfl::StringHolder::Create("monsname");
                 auto monsLabel = std::vformat((data->species < 1000) ? "MONSNAME_{:03d}" : "MONSNAME_{:04d}", std::make_format_args(data->species));
-                auto monsStr = gfl::StringHolder::Create(monsLabel.c_str());
-                auto monsPtr = pe::text::lua::Text::GetText(&monsFile, &monsStr);
+                auto monsPtr = pe::text::lua::Text::GetText("monsname", monsLabel.c_str());
                 if (monsPtr.m_ptr == nullptr) {
                     ImGui::Text("[Invalid Pokemon]");
                 } else {
@@ -124,10 +96,8 @@ void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
                 }
                 ImGui::NextColumn();
 
-                auto formFile = gfl::StringHolder::Create("zkn_form");
                 auto formLabel = std::vformat((data->species < 1000) ? "ZKN_FORM_{:03d}_{:03d}" : "ZKN_FORM_{:04d}_{:03d}", std::make_format_args(data->species, data->form));
-                auto formStr = gfl::StringHolder::Create(formLabel.c_str());
-                auto formPtr = pe::text::lua::Text::GetText(&formFile, &formStr);
+                auto formPtr = pe::text::lua::Text::GetText("zkn_form", formLabel.c_str());
                 if (formPtr.m_ptr == nullptr) {
                     ImGui::Text("[Invalid Form]");
                 } else {
@@ -137,7 +107,7 @@ void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
         });
     });
     _.TextSeparator("Stats");
-    _.Grid([data, withShinySetting](Grid &_) {
+    _.Grid([data, withExtraSettings](Grid &_) {
         _.columns = 2;
         _.ComboSimple([data](ComboSimple &_) {
             _.label = "Sex";
@@ -148,14 +118,32 @@ void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
                 data->sex = index;
             };
         });
-        _.ComboSimple([data](ComboSimple &_) {
-            _.label = "Nature";
-            _.items = NATURE_LIST;
-            _.items_count = 25;
-            _.selected = data->nature;
-            _.onChange = [data](int index) {
-                data->nature = index;
-            };
+        _.FunctionElement([data] {
+            static std::string items[25];
+            static bool isInitialized = false;
+            if (!isInitialized) {
+                for (int i = 0; i < 25; i++) {
+                    auto entry = std::format("SEIKAKU_{:03d}", i);
+                    auto naturePtr = pe::text::lua::Text::GetText("seikaku", entry.c_str());
+                    if (naturePtr.m_ptr == nullptr) {
+                        items[i] = "[Invalid Nature]";
+                    } else {
+                        items[i] = naturePtr.m_ptr->asString();
+                    }
+                }
+                isInitialized = true;
+            }
+
+            auto naturePtr = pe::text::lua::Text::GetText("box", "msg_ui_box_seikaku_01");
+            auto natureStr = naturePtr.m_ptr->asString();
+            if (ImGui::BeginCombo(natureStr.c_str(), items[data->nature].c_str(), ImGuiComboFlags_None)) {
+                for (int i = 0; i < 25; i++) {
+                    if (ImGui::Selectable(items[i].c_str(), data->nature == i)) {
+                        data->nature = i;
+                    }
+                }
+                ImGui::EndCombo();
+            }
         });
         _.InputInt([data](InputInt &_) {
             _.label = "Level";
@@ -175,9 +163,12 @@ void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
                 data->ability = value;
             };
         });
-        if (withShinySetting) {
+        if (withExtraSettings) {
             _.Checkbox("Shiny", data->forceShiny, [data](bool value) {
                 data->forceShiny = value;
+            });
+            _.Checkbox("Alpha", data->forceAlpha, [data](bool value) {
+                data->forceAlpha = value;
             });
         }
     });
@@ -190,7 +181,10 @@ void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
         _.Text("IV");
         _.Text("EV");
         for (int i = 0; i < 6; i++) {
-            _.Text(STAT[i]);
+            _.FunctionElement([i]() {
+                ImGui::TextFile("status", STAT_KEY[i]);
+            });
+            // _.Text(STAT[i]);
             _.InputInt([i, data](InputInt &_) {
                 _.min = 0;
                 _.value = data->iv[i];
@@ -211,7 +205,9 @@ void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
             });
         }
     });
-    _.TextSeparator("Moves");
+    _.FunctionElement([]() {
+        ImGui::TextFile("status", "msg_ui_status_custom_title_00");
+    });
     _.Grid([data](Grid &_) {
         _.columns = 4;
         for (int i = 0; i < 4; i++) {
@@ -225,10 +221,8 @@ void PokemonEditor(PokemonData* data, T& _, bool withShinySetting) {
                 };
             });
             _.FunctionElement([waza]() {
-                auto file = gfl::StringHolder::Create("wazaname");
                 auto label = std::format("WAZANAME_{:03d}", waza->value);
-                auto labelStr = gfl::StringHolder::Create(label.c_str());
-                auto ptr = pe::text::lua::Text::GetText(&file, &labelStr);
+                auto ptr = pe::text::lua::Text::GetText("wazaname", label.c_str());
                 if (ptr.m_ptr == nullptr) {
                     ImGui::Text("[null]");
                 } else {
@@ -375,6 +369,18 @@ void setup_ui() {
         _.initialPos = ImVec2(50, 50);
         _.initialSize = ImVec2(400, 450);
 
+        _.FunctionElement([]() {
+            static bool didLoad = false;
+            if (!didLoad) {
+                Logger::log("Loading message files\n");
+                pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/seikaku.dat");
+                pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/status.dat");
+                pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/box.dat");
+                pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/hud_itemget.dat");
+                didLoad = true;
+            }
+        });
+
         _.MenuBar([](MenuBar &_) {
             _.Menu([](Menu &_) {
                 _.label = "Windows";
@@ -386,6 +392,7 @@ void setup_ui() {
         });
 
         _.Text("Press ZL+R to toggle all menus.\nHold Y to move or resize.");
+        _.Text("Early access on patreon.com/martmists");
 
         _.Spacing();
 
@@ -425,7 +432,9 @@ void setup_ui() {
                     });
                 });
 
-                _.Text("Medals");
+                _.FunctionElement([]() {
+                    ImGui::TextFile("hud_itemget", "hud_itemget_02_01");
+                });
                 _.FunctionElement([](FunctionElement &_) {
                     _.callback = [] {
                         auto numMedals = ik::ZARoyaleSaveAccessor::GetMedalNum();
@@ -504,7 +513,9 @@ void setup_ui() {
                     };
                 });
             });
-            // TODO: 100% Alpha
+            _.Checkbox("100% Alpha Rate", s_dataForEncounter.forceAlpha, [](bool it) {
+                s_dataForEncounter.forceAlpha = it;
+            });
             _.Separator();
             _.Checkbox("Force modify encounter", [](bool value) {
                 s_dataForEncounter.forceModify = value;
@@ -540,10 +551,8 @@ void setup_ui() {
 
                 ImGui::SameLine();
 
-                auto file = gfl::StringHolder::Create("itemname");
                 auto label = std::vformat((value < 1000) ? "ITEMNAME_{:03d}" : "ITEMNAME_{:04d}", std::make_format_args(value));
-                auto labelStr = gfl::StringHolder::Create(label.c_str());
-                auto ptr = pe::text::lua::Text::GetText(&file, &labelStr);
+                auto ptr = pe::text::lua::Text::GetText("itemname", label.c_str());
                 if (ptr.m_ptr == nullptr) {
                     ImGui::Text("[null]");
                 } else {
@@ -616,7 +625,6 @@ void setup_ui() {
                     auto entry = questContainer->m_items.entries;
                     while (entry != nullptr) {
                         auto entryLabel = &entry->value.m_label->m_start;
-
                         auto labelHolder = gfl::StringHolder::Create(entryLabel);
                         auto entryNamePtr = pe::text::lua::Text::GetText(&filenameHolder, &labelHolder);
                         if (entryNamePtr.m_ptr != nullptr) {
