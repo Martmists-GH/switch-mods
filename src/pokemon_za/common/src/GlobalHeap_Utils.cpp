@@ -14,20 +14,23 @@ constexpr size_t MAX_HEAP_TRACKED = 0x1000;
 static HeapData m_heapAllocData[MAX_HEAP_TRACKED];
 static size_t m_heapAllocCount = 0;
 
-using MallocFn  = void* (*)(size_t);
-using FreeFn    = void  (*)(void*);
-using CallocFn  = void* (*)(size_t, size_t);
-using ReallocFn = void* (*)(void*, size_t);
+using MallocFn        = void* (*)(size_t);
+using AlignedAllocFn  = void* (*)(size_t, size_t);
+using FreeFn          = void  (*)(void*);
+using CallocFn        = void* (*)(size_t, size_t);
+using ReallocFn       = void* (*)(void*, size_t);
 
-static MallocFn  s_sysMalloc  = nullptr;
-static FreeFn    s_sysFree    = nullptr;
-static CallocFn  s_sysCalloc  = nullptr;
-static ReallocFn s_sysRealloc = nullptr;
+static MallocFn        s_sysMalloc       = nullptr;
+static AlignedAllocFn  s_sysAlignedAlloc = nullptr;
+static FreeFn          s_sysFree         = nullptr;
+static CallocFn        s_sysCalloc       = nullptr;
+static ReallocFn       s_sysRealloc      = nullptr;
 
 static void EnsureSystemAllocators() {
     if (s_sysMalloc) return;
 
     nn::ro::LookupSymbol((u64*)&s_sysMalloc, "malloc");
+    nn::ro::LookupSymbol((u64*)&s_sysAlignedAlloc, "aligned_alloc");
     nn::ro::LookupSymbol((u64*)&s_sysFree, "free");
     nn::ro::LookupSymbol((u64*)&s_sysCalloc, "calloc");
     nn::ro::LookupSymbol((u64*)&s_sysRealloc, "realloc");
@@ -50,15 +53,8 @@ void* aligned_alloc(size_t alignment, size_t size) {
     auto heap = gfl::SizedHeap::s_globalHeap;
     if (!heap) {
         EnsureSystemAllocators();
-        if (s_sysMalloc) {
-            void* ptr = nullptr;
-            size_t mask = alignment - 1;
-            void* raw = s_sysMalloc(size + alignment);
-            if (raw) {
-                uintptr_t aligned = (reinterpret_cast<uintptr_t>(raw) + mask) & ~mask;
-                ptr = reinterpret_cast<void*>(aligned);
-                return ptr;
-            }
+        if (s_sysAlignedAlloc) {
+            return s_sysAlignedAlloc(alignment, size);
         }
         return nullptr;
     }

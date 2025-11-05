@@ -317,8 +317,8 @@ namespace ImguiNvnBackend {
         }
 
         bd->shaderMemory = IM_NEW(MemoryBuffer)(binarySize, nvn::MemoryPoolFlags::CPU_UNCACHED |
-                                                                          nvn::MemoryPoolFlags::GPU_CACHED |
-                                                                          nvn::MemoryPoolFlags::SHADER_CODE);
+                                                            nvn::MemoryPoolFlags::GPU_CACHED |
+                                                            nvn::MemoryPoolFlags::SHADER_CODE);
 
         if (!bd->shaderMemory->IsBufferReady()) {
             Logger::log("Shader Memory Pool not Ready! Unable to continue.\n");
@@ -394,7 +394,26 @@ namespace ImguiNvnBackend {
 
         bd->device = initInfo.device;
         bd->queue = initInfo.queue;
-        bd->cmdBuf = initInfo.cmdBuf;
+        bd->cmdBuf = new nvn::CommandBuffer();
+
+#define MEGABYTE 1024 * 1024
+#define CMD_POOL_SIZE ALIGN_UP(UBOSIZE, MEGABYTE)
+#define CTRL_POOL_SIZE ALIGN_UP(UBOSIZE, MEGABYTE)
+
+        auto pool = (void*)ALIGN_UP(IM_ALLOC(CMD_POOL_SIZE + MEGABYTE), MEGABYTE);
+
+        nvn::MemoryPoolBuilder builder = {};
+        nvn::pfncpp_nvnMemoryPoolBuilderSetDevice(&builder, bd->device);
+        nvn::pfncpp_nvnMemoryPoolBuilderSetFlags(&builder, nvn::MemoryPoolFlags::CPU_UNCACHED | nvn::MemoryPoolFlags::GPU_CACHED | nvn::MemoryPoolFlags::SHADER_CODE);
+        nvn::pfncpp_nvnMemoryPoolBuilderSetStorage(&builder, pool, CMD_POOL_SIZE);
+        nvn::pfncpp_nvnMemoryPoolInitialize(&bd->cmdCmdPool, &builder);
+
+        bd->cmdCtrlPool = (void*)ALIGN_UP(IM_ALLOC(CTRL_POOL_SIZE + MEGABYTE), MEGABYTE);
+
+        bd->cmdBuf->Initialize(bd->device);
+        bd->cmdBuf->AddCommandMemory(&bd->cmdCmdPool, 0, CMD_POOL_SIZE);
+        bd->cmdBuf->AddControlMemory(bd->cmdCtrlPool, CTRL_POOL_SIZE);
+
         bd->viewportSize = ImVec2(1280, 720);
         bd->isInitialized = false;
 
@@ -562,7 +581,7 @@ namespace ImguiNvnBackend {
         if (!bd->vtxBuffer || bd->vtxBuffer->GetPoolSize() < totalVtxSize) {
             if (bd->vtxBuffer) {
                 bd->vtxBuffer->Finalize();
-                IM_FREE(bd->vtxBuffer);
+                IM_DELETE(bd->vtxBuffer);
                 Logger::log("Resizing Vertex Buffer to Size: %d\n", totalVtxSize);
             } else {
                 Logger::log("Initializing Vertex Buffer to Size: %d\n", totalVtxSize);
@@ -577,7 +596,7 @@ namespace ImguiNvnBackend {
             if (bd->idxBuffer) {
 
                 bd->idxBuffer->Finalize();
-                IM_FREE(bd->idxBuffer);
+                IM_DELETE(bd->idxBuffer);
 
                 Logger::log("Resizing Index Buffer to Size: %d\n", totalIdxSize);
             } else {
@@ -594,6 +613,8 @@ namespace ImguiNvnBackend {
             return;
         }
 
+        bd->cmdBuf->AddCommandMemory(&bd->cmdCmdPool, 0, CMD_POOL_SIZE);
+        bd->cmdBuf->AddControlMemory(bd->cmdCtrlPool, CTRL_POOL_SIZE);
         bd->cmdBuf->BeginRecording(); // start recording our commands to the cmd buffer
 
         bd->cmdBuf->BindProgram(&bd->shaderProgram, nvn::ShaderStageBits::VERTEX |

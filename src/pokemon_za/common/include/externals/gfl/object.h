@@ -170,6 +170,8 @@ namespace gfl {
 
     static_assert(sizeof(TypedHandle<void>) == 0x10);
 
+    typedef void (*editRefType)(void* thiz);
+
     struct Object : ExternalType<Object> {
         struct vtable : AllocatedObject::vtable {
             void* GetReflection;
@@ -180,9 +182,9 @@ namespace gfl {
             void* unk6;
             void* unk7;
             void* unk8;
-            void* OnZeroReference;
-            void* IncrementReference;
-            void* DecrementReference;
+            editRefType OnZeroReference;
+            editRefType IncrementReference;
+            editRefType DecrementReference;
         };
 
         static_assert(sizeof(vtable) == 0x68);
@@ -198,8 +200,6 @@ namespace gfl {
     };
 
     static_assert(sizeof(Object::instance) == 0x40);
-
-    typedef void (*editRefType)(void* thiz);
 
     struct ReferenceObject : ExternalType<ReferenceObject> {
         struct vtable : gfl::AllocatedObject::vtable {

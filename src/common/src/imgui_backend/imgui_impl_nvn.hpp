@@ -29,6 +29,8 @@ namespace ImguiNvnBackend {
         nvn::Device *device;
         nvn::Queue *queue;
         nvn::CommandBuffer *cmdBuf;
+        nvn::MemoryPool cmdCmdPool;
+        void* cmdCtrlPool;
 
         // builders
 

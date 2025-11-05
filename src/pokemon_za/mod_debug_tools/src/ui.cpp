@@ -11,7 +11,9 @@
 #include <util/common_utils.h>
 #include "GlobalHeap_Utils.h"
 
+#include "externals/cmn/savedata/BoxSaveDataAccessor.h"
 #include "externals/ik/event/IkkakuEventScriptCommand.h"
+#include "externals/ik/BoxSaveUtil.h"
 #include "externals/ik/EventSystemCallFunctions.h"
 #include "externals/ik/FlagWorkManager.h"
 #include "externals/ik/HudMomijiQuestAchievementUIAccessor.h"
@@ -522,15 +524,69 @@ void setup_ui() {
             });
 
             _.FunctionElement([]() {
-                auto instance = Builder::createArgs();
-                PokemonEditor(&s_dataForEncounter, *instance, false);
-                instance->render();
-                IM_DELETE(instance);
-                // auto instance = Builder::single();
-                // PokemonEditor(&s_dataForEncounter, instance, false);
-                // instance.render();
+                auto instance = Builder::single();
+                PokemonEditor(&s_dataForEncounter, instance, false);
+                instance.render();
             });
         });
+
+        // _.CollapsingHeader([](CollapsingHeader &_) {
+        //     _.label = "Party";
+        //
+        //     static PokemonData s_partyData;
+        //     static int dataIndex = -1;
+        //
+        //     auto partyIdx = _.InputInt([](InputInt &_) {
+        //         _.min = 0;
+        //         _.value = 0;
+        //         _.max = 5;
+        //         _.label = "Party Index";
+        //     });
+        //     // _.FunctionElement([partyIdx]() {
+        //     //     auto i = partyIdx->value;
+        //     //     auto accessor = cmn::savedata::BoxSaveDataAccessor::GetInstance();
+        //     //     auto pos = accessor.m_ptr->fields.teamPos[0][i];
+        //     //     if (pos == 0xffff) {
+        //     //         return;
+        //     //     }
+        //     //     auto tray = pos >> 8;
+        //     //     auto slot = pos & 0xff;
+        //     //     auto paramPtr = ik::BoxSaveUtil::GetPokemonParam(tray, slot);
+        //     //     auto pp = paramPtr.m_ptr->fields.m_pp->castTo<pml::pokepara::CoreParam>();
+        //     //
+        //     //     if (i != dataIndex) {
+        //     //         dataIndex = i;
+        //     //         s_partyData.forceShiny = pp->IsRare();
+        //     //         s_partyData.forceAlpha = pp->IsOybn();
+        //     //         s_partyData.species = pp->GetMonsNo();
+        //     //         s_partyData.form = pp->GetFormNo();
+        //     //         // TODO:
+        //     //         // - sex
+        //     //         // - ability
+        //     //         // - nature
+        //     //         // - level
+        //     //         // - iv
+        //     //         // - ev
+        //     //         // - moves
+        //     //     }
+        //     //
+        //     //     auto builder = Builder::single();
+        //     //     PokemonEditor(&s_partyData, builder, true);
+        //     //     builder.render();
+        //     //
+        //     //     // TODO: Update param from s_partyData
+        //     //     if (s_partyData.forceShiny) {
+        //     //         // TODO
+        //     //     } else {
+        //     //         // TODO
+        //     //     }
+        //     //     pp->SetIsOybn(s_partyData.forceAlpha);
+        //     //     pp->SetMonsNo(s_partyData.species);
+        //     //     pp->SetFormNo(s_partyData.form);
+        //     //
+        //     //     ik::BoxSaveUtil::SetPokemonParam(tray, slot, paramPtr);
+        //     // });
+        // });
 
         _.CollapsingHeader([](CollapsingHeader &_) {
             _.label = "Bag";

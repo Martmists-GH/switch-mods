@@ -43,9 +43,6 @@ ui::Root& getRootElement() {
     return root;
 }
 
-static void* (*mallocFuncPtr)(size_t size);
-static void (*freeFuncPtr)(void *ptr);
-
 bool InitImGui() {
     if (nvnDevice && nvnQueue && nvnCmdBuf) {
         Logger::log("Creating ImGui.\n");
@@ -116,8 +113,8 @@ void presentTexture(nvn::Queue *queue, nvn::Window *window, int texIndex) {
     if (hasInitImGui) {
         procDraw();
         buf->BeginRecording();
-        setTexturePool(buf, pool);
-        setSamplerPool(buf, samplerPool);
+        tempCommandSetTexturePoolFunc(buf, pool);
+        tempCommandSetSamplerPoolFunc(buf, samplerPool);
         auto handle = buf->EndRecording();
         queue->SubmitCommands(1, &handle);
     }
