@@ -8,3 +8,8 @@ _ZN2ik12QuestManager13QuestCompleteEPN3gfl12StringHolderEb = 0x007d3c8c
 
 // ik::QuestManager::SendQuestProgressUpdate(ik::quest::Quest*, int)
 _ZN2ik12QuestManager23SendQuestProgressUpdateEPNS_5quest5QuestEi = 0x007aec10
+
+@game:102
+_ZN3gfl9SingletonIN2ik12QuestManagerEE10s_instanceE = 0x05f10f40
+_ZN2ik12QuestManager13QuestCompleteEPN3gfl12StringHolderEb = 0x007a3778
+_ZN2ik12QuestManager23SendQuestProgressUpdateEPNS_5quest5QuestEi = 0x007b7100

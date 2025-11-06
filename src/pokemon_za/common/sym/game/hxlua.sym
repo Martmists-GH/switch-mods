@@ -7,3 +7,9 @@ _ZN5hxlua5State4LoadEPcmPN3gfl12StringHolderE = 0x016b33f0
 
 // hxlua::State::OnPanic(lua_State*)
 _ZN5hxlua5State7OnPanicEP9lua_State = 0x016b26c4
+
+@game:102
+
+_ZN5hxluaL10luaB_printEP9lua_State = 0x016876f0
+_ZN5hxlua5State4LoadEPcmPN3gfl12StringHolderE = 0x016b37e0
+_ZN5hxlua5State7OnPanicEP9lua_State = 0x016b2ab4

@@ -1,3 +1,6 @@
 @game:100
 // pml::pokepara::InitialSpec::FixInitSpec()
 _ZN3pml8pokepara11InitialSpec11FixInitSpecEv = 0x0069b6c0
+
+@game:102
+_ZN3pml8pokepara11InitialSpec11FixInitSpecEv = 0x006ae3d0

@@ -5,3 +5,7 @@ _ZN2ik15QuestCompletionC1EPN3gfl9SizedHeapEPNS_5quest5QuestEi = 0x002abbbc
 
 // ik::QuestCompletion::~QuestCompletion()
 _ZN2ik15QuestCompletionD1Ev = 0x002abd04
+
+@game:102
+_ZN2ik15QuestCompletionC1EPN3gfl9SizedHeapEPNS_5quest5QuestEi = 0x002a958c
+_ZN2ik15QuestCompletionD1Ev = 0x002a96d4

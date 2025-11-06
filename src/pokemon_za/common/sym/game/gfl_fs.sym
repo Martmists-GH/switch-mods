@@ -7,3 +7,8 @@ _ZN3gfl2fs16FlatBufferLoader4ReadEPvl = 0x0004ab40
 
 // gfl::fs::FlatBufferReadInfo::ReadToBuffer(void* buffer, long bufferSize)
 _ZN3gfl2fs18FlatBufferReadInfo12ReadToBufferEPvl = 0x01955634
+
+@game:102
+_ZN3gfl2fs16FlatBufferLoader4OpenEv = 0x0002b150
+_ZN3gfl2fs16FlatBufferLoader4ReadEPvl = 0x0004ab40
+_ZN3gfl2fs18FlatBufferReadInfo12ReadToBufferEPvl = 0x01955a24

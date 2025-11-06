@@ -7,3 +7,8 @@ _ZN2ik5event24IkkakuEventScriptCommand15GetCurrentMoneyEv = 0x027f1edc
 
 // ik::event::IkkakuEventScriptCommand::AddItem(uint32_t, uint32_t)
 _ZN2ik5event24IkkakuEventScriptCommand7AddItemEjj = 0x027f2654
+
+@game:102
+_ZN2ik5event24IkkakuEventScriptCommand17AddAndShowMonyeUIEj = 0x027f2224
+_ZN2ik5event24IkkakuEventScriptCommand15GetCurrentMoneyEv = 0x027f22dc
+_ZN2ik5event24IkkakuEventScriptCommand7AddItemEjj = 0x027f2a54

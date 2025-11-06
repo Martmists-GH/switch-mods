@@ -20,3 +20,12 @@ _ZN2ik20ResearchLevelManager10CanLevelUpEv = 0x007d3a1c
 
 // ik::ResearchLevelManager::ExecuteLevelUp()
 _ZN2ik20ResearchLevelManager14ExecuteLevelUpEv = 0x007d5f24
+
+@game:102
+_ZN3gfl9SingletonIN2ik20ResearchLevelManagerEE10s_instanceE = 0x05f2e040
+_ZN2ik20ResearchLevelManager8GetLevelEv = 0x007b479c
+_ZN2ik20ResearchLevelManager8GetPointEv = 0x00496a18
+_ZN2ik20ResearchLevelManager17GetNextLevelPointEv = 0x007a3470
+_ZN2ik20ResearchLevelManager20GetNextLevelProgressEv = 0x004967d8
+_ZN2ik20ResearchLevelManager10CanLevelUpEv = 0x007a3508
+_ZN2ik20ResearchLevelManager14ExecuteLevelUpEv = 0x007a5a10

@@ -1,3 +1,6 @@
 @game:100
 // pml::battle::Exp::CalcExp(pml::battle::Exp::CalcResult* result, pml::battle::Exp::CalcParam* param)
 _ZN3pml6battle3Exp7CalcExpEPNS1_10CalcResultEPNS1_9CalcParamE = 0x008db170
+
+@game:102
+_ZN3pml6battle3Exp7CalcExpEPNS1_10CalcResultEPNS1_9CalcParamE = 0x008db240

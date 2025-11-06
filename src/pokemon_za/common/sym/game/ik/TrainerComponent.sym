@@ -2,3 +2,6 @@
 
 // ik::TrainerComponent::SetMegaEnergy(float)
 _ZN2ik16TrainerComponent13SetMegaEnergyEf = 0x002e7768
+
+@game:102
+_ZN2ik16TrainerComponent13SetMegaEnergyEf = 0x002e5138

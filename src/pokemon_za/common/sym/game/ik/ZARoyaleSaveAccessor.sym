@@ -3,3 +3,7 @@
 _ZN2ik20ZARoyaleSaveAccessor11GetMedalNumEv = 0x00928fec
 // ik::ZARoyaleSaveAccessor::SetMedalNum(uint32_t)
 _ZN2ik20ZARoyaleSaveAccessor11SetMedalNumEj = 0x00b177a8
+
+@game:102
+_ZN2ik20ZARoyaleSaveAccessor11GetMedalNumEv = 0x009290bc
+_ZN2ik20ZARoyaleSaveAccessor11SetMedalNumEj = 0x00b17b88

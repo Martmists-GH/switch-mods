@@ -4,3 +4,7 @@ _ZN2pe4text3lua4Text11LoadMsgDataEPN3gfl12StringHolderE = 0x01154d40
 
 // pe::text::lua::Text::GetText(gfl::StringHolder*, gfl::StringHolder*)
 _ZN2pe4text3lua4Text7GetTextEPN3gfl12StringHolderES5_ = 0x00a5b370
+
+@game:102
+_ZN2pe4text3lua4Text11LoadMsgDataEPN3gfl12StringHolderE = 0x01155130
+_ZN2pe4text3lua4Text7GetTextEPN3gfl12StringHolderES5_ = 0x00a5b440

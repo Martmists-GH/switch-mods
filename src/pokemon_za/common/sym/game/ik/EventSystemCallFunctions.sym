@@ -2,3 +2,6 @@
 
 // ik::EventSystemCallFunctions::FixWeather(gfa::EventContext*)
 _ZN2ik24EventSystemCallFunctions10FixWeatherEPN3gfa12EventContextE = 0x007b4074
+
+@game:102
+_ZN2ik24EventSystemCallFunctions10FixWeatherEPN3gfa12EventContextE = 0x007bc564
