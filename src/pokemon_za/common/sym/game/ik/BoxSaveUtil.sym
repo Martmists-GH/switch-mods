@@ -1,0 +1,10 @@
+@game:100
+// ik::BoxSaveUtil::GetPokemonParam(int, int)
+_ZN2ik11BoxSaveUtil15GetPokemonParamEii = 0x0041117c
+
+// ik::BoxSaveUtil::SetPokemonParam(int, int, gfl::RefPointer<ik::PokemonParam>)
+_ZN2ik11BoxSaveUtil15SetPokemonParamEiiN3gfl10RefPointerINS_12PokemonParamEEE = 0x013759e0
+
+@game:102
+_ZN2ik11BoxSaveUtil15GetPokemonParamEii = 0x0040eb4c
+_ZN2ik11BoxSaveUtil15SetPokemonParamEiiN3gfl10RefPointerINS_12PokemonParamEEE = 0x00bc49d4

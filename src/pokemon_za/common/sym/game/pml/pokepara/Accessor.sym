@@ -1,0 +1,26 @@
+@game:100
+// pml::pokepara::Accessor::StartFastMode()
+_ZN3pml8pokepara8Accessor13StartFastModeEv = 0x00d05670
+
+// pml::pokepara::Accessor::EndFastMode()
+_ZN3pml8pokepara8Accessor11EndFastModeEv = 0x00d057e0
+
+// pml::pokepara::Accessor::GetSex()
+_ZN3pml8pokepara8Accessor6GetSexEv = 0x00d0a300
+
+// pml::pokepara::Accessor::SetSex(unsigned char)
+_ZN3pml8pokepara8Accessor6SetSexEh = 0x00d137e0
+
+// pml::pokepara::Accessor::GetLevel()
+_ZN3pml8pokepara8Accessor8GetLevelEv = 0x00d06cf0
+
+// pml::pokepara::Accessor::SetLevel(int)
+_ZN3pml8pokepara8Accessor8SetLevelEi = 0x00d0ee80
+
+@game:102
+_ZN3pml8pokepara8Accessor13StartFastModeEv = 0x00d05a60
+_ZN3pml8pokepara8Accessor11EndFastModeEv = 0x00d05bd0
+_ZN3pml8pokepara8Accessor6GetSexEv = 0x00d0a6f0
+_ZN3pml8pokepara8Accessor6SetSexEh = 0x00d13bd0
+_ZN3pml8pokepara8Accessor8GetLevelEv = 0x00d070e0
+_ZN3pml8pokepara8Accessor8SetLevelEi = 0x00d0f270

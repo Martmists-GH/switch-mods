@@ -35,15 +35,17 @@ HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
     }
     FileUtil::writeFile("sd:/mod.log", "[Start of logger output]\n");
 
-    static bool fileHadError = false;
+    static bool disableFileLogger = false;
     Logger::addListener([](const char *message, size_t len) {
-        if (fileHadError) return; // avoid recursion
+        if (disableFileLogger) return; // avoid recursion
 
         nn::fs::FileHandle file{};
         long size;
         if (auto res = nn::fs::OpenFile(&file, "sd:/mod.log", nn::fs::OpenMode_Write | nn::fs::OpenMode_Append); res.IsFailure()) {
-            fileHadError = true;
-            return Logger::log("log open failed: %d\n", res.GetInnerValueForDebug());
+            disableFileLogger = true;
+            Logger::log("log open failed: %d\n", res.GetInnerValueForDebug());
+            disableFileLogger = false;
+            return;
         }
         nn::fs::GetFileSize(&size, file);
 

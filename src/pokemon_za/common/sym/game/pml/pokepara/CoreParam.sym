@@ -1,0 +1,11 @@
+@game:100
+// pml::pokepara::CoreParam::IsRare()
+_ZN3pml8pokepara9CoreParam6IsRareEv = 0x0000d098
+
+// pml::pokepara::CoreParam::UpdateCalcDatas(bool)
+_ZN3pml8pokepara9CoreParam15UpdateCalcDatasEb = 0x00cfed2c
+
+
+@game:102
+_ZN3pml8pokepara9CoreParam6IsRareEv = 0x0000d098
+_ZN3pml8pokepara9CoreParam15UpdateCalcDatasEb = 0x00cff11c

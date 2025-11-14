@@ -4,6 +4,7 @@
 #include "externals/pml/pokepara/PokemonParam.h"
 
 namespace ik {
+    // TODO: Move
     struct PokemonParam : ExternalType<PokemonParam> {
         struct vtable : gfl::Object::vtable {};
         struct fields : gfl::Object::fields {

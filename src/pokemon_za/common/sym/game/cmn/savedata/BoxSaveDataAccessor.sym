@@ -1,0 +1,6 @@
+@game:100
+// cmn::savedata::BoxSaveDataAccessor::GetInstance()
+_ZN3cmn8savedata19BoxSaveDataAccessor11GetInstanceEv = 0x00411fcc
+
+@game:102
+_ZN3cmn8savedata19BoxSaveDataAccessor11GetInstanceEv = 0x0040f99c

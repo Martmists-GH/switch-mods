@@ -1,0 +1,226 @@
+// #include <hk/hook/Trampoline.h>
+// #include <util/InputUtil.h>
+//
+// #ifdef IMGUI_ENABLED
+// #include <nn/primitives.h>
+//
+// #include "ui/ui.h"
+// #include "imgui_backend/imgui_impl_nvn.hpp"
+// #include "nvn/nvn.h"
+// #include "nvn/nvn_Cpp.h"
+// #include "nn/hid.h"
+// #include "nn/hid_detail.h"
+// #include "logger/logger.h"
+//
+// nvn::Device *nvnDevice;
+// nvn::Queue *nvnQueue;
+// nvn::CommandBuffer *nvnCmdBuf;
+//
+// nvn::DeviceGetProcAddressFunc tempGetProcAddressFuncPtr;
+//
+// nvn::CommandBufferInitializeFunc tempBufferInitFuncPtr;
+// nvn::DeviceInitializeFunc tempDeviceInitFuncPtr;
+// nvn::QueueInitializeFunc tempQueueInitFuncPtr;
+// nvn::QueuePresentTextureFunc tempPresentTexFunc;
+// nvn::TextureGetWidthFunc tempTexGetWidthFunc;
+// nvn::TextureGetHeightFunc tempTexGetHeightFunc;
+// nvn::WindowBuilderSetTexturesFunc tempWindowBuilderSetTexFunc;
+// nvn::WindowSetCropFunc tempWindowSetCropFunc;
+// nvn::CommandBufferSetTexturePoolFunc tempCommandSetTexturePoolFunc;
+// nvn::CommandBufferSetSamplerPoolFunc tempCommandSetSamplerPoolFunc;
+//
+//
+// bool hasInitImGui = false;
+//
+// void setup_ui();
+// static ui::Root root = ui::Root::single([](ui::Root& it){});
+//
+// void procDraw() {
+//     root.render();
+// }
+//
+// ui::Root& getRootElement() {
+//     return root;
+// }
+//
+// bool InitImGui() {
+//     if (nvnDevice && nvnQueue && nvnCmdBuf) {
+//         Logger::log("Creating ImGui.\n");
+//         IMGUI_CHECKVERSION();
+//
+//         ImGuiMemAllocFunc allocFunc = [](size_t size, void *user_data) {
+//             return malloc(size);
+//             // return (void*)ALIGN_UP(malloc(size + 0x1000), 0x1000);
+//         };
+//
+//         ImGuiMemFreeFunc freeFunc = [](void *ptr, void *user_data) {
+//             free(ptr);
+//         };
+//
+//         Logger::log("Setting Allocator Functions.\n");
+//         ImGui::SetAllocatorFunctions(allocFunc, freeFunc, nullptr);
+//         Logger::log("Creating ImGui Context.\n");
+//
+//         ImGui::CreateContext();
+//         ImGuiIO &io = ImGui::GetIO();
+//         (void) io;
+//
+//         Logger::log("Setting Style to Dark.\n");
+//         ImGui::StyleColorsDark();
+//
+//         ImguiNvnBackend::NvnBackendInitInfo initInfo = {
+//                 .device = nvnDevice,
+//                 .queue = nvnQueue,
+//                 .cmdBuf = nvnCmdBuf
+//         };
+//
+//         Logger::log("Initializing Backend.\n");
+//         ImguiNvnBackend::InitBackend(initInfo);
+//         InputUtil::initKBM();
+//         InputUtil::setPort(0); // set input helpers default port to zero
+//
+//         return true;
+//
+//     } else {
+//         Logger::log("Unable to create ImGui Renderer!\n");
+//
+//         return false;
+//     }
+// }
+//
+// static nvn::CommandBuffer* __cmdBuf = nullptr;
+// static const nvn::TexturePool* __texturePool = nullptr;
+// static const nvn::SamplerPool* __samplerPool = nullptr;
+//
+// void setTexturePool(nvn::CommandBuffer* cmdBuf, const nvn::TexturePool* pool) {
+//     __cmdBuf = cmdBuf;
+//     __texturePool = pool;
+//
+//     tempCommandSetTexturePoolFunc(cmdBuf, pool);
+// }
+//
+// void setSamplerPool(nvn::CommandBuffer* cmdBuf, const nvn::SamplerPool* pool) {
+//     __samplerPool = pool;
+//
+//     tempCommandSetSamplerPoolFunc(cmdBuf, pool);
+// }
+//
+// void presentTexture(nvn::Queue *queue, nvn::Window *window, int texIndex) {
+//     auto* buf = __cmdBuf;
+//     auto* pool = __texturePool;
+//     auto* samplerPool = __samplerPool;
+//
+//     if (hasInitImGui) {
+//         procDraw();
+//         buf->BeginRecording();
+//         tempCommandSetTexturePoolFunc(buf, pool);
+//         tempCommandSetSamplerPoolFunc(buf, samplerPool);
+//         auto handle = buf->EndRecording();
+//         queue->SubmitCommands(1, &handle);
+//     }
+//     tempPresentTexFunc(queue, window, texIndex);
+// }
+//
+// void windowBuilderSetTextures(nvn::WindowBuilder *builder, int count, nvn::Texture * const*textures) {
+//     tempWindowBuilderSetTexFunc(builder, count, textures);
+//
+//     if (hasInitImGui) {
+//         int h = tempTexGetHeightFunc(textures[0]);
+//         int w = tempTexGetWidthFunc(textures[0]);
+//
+//         ImguiNvnBackend::getBackendData()->viewportSize = ImVec2(w, h);
+//     }
+// }
+//
+// void setCrop(nvn::Window *window, int x, int y, int w, int h) {
+//     tempWindowSetCropFunc(window, x, y, w, h);
+//
+//     if (hasInitImGui) {
+//         ImguiNvnBackend::getBackendData()->viewportSize = ImVec2(w, h);
+//     }
+// }
+//
+// NVNboolean deviceInit(nvn::Device *device, const nvn::DeviceBuilder *builder) {
+//     NVNboolean result = tempDeviceInitFuncPtr(device, builder);
+//     nvnDevice = device;
+//     nvn::nvnLoadCPPProcs(nvnDevice, tempGetProcAddressFuncPtr);
+//     return result;
+// }
+//
+// NVNboolean queueInit(nvn::Queue *queue, const nvn::QueueBuilder *builder) {
+//     NVNboolean result = tempQueueInitFuncPtr(queue, builder);
+//     nvnQueue = queue;
+//     return result;
+// }
+//
+// NVNboolean cmdBufInit(nvn::CommandBuffer *buffer, nvn::Device *device) {
+//     NVNboolean result = tempBufferInitFuncPtr(buffer, device);
+//     nvnCmdBuf = buffer;
+//
+//     if (!hasInitImGui) {
+//         Logger::log("Initializing ImGui.\n");
+//         hasInitImGui = InitImGui();
+//         if (hasInitImGui) {
+//             setup_ui();
+//         }
+//     }
+//
+//     return result;
+// }
+//
+// nvn::GenericFuncPtrFunc getProc(nvn::Device *device, const char *procName) {
+//     nvn::GenericFuncPtrFunc ptr = tempGetProcAddressFuncPtr(nvnDevice, procName);
+//
+//     if (strcmp(procName, "nvnQueuePresentTexture") == 0) {
+//         tempPresentTexFunc = (nvn::QueuePresentTextureFunc) ptr;
+//         return (nvn::GenericFuncPtrFunc) &presentTexture;
+//     }
+//
+//     return ptr;
+// }
+//
+// HkTrampoline<void*, const char*> NvnBootstrapHook = hk::hook::trampoline([](const char* funcName){
+//         void *result = NvnBootstrapHook.orig(funcName);
+//         Logger::log("Installing nvn Hooks.\n");
+//
+//         if (strcmp(funcName, "nvnDeviceInitialize") == 0) {
+//             tempDeviceInitFuncPtr = reinterpret_cast<nvn::DeviceInitializeFunc>(result);
+//             return reinterpret_cast<void*>(&deviceInit);
+//         }
+//         if (strcmp(funcName, "nvnDeviceGetProcAddress") == 0) {
+//             tempGetProcAddressFuncPtr = reinterpret_cast<nvn::DeviceGetProcAddressFunc>(result);
+//             return reinterpret_cast<void*>(&getProc);
+//         }
+//
+//         return result;
+// });
+//
+// #define INPUT_HOOK(type) \
+// HkTrampoline<int, int*, nn::hid::Npad##type*, u32, u32 const&> Disable##type = hk::hook::trampoline([](int *unkInt, nn::hid::Npad##type *state, u32 count, u32 const &port){ \
+//     int result = Disable##type.orig(unkInt, state, count, port); \
+//     if (!InputUtil::isReadInputs()) { \
+//         if(InputUtil::isInputToggled()) { \
+//             auto tmp = state->mAttributes;\
+//             *state = nn::hid::Npad##type(); \
+//             state->mAttributes = tmp;\
+//         } \
+//     } \
+//     return result; \
+// });
+//
+// INPUT_HOOK(FullKeyState);
+// INPUT_HOOK(HandheldState);
+// INPUT_HOOK(JoyDualState);
+// INPUT_HOOK(JoyLeftState);
+// INPUT_HOOK(JoyRightState);
+//
+// void imgui_hooks() {
+//     NvnBootstrapHook.installAtPtr(nvnBootstrapLoader);
+//
+//     DisableFullKeyState.installAtPtr(static_cast<int(*)(int*, nn::hid::NpadFullKeyState*, s32, const u32&)>(nn::hid::detail::GetNpadStates));
+//     DisableHandheldState.installAtPtr(static_cast<int(*)(int*, nn::hid::NpadHandheldState*, s32, const u32&)>(nn::hid::detail::GetNpadStates));
+//     DisableJoyDualState.installAtPtr(static_cast<int(*)(int*, nn::hid::NpadJoyDualState*, s32, const u32&)>(nn::hid::detail::GetNpadStates));
+//     DisableJoyLeftState.installAtPtr(static_cast<int(*)(int*, nn::hid::NpadJoyLeftState*, s32, const u32&)>(nn::hid::detail::GetNpadStates));
+//     DisableJoyRightState.installAtPtr(static_cast<int(*)(int*, nn::hid::NpadJoyRightState*, s32, const u32&)>(nn::hid::detail::GetNpadStates));
+// }
+// #endif

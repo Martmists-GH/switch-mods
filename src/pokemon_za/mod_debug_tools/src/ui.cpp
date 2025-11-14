@@ -8,10 +8,12 @@
 #include <numeric>
 #include <externals/gfl/string.h>
 #include <externals/ik/QuestManager.h>
+#include <externals/pml/pokepara/CalcTool.h>
 #include <util/common_utils.h>
 #include "GlobalHeap_Utils.h"
 
 #include "externals/cmn/savedata/BoxSaveDataAccessor.h"
+#include "externals/cmn/GameData.h"
 #include "externals/ik/event/IkkakuEventScriptCommand.h"
 #include "externals/ik/BoxSaveUtil.h"
 #include "externals/ik/EventSystemCallFunctions.h"
@@ -530,63 +532,98 @@ void setup_ui() {
             });
         });
 
-        // _.CollapsingHeader([](CollapsingHeader &_) {
-        //     _.label = "Party";
-        //
-        //     static PokemonData s_partyData;
-        //     static int dataIndex = -1;
-        //
-        //     auto partyIdx = _.InputInt([](InputInt &_) {
-        //         _.min = 0;
-        //         _.value = 0;
-        //         _.max = 5;
-        //         _.label = "Party Index";
-        //     });
-        //     // _.FunctionElement([partyIdx]() {
-        //     //     auto i = partyIdx->value;
-        //     //     auto accessor = cmn::savedata::BoxSaveDataAccessor::GetInstance();
-        //     //     auto pos = accessor.m_ptr->fields.teamPos[0][i];
-        //     //     if (pos == 0xffff) {
-        //     //         return;
-        //     //     }
-        //     //     auto tray = pos >> 8;
-        //     //     auto slot = pos & 0xff;
-        //     //     auto paramPtr = ik::BoxSaveUtil::GetPokemonParam(tray, slot);
-        //     //     auto pp = paramPtr.m_ptr->fields.m_pp->castTo<pml::pokepara::CoreParam>();
-        //     //
-        //     //     if (i != dataIndex) {
-        //     //         dataIndex = i;
-        //     //         s_partyData.forceShiny = pp->IsRare();
-        //     //         s_partyData.forceAlpha = pp->IsOybn();
-        //     //         s_partyData.species = pp->GetMonsNo();
-        //     //         s_partyData.form = pp->GetFormNo();
-        //     //         // TODO:
-        //     //         // - sex
-        //     //         // - ability
-        //     //         // - nature
-        //     //         // - level
-        //     //         // - iv
-        //     //         // - ev
-        //     //         // - moves
-        //     //     }
-        //     //
-        //     //     auto builder = Builder::single();
-        //     //     PokemonEditor(&s_partyData, builder, true);
-        //     //     builder.render();
-        //     //
-        //     //     // TODO: Update param from s_partyData
-        //     //     if (s_partyData.forceShiny) {
-        //     //         // TODO
-        //     //     } else {
-        //     //         // TODO
-        //     //     }
-        //     //     pp->SetIsOybn(s_partyData.forceAlpha);
-        //     //     pp->SetMonsNo(s_partyData.species);
-        //     //     pp->SetFormNo(s_partyData.form);
-        //     //
-        //     //     ik::BoxSaveUtil::SetPokemonParam(tray, slot, paramPtr);
-        //     // });
-        // });
+        _.CollapsingHeader([](CollapsingHeader &_) {
+            _.label = "Party";
+
+            static bool enabled = false;
+            static PokemonData s_partyData;
+            auto partyIdx = _.InputInt([](InputInt &_) {
+                _.min = 0;
+                _.value = 0;
+                _.max = 5;
+                _.label = "Party Index";
+            });
+            _.Checkbox("Enable", false, [](bool it) {
+                enabled = it;
+            });
+            _.FunctionElement([partyIdx]() {
+                auto i = partyIdx->value;
+                auto party = cmn::GameData::GetPlayerParty();
+                auto param = party.m_ptr->GetMemberPtr(i);
+                if (param.m_ptr == nullptr) {
+                    return;
+                }
+
+                auto pp = param.m_ptr->fields.m_pp->castTo<pml::pokepara::CoreParam>();
+                auto acc = pp->fields.m_accessor;
+
+                // Ensure correct block order
+                acc->StartFastMode();
+
+                auto& a = acc->GetCoreDataBlockA();
+                auto& b = acc->GetCoreDataBlockB();
+
+                s_partyData.forceShiny = pp->IsRare();
+                s_partyData.forceAlpha = a.isOybn;
+                s_partyData.species = a.monsno;
+                s_partyData.form = a.formNo;
+                s_partyData.sex = acc->GetSex();
+                s_partyData.ability = a.ability;
+                s_partyData.nature = a.natureMint;
+                s_partyData.level = acc->GetLevel();
+                s_partyData.iv[0] = b.ivHp;
+                s_partyData.iv[1] = b.ivAtk;
+                s_partyData.iv[2] = b.ivDef;
+                s_partyData.iv[3] = b.ivSpd;
+                s_partyData.iv[4] = b.ivSpAtk;
+                s_partyData.iv[5] = b.ivSpDef;
+                for (int i = 0; i < 6; i++) {
+                    s_partyData.ev[i] = a.ev[i];
+                }
+                for (int i = 0; i < 4; i++) {
+                    s_partyData.moves[i] = b.waza[i];
+                }
+
+                auto builder = Builder::single();
+                PokemonEditor(&s_partyData, builder, true);
+                builder.render();
+
+                if (!enabled) {
+                    acc->EndFastMode();
+                    return;
+                };
+
+                if (s_partyData.forceShiny) {
+                    a.colorRnd = pml::pokepara::CalcTool::CorrectColorRndForRare(a.id, a.colorRnd);
+                } else {
+                    a.colorRnd = pml::pokepara::CalcTool::CorrectColorRndForNotRare(a.id, a.colorRnd);
+                }
+                a.isOybn = s_partyData.forceAlpha;
+                a.monsno = s_partyData.species;
+                a.formNo = s_partyData.form;
+                acc->SetSex(s_partyData.sex);
+                a.ability = s_partyData.ability;
+                a.natureMint = s_partyData.nature;
+                acc->SetLevel(s_partyData.level);
+                b.ivHp = s_partyData.iv[0];
+                b.ivAtk = s_partyData.iv[1];
+                b.ivDef = s_partyData.iv[2];
+                b.ivSpd = s_partyData.iv[3];
+                b.ivSpAtk = s_partyData.iv[4];
+                b.ivSpDef = s_partyData.iv[5];
+                for (int i = 0; i < 6; i++) {
+                    a.ev[i] = s_partyData.ev[i];
+                }
+                for (int i = 0; i < 4; i++) {
+                    b.waza[i] = s_partyData.moves[i];
+                }
+
+                pp->UpdateCalcDatas(true);
+
+                // Fix checksum to prevent bad egg
+                acc->EndFastMode();
+            });
+        });
 
         _.CollapsingHeader([](CollapsingHeader &_) {
             _.label = "Bag";

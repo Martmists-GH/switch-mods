@@ -1,0 +1,7 @@
+@game:100
+
+// cmn::GameData::GetPlayerParty()
+_ZN3cmn8GameData14GetPlayerPartyEv = 0x0092db4c
+
+@game:102
+_ZN3cmn8GameData14GetPlayerPartyEv = 0x0092dc1c

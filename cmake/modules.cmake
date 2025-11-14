@@ -13,7 +13,6 @@ function(create_mod name folder)
     # Hakkun
     list(APPEND ALL_INCLUDE "${HAKKUN_LIB_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/common/include" "${CMAKE_CURRENT_SOURCE_DIR}/${folder}/include")
     list(APPEND ALL_SOURCE
-        "${HAKKUN_LIB_DIR}/src/hk/diag/diag.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/diag/ipclogger.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/diag/ResultName.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/hook/MapUtil.cpp"
