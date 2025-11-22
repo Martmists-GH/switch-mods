@@ -15,6 +15,10 @@ namespace ui {
                 return !content.empty();
         }
 
+        std::string invalidDetails() override {
+            return std::format("content='{}'", content);
+        }
+
         void draw()
         override{
                 ImGui::Text("%s", content.c_str());

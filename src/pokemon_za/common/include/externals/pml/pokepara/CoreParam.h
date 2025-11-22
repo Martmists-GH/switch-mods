@@ -1,19 +1,39 @@
 #pragma once
 
 namespace pml::pokepara {
+    struct CalcData {
+        uint8_t level;
+        char unk;
+        uint16_t maxHp;
+        uint16_t atk;
+        uint16_t def;
+        uint16_t spd;
+        uint16_t spatk;
+        uint16_t spdef;
+        int16_t hpOffset;
+    };
+
     struct CoreDataBlockA {
         uint16_t monsno;
         uint16_t itemno;
         uint32_t id;
         uint32_t exp;
         uint16_t ability;
-        char unk1[6];
+        short abilityFlag1 : 1;
+        short abilityFlag2 : 1;
+        short abilityFlag3 : 1;
+        short unkFlag : 1;
+        short pad : 12;
+        short boxMarking;
+        char pad2[2];
         uint32_t colorRnd;
-        char nature;
-        char natureMint;
-        char unk2;
+        uint8_t nature;
+        uint8_t natureMint;
+        uint8_t fromEvent : 1;
+        uint8_t sex : 2;
+        uint8_t pad3 : 5;
         bool isOybn;
-        uint16_t formNo;
+        uint16_t formno;
         uint8_t ev[6];
         char unk3[0x2c];
     };
@@ -31,8 +51,10 @@ namespace pml::pokepara {
         uint32_t ivSpd: 5;
         uint32_t ivSpAtk: 5;
         uint32_t ivSpDef: 5;
-        uint32_t unkFlags: 2;
-        char unk[0x18];
+        uint32_t egg: 1;
+        uint32_t hasNick: 1;
+        uint32_t sick;
+        char unk[0x14];
     };
     struct CoreDataBlockC {
         char unk[0x50];
@@ -97,9 +119,12 @@ namespace pml::pokepara {
     };
 
     struct CoreData {
-        int personalRnd;
-        short bitfield_unk;
-        short checksum;
+        uint32_t personalRnd;
+        short fastMode : 1;
+        short unk : 1;
+        short badEgg : 1;
+        short pad : 13;
+        uint16_t checksum;
 
         // Note: Accessing these requires the accessor being decoded
         CoreDataBlock blocks[4];
@@ -127,7 +152,7 @@ namespace pml::pokepara {
 
     struct Accessor {
         void* unk;
-        void* calcData;
+        CalcData* calcData;
         CoreData* coreData;
         bool isEncoded;
         bool isFastMode;

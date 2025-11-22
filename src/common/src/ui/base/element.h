@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <memory>
 #include <cxxabi.h>
+#include <format>
 
 #include "imgui.h"
 #include "logger/logger.h"
@@ -116,6 +117,10 @@ ELEMENT_SUPPORTS_CHILD(StringView)
             return true;
         }
 
+        virtual std::string invalidDetails() {
+            return std::format("No details provided for {}", demangle(typeid(T).name()));
+        }
+
         ~Factory() override {
             for (auto owned: mOwnedChildren) {
                 delete owned;
@@ -136,7 +141,7 @@ ELEMENT_SUPPORTS_CHILD(StringView)
             T *instance = IM_NEW(T);
             initializer(*instance);
             if (!instance->isValid()) {
-                MessageUtil::abort("UI Element reported invalid after initializing!", "Element type: %s", demangle(typeid(T).name()).c_str());
+                MessageUtil::abort("UI Element reported invalid after initializing!", "Element type: %s\n%s", demangle(typeid(T).name()).c_str(), instance->invalidDetails().c_str());
             }
             return instance;
         }
@@ -145,7 +150,7 @@ ELEMENT_SUPPORTS_CHILD(StringView)
         static T *createArgs(Args... args) {
             T *instance = IM_NEW(T)(args...);
             if (!instance->isValid()) {
-                MessageUtil::abort("UI Element reported invalid after initializing!", "Element type: %s", demangle(typeid(T).name()).c_str());
+                MessageUtil::abort("UI Element reported invalid after initializing!", "Element type: %s\n%s", demangle(typeid(T).name()).c_str(), instance->invalidDetails().c_str());
             }
             return instance;
         }
@@ -155,7 +160,7 @@ ELEMENT_SUPPORTS_CHILD(StringView)
             T instance{};
             initializer(instance);
             if (!instance.isValid()) {
-                MessageUtil::abort("UI Element reported invalid after initializing!", "Element type: %s", demangle(typeid(T).name()).c_str());
+                MessageUtil::abort("UI Element reported invalid after initializing!", "Element type: %s\n%s", demangle(typeid(T).name()).c_str(), instance.invalidDetails().c_str());
             }
             return std::move(instance);
         }
@@ -164,7 +169,7 @@ ELEMENT_SUPPORTS_CHILD(StringView)
         static T single(Args... args) {
             T instance(args...);
             if (!instance.isValid()) {
-                MessageUtil::abort("UI Element reported invalid after initializing!", "Element type: %s", demangle(typeid(T).name()).c_str());
+                MessageUtil::abort("UI Element reported invalid after initializing!", "Element type: %s\n%s", demangle(typeid(T).name()).c_str(), instance.invalidDetails().c_str());
             }
             return std::move(instance);
         }

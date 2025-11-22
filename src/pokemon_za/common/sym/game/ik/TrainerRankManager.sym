@@ -1,0 +1,6 @@
+@game:100
+// gfl::Singleton<ik::TrainerRankManager>::s_instance
+_ZN3gfl9SingletonIN2ik18TrainerRankManagerEE10s_instanceE = 0x05f0fdc0
+
+@game:102
+_ZN3gfl9SingletonIN2ik18TrainerRankManagerEE10s_instanceE = 0x03cc5c78

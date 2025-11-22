@@ -20,6 +20,7 @@
 #include "externals/ik/FlagWorkManager.h"
 #include "externals/ik/HudMomijiQuestAchievementUIAccessor.h"
 #include "externals/ik/ResearchLevelManager.h"
+#include "externals/ik/TrainerRankManager.h"
 #include "externals/ik/ZARoyaleSaveAccessor.h"
 #include "externals/pe/text/lua/Text.h"
 #include "externals/pml/personal/PersonalSystem.h"
@@ -366,6 +367,131 @@ void setup_ui() {
         });
     });
 
+    static auto partyWindow = ROOT.Window([](Window &_) {
+        _.title = "Party Inspector";
+        _.initialPos = ImVec2(800, 50);
+        _.initialSize = ImVec2(500, 280);
+
+        auto partyIdx = _.InputInt([](InputInt &_) {
+            _.min = 0;
+            _.value = 0;
+            _.max = 5;
+            _.label = "Party Index";
+        });
+        _.FunctionElement([partyIdx]() {
+            auto i = partyIdx->value;
+            auto party = cmn::GameData::GetPlayerParty();
+            auto param = party.m_ptr->GetMemberPtr(i);
+            if (param.m_ptr == nullptr) {
+                return;
+            }
+
+            auto pp = param.m_ptr->fields.m_pp->castTo<pml::pokepara::CoreParam>();
+            auto acc = pp->fields.m_accessor;
+
+            acc->StartFastMode();
+
+            auto builder = Builder::single();
+            builder.TextSeparator("CalcData");
+            builder.Grid([acc](Grid &_) {
+                    _.columns = 4;
+                    _.Text("Level");
+                    _.Text(std::format("{}", acc->calcData->level));
+                    _.Text("HP Offset");
+                    _.Text(std::format("{}", acc->calcData->hpOffset));
+                    _.Text("HP");
+                    _.Text(std::format("{}", acc->calcData->maxHp));
+                    _.Text("ATK");
+                    _.Text(std::format("{}", acc->calcData->atk));
+                    _.Text("DEF");
+                    _.Text(std::format("{}", acc->calcData->def));
+                    _.Text("SPD");
+                    _.Text(std::format("{}", acc->calcData->spd));
+                    _.Text("SPATK");
+                    _.Text(std::format("{}", acc->calcData->spatk));
+                    _.Text("SPDEF");
+                    _.Text(std::format("{}", acc->calcData->spdef));
+            });
+
+            builder.TextSeparator("CoreData");
+            builder.Grid([acc](Grid &_) {
+                _.columns = 4;
+                _.Text("Personal RND");
+                _.Text(std::format("{:08x}", acc->coreData->personalRnd));
+                _.Text("Checksum");
+                _.Text(std::format("{:04x}", acc->coreData->checksum));
+                _.Text("Fast Mode");
+                _.Text((acc->coreData->fastMode) ? "true" : "false");
+                _.Text("Bad Egg");
+                _.Text((acc->coreData->badEgg) ? "true" : "false");
+            });
+            
+            auto& a = acc->coreData->GetCoreDataBlockA();
+            auto& b = acc->coreData->GetCoreDataBlockB();
+            auto& c = acc->coreData->GetCoreDataBlockC();
+            auto& d = acc->coreData->GetCoreDataBlockD();
+            
+            builder.TextSeparator("CoreDataBlockA");
+            builder.Grid([a](Grid &_) {
+                _.columns = 4;
+                _.Text("Species");
+                _.Text(std::format("{}", a.monsno));
+                _.Text("Form");
+                _.Text(std::format("{}", a.formno));
+            
+                _.Text("ID");
+                _.Text(std::format("{:08x}", a.id));
+                _.Text("Color RND");
+                _.Text(std::format("{:08x}", a.colorRnd));
+            
+                _.Text("Exp");
+                _.Text(std::format("{}", a.exp));
+                _.Text("Ability");
+                _.Text(std::format("{}", a.ability));
+            
+                _.Text("Ability flags");
+                _.Text((a.abilityFlag1) ? "true" : "false");
+                _.Text((a.abilityFlag2) ? "true" : "false");
+                _.Text((a.abilityFlag3) ? "true" : "false");
+            
+                _.Text("Nature");
+                _.Text(std::format("{}", (int)a.nature));
+                _.Text("Nature Mint");
+                _.Text(std::format("{}", (int)a.natureMint));
+            
+                _.Text("Box Marking");
+                _.Text(std::format("{}", a.boxMarking));
+                _.Text("From Event");
+                _.Text((a.fromEvent) ? "true" : "false");
+            
+                _.Text("Sex");
+                _.Text(std::format("{}", (int)a.sex));
+                _.Text("Alpha");
+                _.Text((a.isOybn) ? "true" : "false");
+            
+                _.Text("EV");
+                _.Text(std::format("{}", a.ev[0]));
+                _.Text(std::format("{}", a.ev[1]));
+                _.Text(std::format("{}", a.ev[2]));
+                _.FunctionElement([](){});
+                _.Text(std::format("{}", a.ev[3]));
+                _.Text(std::format("{}", a.ev[4]));
+                _.Text(std::format("{}", a.ev[5]));
+            });
+            
+            builder.TextSeparator("CoreDataBlockB");
+            builder.Grid([b](Grid &_) {
+                _.columns = 4;
+            
+                _.Text("TODO");
+            });
+
+            builder.render();
+
+            acc->EndFastMode();
+        });
+    });
+
     ROOT.Window([](Window& _){
         _.title = "ZA Toolbox - By Martmists";
         _.toggleable = false;
@@ -391,6 +517,10 @@ void setup_ui() {
                 _.MenuItem([](MenuItem &_) {
                     _.label = "Performance";
                     _.checked = &perfWindow->open;
+                });
+                _.MenuItem([](MenuItem &_) {
+                    _.label = "Party Inspector";
+                    _.checked = &partyWindow->open;
                 });
             });
         });
@@ -469,7 +599,38 @@ void setup_ui() {
                     // Empty to match number of columns
                 });
 
-                // TODO: Tickets?
+                _.FunctionElement([]() {
+                    ImGui::Text("Tickets");
+                });
+                _.FunctionElement([](FunctionElement &_) {
+                    _.callback = [] {
+                        ImGui::Text("%d", ik::TrainerRankManager::s_instance.m_tickets);
+                    };
+                });
+                _.Group([](Group &_) {
+                    _.Button("+100##Tickets", [] {
+                        ik::TrainerRankManager::s_instance.m_tickets += 100;
+                    });
+                    _.Button("-100##Tickets", [] {
+                        ik::TrainerRankManager::s_instance.m_tickets -= 100;
+                    });
+                });
+                _.Group([](Group &_) {
+                    _.Button("+1000##Tickets", [] {
+                        ik::TrainerRankManager::s_instance.m_tickets += 1000;
+                    });
+                    _.Button("-1000##Tickets", [] {
+                        ik::TrainerRankManager::s_instance.m_tickets -= 1000;
+                    });
+                });
+                _.Group([](Group &_) {
+                    _.Button("+10000##Tickets", [] {
+                        ik::TrainerRankManager::s_instance.m_tickets += 10000;
+                    });
+                    _.Button("-10000##Tickets", [] {
+                        ik::TrainerRankManager::s_instance.m_tickets -= 10000;
+                    });
+                });
             });
         });
 
@@ -563,10 +724,21 @@ void setup_ui() {
                 auto& a = acc->GetCoreDataBlockA();
                 auto& b = acc->GetCoreDataBlockB();
 
+                auto isFixPressed = false;
+                if (acc->coreData->badEgg) {
+                    ImGui::Text("Bad Egg detected!");
+                    ImGui::SameLine();
+                    if (ImGui::Button("Fix")) {
+                        acc->coreData->badEgg = false;
+                        b.egg = false;
+                        isFixPressed = true;
+                    }
+                }
+
                 s_partyData.forceShiny = pp->IsRare();
                 s_partyData.forceAlpha = a.isOybn;
                 s_partyData.species = a.monsno;
-                s_partyData.form = a.formNo;
+                s_partyData.form = a.formno;
                 s_partyData.sex = acc->GetSex();
                 s_partyData.ability = a.ability;
                 s_partyData.nature = a.natureMint;
@@ -577,18 +749,18 @@ void setup_ui() {
                 s_partyData.iv[3] = b.ivSpd;
                 s_partyData.iv[4] = b.ivSpAtk;
                 s_partyData.iv[5] = b.ivSpDef;
-                for (int i = 0; i < 6; i++) {
-                    s_partyData.ev[i] = a.ev[i];
+                for (int j = 0; j < 6; j++) {
+                    s_partyData.ev[j] = a.ev[j];
                 }
-                for (int i = 0; i < 4; i++) {
-                    s_partyData.moves[i] = b.waza[i];
+                for (int j = 0; j < 4; j++) {
+                    s_partyData.moves[j] = b.waza[j];
                 }
 
                 auto builder = Builder::single();
                 PokemonEditor(&s_partyData, builder, true);
                 builder.render();
 
-                if (!enabled) {
+                if (!enabled && !isFixPressed) {
                     acc->EndFastMode();
                     return;
                 };
@@ -600,7 +772,7 @@ void setup_ui() {
                 }
                 a.isOybn = s_partyData.forceAlpha;
                 a.monsno = s_partyData.species;
-                a.formNo = s_partyData.form;
+                a.formno = s_partyData.form;
                 acc->SetSex(s_partyData.sex);
                 a.ability = s_partyData.ability;
                 a.natureMint = s_partyData.nature;
@@ -611,11 +783,11 @@ void setup_ui() {
                 b.ivSpd = s_partyData.iv[3];
                 b.ivSpAtk = s_partyData.iv[4];
                 b.ivSpDef = s_partyData.iv[5];
-                for (int i = 0; i < 6; i++) {
-                    a.ev[i] = s_partyData.ev[i];
+                for (int j = 0; j < 6; j++) {
+                    a.ev[j] = s_partyData.ev[j];
                 }
-                for (int i = 0; i < 4; i++) {
-                    b.waza[i] = s_partyData.moves[i];
+                for (int j = 0; j < 4; j++) {
+                    b.waza[j] = s_partyData.moves[j];
                 }
 
                 pp->UpdateCalcDatas(true);
@@ -653,7 +825,6 @@ void setup_ui() {
                     ImGui::Text("%s", text.c_str());
                 }
             });
-            // TODO: Remove items
             _.Grid([itemID](Grid &_) {
                 _.columns = 3;
                 _.Button("Add 1##Items", [itemID]() {
@@ -677,7 +848,7 @@ void setup_ui() {
             });
         });
 
-        static constexpr char* const QUEST_TYPES[3] = {
+        static constexpr const char* const QUEST_TYPES[3] = {
             "Main",
             "Side",
             "Lab",
