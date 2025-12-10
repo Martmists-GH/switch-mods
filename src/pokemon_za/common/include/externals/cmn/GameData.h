@@ -1,6 +1,6 @@
 #pragma once
 
-#include <externals/ik/BoxSaveUtil.h>
+#include <externals/ik/PokemonParam.h>
 
 #include "externals/gfl/object.h"
 

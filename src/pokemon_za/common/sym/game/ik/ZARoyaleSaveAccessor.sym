@@ -7,3 +7,11 @@ _ZN2ik20ZARoyaleSaveAccessor11SetMedalNumEj = 0x00b177a8
 @game:102
 _ZN2ik20ZARoyaleSaveAccessor11GetMedalNumEv = 0x009290bc
 _ZN2ik20ZARoyaleSaveAccessor11SetMedalNumEj = 0x00b17b88
+
+@game:103
+_ZN2ik20ZARoyaleSaveAccessor11GetMedalNumEv = 0x00924c7c
+_ZN2ik20ZARoyaleSaveAccessor11SetMedalNumEj = 0x00b15758
+
+@game:200
+_ZN2ik20ZARoyaleSaveAccessor11GetMedalNumEv = 0x0023c1cc
+_ZN2ik20ZARoyaleSaveAccessor11SetMedalNumEj = 0x00b3c17c

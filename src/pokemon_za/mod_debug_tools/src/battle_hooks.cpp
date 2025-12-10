@@ -65,9 +65,9 @@ HkTrampoline<void, pml::battle::Exp::CalcResult*, pml::battle::Exp::CalcParam*> 
     }
 });
 
-HkTrampoline<void, pml::pokepara::InitialSpec*> ForceShinyHook = hk::hook::trampoline([](pml::pokepara::InitialSpec* spec) {
+HkTrampoline<void, pml::pokepara::InitialSpec*> ChangeEncounterHook = hk::hook::trampoline([](pml::pokepara::InitialSpec* spec) {
     spec->rareTryCount *= s_dataForEncounter.shinyMultiplier;
-    ForceShinyHook.orig(spec);
+    ChangeEncounterHook.orig(spec);
     if (s_dataForEncounter.forceShiny) {
         spec->colorRnd = pml::pokepara::CalcTool::CorrectColorRndForRare(spec->id, spec->colorRnd);
     }
@@ -106,6 +106,6 @@ HkTrampoline<void, ik::TrainerComponent*, float> MegaEnergySetHook = hk::hook::t
 void battle_hooks() {
     CaptureHook.installAtPtr(pun<void*>(&pml::Capture::Judge));
     ExpCalcHook.installAtPtr(&pml::battle::Exp::CalcExp);
-    ForceShinyHook.installAtPtr(pun<void*>(&pml::pokepara::InitialSpec::FixInitSpec));
+    ChangeEncounterHook.installAtPtr(pun<void*>(&pml::pokepara::InitialSpec::FixInitSpec));
     MegaEnergySetHook.installAtPtr(pun<void*>(&ik::TrainerComponent::SetMegaEnergy));
 }

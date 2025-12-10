@@ -3,5 +3,17 @@
 // ik::EventSystemCallFunctions::FixWeather(gfa::EventContext*)
 _ZN2ik24EventSystemCallFunctions10FixWeatherEPN3gfa12EventContextE = 0x007b4074
 
+// ik::EventSystemCallFunctions::ReleaseFixWeather()
+_ZN2ik24EventSystemCallFunctions17ReleaseFixWeatherEv = 0x007aedc0
+
 @game:102
 _ZN2ik24EventSystemCallFunctions10FixWeatherEPN3gfa12EventContextE = 0x007bc564
+_ZN2ik24EventSystemCallFunctions17ReleaseFixWeatherEv = 0x007b72b0
+
+@game:103
+_ZN2ik24EventSystemCallFunctions10FixWeatherEPN3gfa12EventContextE = 0x007bc374
+_ZN2ik24EventSystemCallFunctions17ReleaseFixWeatherEv = 0x007b70c0
+
+@game:200
+_ZN2ik24EventSystemCallFunctions10FixWeatherEPN3gfa12EventContextE = 0x00497aa4
+_ZN2ik24EventSystemCallFunctions17ReleaseFixWeatherEv = 0x004908f0

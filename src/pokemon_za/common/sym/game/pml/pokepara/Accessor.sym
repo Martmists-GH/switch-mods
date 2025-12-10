@@ -24,3 +24,19 @@ _ZN3pml8pokepara8Accessor6GetSexEv = 0x00d0a6f0
 _ZN3pml8pokepara8Accessor6SetSexEh = 0x00d13bd0
 _ZN3pml8pokepara8Accessor8GetLevelEv = 0x00d070e0
 _ZN3pml8pokepara8Accessor8SetLevelEi = 0x00d0f270
+
+@game:103
+_ZN3pml8pokepara8Accessor13StartFastModeEv = 0x00d061f0
+_ZN3pml8pokepara8Accessor11EndFastModeEv = 0x00d06360
+_ZN3pml8pokepara8Accessor6GetSexEv = 0x00d0ae80
+_ZN3pml8pokepara8Accessor6SetSexEh = 0x00d14360
+_ZN3pml8pokepara8Accessor8GetLevelEv = 0x00d07870
+_ZN3pml8pokepara8Accessor8SetLevelEi = 0x00d0fa00
+
+@game:200
+_ZN3pml8pokepara8Accessor13StartFastModeEv = 0x00e48700
+_ZN3pml8pokepara8Accessor11EndFastModeEv = 0x00e48870
+_ZN3pml8pokepara8Accessor6GetSexEv = 0x00e4d390
+_ZN3pml8pokepara8Accessor6SetSexEh = 0x00e56870
+_ZN3pml8pokepara8Accessor8GetLevelEv = 0x00e49d80
+_ZN3pml8pokepara8Accessor8SetLevelEi = 0x00e51f10

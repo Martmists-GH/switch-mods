@@ -13,9 +13,4 @@ namespace ik {
             pml::pokepara::PokemonParam* m_pp;
         };
     };
-
-    struct BoxSaveUtil : gfl::Singleton<BoxSaveUtil> {
-        static gfl::RefPointer<ik::PokemonParam> GetPokemonParam(int32_t tray, int32_t pos);
-        static bool SetPokemonParam(int32_t tray, int32_t pos, gfl::RefPointer<ik::PokemonParam> obj);
-    };
 }

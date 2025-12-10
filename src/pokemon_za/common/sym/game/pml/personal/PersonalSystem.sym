@@ -2,5 +2,13 @@
 // pml::personal::PersonalSystem::CheckPokeExist(uint32_t, uint32_t)
 _ZN3pml8personal14PersonalSystem14CheckPokeExistEjj = 0x002aa84c
 
-@game:102
+// pml::personal::PersonalSystem::GetMinExp(uint32_t, uint32_t, uint32_t)
+_ZN3pml8personal14PersonalSystem9GetMinExpEjjj = 0x0090509c
+
+@game:102,103
 _ZN3pml8personal14PersonalSystem14CheckPokeExistEjj = 0x002a821c
+_ZN3pml8personal14PersonalSystem9GetMinExpEjjj = 0x008e272c
+
+@game:200
+_ZN3pml8personal14PersonalSystem14CheckPokeExistEjj = 0x00290194
+_ZN3pml8personal14PersonalSystem9GetMinExpEjjj = 0x00ced50c

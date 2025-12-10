@@ -3,4 +3,10 @@
 _ZN3gfl9SingletonIN2ik18TrainerRankManagerEE10s_instanceE = 0x05f0fdc0
 
 @game:102
-_ZN3gfl9SingletonIN2ik18TrainerRankManagerEE10s_instanceE = 0x03cc5c78
+_ZN3gfl9SingletonIN2ik18TrainerRankManagerEE10s_instanceE = 0x05f10dc0
+
+@game:103
+_ZN3gfl9SingletonIN2ik18TrainerRankManagerEE10s_instanceE = 0x05f12dc0
+
+@game:200
+_ZN3gfl9SingletonIN2ik18TrainerRankManagerEE10s_instanceE = 0x0610a580

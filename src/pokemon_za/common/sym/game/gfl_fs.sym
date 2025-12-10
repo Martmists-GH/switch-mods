@@ -12,3 +12,13 @@ _ZN3gfl2fs18FlatBufferReadInfo12ReadToBufferEPvl = 0x01955634
 _ZN3gfl2fs16FlatBufferLoader4OpenEv = 0x0002b150
 _ZN3gfl2fs16FlatBufferLoader4ReadEPvl = 0x0004ab40
 _ZN3gfl2fs18FlatBufferReadInfo12ReadToBufferEPvl = 0x01955a24
+
+@game:103
+_ZN3gfl2fs16FlatBufferLoader4OpenEv = 0x0002b150
+_ZN3gfl2fs16FlatBufferLoader4ReadEPvl = 0x0004ab40
+_ZN3gfl2fs18FlatBufferReadInfo12ReadToBufferEPvl = 0x019561b4
+
+@game:200
+_ZN3gfl2fs16FlatBufferLoader4OpenEv = 0x00018fa0
+_ZN3gfl2fs16FlatBufferLoader4ReadEPvl = 0x000327a0
+_ZN3gfl2fs18FlatBufferReadInfo12ReadToBufferEPvl = 0x01a9bb74

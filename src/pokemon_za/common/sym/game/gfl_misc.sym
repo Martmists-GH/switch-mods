@@ -12,3 +12,13 @@ _ZN3gfl9SizedHeap12s_globalHeapE = 0x03d993e8
 _ZN3gfl11HeapManager13s_managerListE = 0x03d9a3f8
 _ZN3gfl11HeapManager14s_managerCountE = 0x03d9abf8
 _ZN3gfl9SizedHeap12s_globalHeapE = 0x03d9a3e8
+
+@game:103
+_ZN3gfl11HeapManager13s_managerListE = 0x03d9c3f8
+_ZN3gfl11HeapManager14s_managerCountE = 0x03d9cbf8
+_ZN3gfl9SizedHeap12s_globalHeapE = 0x03d9c3e8
+
+@game:200
+_ZN3gfl11HeapManager13s_managerListE = 0x03f93778
+_ZN3gfl11HeapManager14s_managerCountE = 0x03f93f78
+_ZN3gfl9SizedHeap12s_globalHeapE = 0x03f93768

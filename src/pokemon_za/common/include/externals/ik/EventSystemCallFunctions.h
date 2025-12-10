@@ -5,5 +5,6 @@
 namespace ik {
     struct EventSystemCallFunctions {
         static void FixWeather(gfa::EventContext* context);
+        static void ReleaseFixWeather();
     };
 }

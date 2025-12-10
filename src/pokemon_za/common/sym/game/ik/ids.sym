@@ -1,2 +1,8 @@
 @game:100,102
 _ZN2ik6ItemId5namesE = 0x03b324f0
+
+@game:103
+_ZN2ik6ItemId5namesE = 0x03b344f0
+
+@game:200
+_ZN2ik6ItemId5namesE = 0x03d18a30

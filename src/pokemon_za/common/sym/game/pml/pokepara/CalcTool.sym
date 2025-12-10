@@ -4,3 +4,9 @@ _ZN3pml8pokepara8CalcTool22CorrectColorRndForRareEjj = 0x00d1a368
 
 @game:102
 _ZN3pml8pokepara8CalcTool22CorrectColorRndForRareEjj = 0x00d1a758
+
+@game:103
+_ZN3pml8pokepara8CalcTool22CorrectColorRndForRareEjj = 0x00d1aee8
+
+@game:200
+_ZN3pml8pokepara8CalcTool22CorrectColorRndForRareEjj = 0x00e5d83c

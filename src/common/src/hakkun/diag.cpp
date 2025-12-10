@@ -2,7 +2,9 @@
 #include <cstdarg>
 #include <format>
 #include <hk/types.h>
-#include <hk/svc/types.h>
+#include <hk/diag/diag.h>
+#include "hk/svc/api.h"
+#include "hk/svc/types.h"
 #include <logger/logger.h>
 #include <util/MessageUtil.h>
 
@@ -33,11 +35,16 @@ namespace hk::diag {
         va_end(arg);
     }
 
+#if not defined(HK_RELEASE) or defined(HK_RELEASE_DEBINFO)
     void logLine(char const* msg, ...) {
         va_list arg;
         va_start(arg, msg);
-        // TODO: Figure out what to do with this, it seems to crash because it's too early?
-        // Logger::log(msg, arg);
+        auto len = vsnprintf(nullptr, 0, msg, arg);
+        char buf[len + 2];
+        vsnprintf(buf, len + 2, msg, arg);
+        buf[len] = '\n';
+        hk::svc::OutputDebugString(buf, len + 1);
         va_end(arg);
     }
+#endif
 }

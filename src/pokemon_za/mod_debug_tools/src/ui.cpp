@@ -6,16 +6,16 @@
 #include <hook_util.h>
 #include <map>
 #include <numeric>
+#include <codecvt>
+#include <locale>
 #include <externals/gfl/string.h>
 #include <externals/ik/QuestManager.h>
 #include <externals/pml/pokepara/CalcTool.h>
 #include <util/common_utils.h>
 #include "GlobalHeap_Utils.h"
 
-#include "externals/cmn/savedata/BoxSaveDataAccessor.h"
 #include "externals/cmn/GameData.h"
 #include "externals/ik/event/IkkakuEventScriptCommand.h"
-#include "externals/ik/BoxSaveUtil.h"
 #include "externals/ik/EventSystemCallFunctions.h"
 #include "externals/ik/FlagWorkManager.h"
 #include "externals/ik/HudMomijiQuestAchievementUIAccessor.h"
@@ -739,10 +739,11 @@ void setup_ui() {
                 s_partyData.forceAlpha = a.isOybn;
                 s_partyData.species = a.monsno;
                 s_partyData.form = a.formno;
-                s_partyData.sex = acc->GetSex();
+                s_partyData.sex = a.sex;
                 s_partyData.ability = a.ability;
                 s_partyData.nature = a.natureMint;
                 s_partyData.level = acc->GetLevel();
+                auto oldLevel = s_partyData.level;
                 s_partyData.iv[0] = b.ivHp;
                 s_partyData.iv[1] = b.ivAtk;
                 s_partyData.iv[2] = b.ivDef;
@@ -773,9 +774,14 @@ void setup_ui() {
                 a.isOybn = s_partyData.forceAlpha;
                 a.monsno = s_partyData.species;
                 a.formno = s_partyData.form;
-                acc->SetSex(s_partyData.sex);
+                ImGui::Text("%d", s_partyData.sex);
+                a.sex = s_partyData.sex;
                 a.ability = s_partyData.ability;
                 a.natureMint = s_partyData.nature;
+                if (s_partyData.level != oldLevel) {
+                    auto exp = pml::personal::PersonalSystem::GetMinExp(s_partyData.species, s_partyData.form, s_partyData.level);
+                    a.exp = exp;
+                }
                 acc->SetLevel(s_partyData.level);
                 b.ivHp = s_partyData.iv[0];
                 b.ivAtk = s_partyData.iv[1];
@@ -974,6 +980,9 @@ void setup_ui() {
 
         _.CollapsingHeader([](CollapsingHeader &_) {
             _.label = "Weather";
+            _.Button("Reset", [](){
+                ik::EventSystemCallFunctions::ReleaseFixWeather();
+            });
             _.Row([](Row &_) {
                 _.Button("Sunny", []() {
                     gfl::StringHolder holder = gfl::StringHolder::Create("sunny");

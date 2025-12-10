@@ -39,7 +39,7 @@ inline NXHost get_host() {
 
     if (offset == 0x08504000 || offset == 0x08505000) {
         return NXHost::RYUJINX;
-    } else if (offset == 0x80004000 || offset == 0x80005000) {
+    } else if (offset == 0x80004000 || offset == 0x80005000 || offset == 0x80085000) {
         return NXHost::YUZU;
     } else {
         return NXHost::HARDWARE;

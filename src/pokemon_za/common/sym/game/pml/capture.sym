@@ -2,5 +2,8 @@
 // pml::Capture::Judge()
 _ZN3pml7Capture5JudgeEv = 0x0044917c
 
-@game:102
+@game:102,103
 _ZN3pml7Capture5JudgeEv = 0x00446b4c
+
+@game:200
+_ZN3pml7Capture5JudgeEv = 0x00447210
