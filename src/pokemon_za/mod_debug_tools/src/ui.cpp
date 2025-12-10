@@ -607,28 +607,31 @@ void setup_ui() {
                         ImGui::Text("%d", ik::TrainerRankManager::s_instance.m_tickets);
                     };
                 });
+
+#define ADD_TICKETS(amount) if (ik::FlagWorkManager::s_instance.GetFlag("FLAG_TRAINER_RANK_INFINITE_OPEN")) { ik::TrainerRankManager::s_instance.m_ticketsInfinite = ik::TrainerRankManager::s_instance.m_ticketsInfinite + amount; } else { ik::TrainerRankManager::s_instance.m_tickets = ik::TrainerRankManager::s_instance.m_tickets + amount; }
+
                 _.Group([](Group &_) {
                     _.Button("+100##Tickets", [] {
-                        ik::TrainerRankManager::s_instance.m_tickets += 100;
+                        ADD_TICKETS(100);
                     });
                     _.Button("-100##Tickets", [] {
-                        ik::TrainerRankManager::s_instance.m_tickets -= 100;
+                        ADD_TICKETS(-100);
                     });
                 });
                 _.Group([](Group &_) {
                     _.Button("+1000##Tickets", [] {
-                        ik::TrainerRankManager::s_instance.m_tickets += 1000;
+                        ADD_TICKETS(1000);
                     });
                     _.Button("-1000##Tickets", [] {
-                        ik::TrainerRankManager::s_instance.m_tickets -= 1000;
+                        ADD_TICKETS(-1000);
                     });
                 });
                 _.Group([](Group &_) {
                     _.Button("+10000##Tickets", [] {
-                        ik::TrainerRankManager::s_instance.m_tickets += 10000;
+                        ADD_TICKETS(10000);
                     });
                     _.Button("-10000##Tickets", [] {
-                        ik::TrainerRankManager::s_instance.m_tickets -= 10000;
+                        ADD_TICKETS(-10000);
                     });
                 });
             });

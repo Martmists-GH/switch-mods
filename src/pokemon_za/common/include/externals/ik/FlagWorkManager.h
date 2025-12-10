@@ -8,5 +8,6 @@ namespace ik {
 
         int32_t GetWorkValue(gfl::StringHolder* work);
         void SetWorkValue(gfl::StringHolder* work, uint32_t value);
+        bool GetFlag(char* flag);
     };
 }

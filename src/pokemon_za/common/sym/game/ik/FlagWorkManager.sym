@@ -5,14 +5,20 @@ _ZN2ik15FlagWorkManager10s_instanceE = 0x05f0eb80
 // ik::FlagWorkManager::SetWorkValue(gfl::StringHolder*, uint32_t)
 _ZN2ik15FlagWorkManager12SetWorkValueEPN3gfl12StringHolderEj = 0x0085c1fc
 
+// ik::FlagWorkManager::GetFlag(char*)
+_ZN2ik15FlagWorkManager7GetFlagEPc = 0x0005136c
+
 @game:102
 _ZN2ik15FlagWorkManager10s_instanceE = 0x05f0fb80
 _ZN2ik15FlagWorkManager12SetWorkValueEPN3gfl12StringHolderEj = 0x0085c2cc
+_ZN2ik15FlagWorkManager7GetFlagEPc = 0x0005136c
 
 @game:103
 _ZN2ik15FlagWorkManager10s_instanceE = 0x05f11b80
 _ZN2ik15FlagWorkManager12SetWorkValueEPN3gfl12StringHolderEj = 0x0085c0fc
+_ZN2ik15FlagWorkManager7GetFlagEPc = 0x0005136c
 
 @game:200
 _ZN2ik15FlagWorkManager10s_instanceE = 0x06108f00
 _ZN2ik15FlagWorkManager12SetWorkValueEPN3gfl12StringHolderEj = 0x0092dc10
+_ZN2ik15FlagWorkManager7GetFlagEPc = 0x000391fc

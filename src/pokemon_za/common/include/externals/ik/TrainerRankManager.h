@@ -7,5 +7,6 @@ namespace ik {
         char unk[0x8];
         int m_rank;
         int m_tickets;
+        int m_ticketsInfinite;
     };
 }
