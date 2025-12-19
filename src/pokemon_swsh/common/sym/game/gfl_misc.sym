@@ -1,0 +1,9 @@
+@game:132_sw
+// gfl::HeapManager::s_managerList
+_ZN3gfl11HeapManager13s_managerListE = 0x028f3f30
+
+// gfl::HeapManager::s_managerCount
+_ZN3gfl11HeapManager14s_managerCountE = 0x028f4730
+
+// gfl::SizedHeap::s_globalHeap
+_ZN3gfl9SizedHeap12s_globalHeapE = 0x028f3ed8

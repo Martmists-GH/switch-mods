@@ -1,3 +1,4 @@
+#ifdef IMGUI_ENABLED
 #include "imgui_backend_v2/ImGuiBackend.h"
 
 #include <nn/primitives.h>
@@ -60,3 +61,4 @@
 // void ImGuiBackend::render() {
 //     // TODO
 // }
+#endif

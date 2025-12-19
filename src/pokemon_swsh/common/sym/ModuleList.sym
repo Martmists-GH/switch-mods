@@ -1,0 +1,5 @@
+rtld = 0
+game = 1
+multimedia = 2
+glslc = 3
+sdk = 5

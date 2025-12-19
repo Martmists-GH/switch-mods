@@ -1,3 +1,6 @@
 @sdk
 // nn::diag::detail::VAbortImpl(char const*, char const*, char const*, int, nn::Result const*, nn::os::UserExceptionInfo const*, char const*, std::__va_list&)
 _ZN2nn4diag6detail10VAbortImplEPKcS3_S3_iPKNS_6ResultEPKNS_2os17UserExceptionInfoES3_RSt9__va_list
+
+// nn::diag::detail::VAbortImpl(char const*, char const*, char const*, int, nn::Result const*, nn::os::UserExceptionInfo const*, nn::diag::MetaLogContext const&, char const*, std::__va_list)
+_ZN2nn4diag6detail10VAbortImplEPKcS3_S3_iPKNS_6ResultEPKNS_2os17UserExceptionInfoERKNS0_14MetaLogContextES3_St9__va_list

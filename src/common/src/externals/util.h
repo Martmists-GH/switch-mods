@@ -53,3 +53,8 @@ struct ExternalInterface {
         return reinterpret_cast<struct instance*>(this);
     }
 };
+
+#define CAT2(a,b) a##b
+#define CAT(a,b) CAT2(a,b)
+#define UNIQUE_ID CAT(_pad_,__COUNTER__)
+#define EXTERNAL_PAD(size) char UNIQUE_ID[size]

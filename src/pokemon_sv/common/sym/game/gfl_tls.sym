@@ -1,0 +1,3 @@
+@game:301_s,301_v
+// gfl::ThreadLocalHelper::tlsSlot
+_ZN3gfl17ThreadLocalHelper7tlsSlotE = 0x04765a30

@@ -252,7 +252,6 @@ static std::string memorySize(uint64_t numBytes) {
 }
 
 struct HeapMeta {
-    uint64_t allocPeak;
     uint64_t lastAllocSize;
 };
 
@@ -261,8 +260,8 @@ static bool ImguiHeapData(gfl::SizedHeap::instance* heap, HeapMeta &meta) {
     ImGui::Text("%s", heap->fields.label);
     auto currentAlloc = heap->AllocSize();
     auto memAlloced = memorySize(currentAlloc);
-    auto memAvailable = memorySize(heap->fields.allocMax);
-    auto memPeak = memorySize(meta.allocPeak);
+    auto memAvailable = memorySize(heap->fields.size);
+    auto memPeak = memorySize(heap->fields.allocMax);
     auto delta = static_cast<long>(currentAlloc) - static_cast<long>(meta.lastAllocSize);
     auto deltaString = memorySize(std::abs(delta));
     ImGui::Text(" Usage: %s / %s", memAlloced.c_str(), memAvailable.c_str());
@@ -270,7 +269,6 @@ static bool ImguiHeapData(gfl::SizedHeap::instance* heap, HeapMeta &meta) {
     ImGui::Text(" Change: %s%s", delta < 0 ? "-" : "", deltaString.c_str());
     ImGui::Text(" # of objects: %ld", heap->AllocCount());
 
-    meta.allocPeak = std::max(meta.allocPeak, currentAlloc);
     meta.lastAllocSize = currentAlloc;
     return true;
 }
@@ -493,7 +491,7 @@ void setup_ui() {
     });
 
     ROOT.Window([](Window& _){
-        _.title = "ZA Toolbox - By Martmists";
+        _.title = STR(MODULE_NAME_SPACES) " - By Martmists";
         _.toggleable = false;
         _.flags |= ImGuiWindowFlags_MenuBar;
         _.initialPos = ImVec2(50, 50);
@@ -608,30 +606,28 @@ void setup_ui() {
                     };
                 });
 
-#define ADD_TICKETS(amount) if (ik::FlagWorkManager::s_instance.GetFlag("FLAG_TRAINER_RANK_INFINITE_OPEN")) { ik::TrainerRankManager::s_instance.m_ticketsInfinite = ik::TrainerRankManager::s_instance.m_ticketsInfinite + amount; } else { ik::TrainerRankManager::s_instance.m_tickets = ik::TrainerRankManager::s_instance.m_tickets + amount; }
-
                 _.Group([](Group &_) {
                     _.Button("+100##Tickets", [] {
-                        ADD_TICKETS(100);
+                        ik::TrainerRankManager::s_instance.AddPoint(100, false);
                     });
                     _.Button("-100##Tickets", [] {
-                        ADD_TICKETS(-100);
+                        ik::TrainerRankManager::s_instance.AddPoint(-100, false);
                     });
                 });
                 _.Group([](Group &_) {
                     _.Button("+1000##Tickets", [] {
-                        ADD_TICKETS(1000);
+                        ik::TrainerRankManager::s_instance.AddPoint(1000, false);
                     });
                     _.Button("-1000##Tickets", [] {
-                        ADD_TICKETS(-1000);
+                        ik::TrainerRankManager::s_instance.AddPoint(-1000, false);
                     });
                 });
                 _.Group([](Group &_) {
                     _.Button("+10000##Tickets", [] {
-                        ADD_TICKETS(10000);
+                        ik::TrainerRankManager::s_instance.AddPoint(10000, false);
                     });
                     _.Button("-10000##Tickets", [] {
-                        ADD_TICKETS(-10000);
+                        ik::TrainerRankManager::s_instance.AddPoint(-10000, false);
                     });
                 });
             });
@@ -777,7 +773,6 @@ void setup_ui() {
                 a.isOybn = s_partyData.forceAlpha;
                 a.monsno = s_partyData.species;
                 a.formno = s_partyData.form;
-                ImGui::Text("%d", s_partyData.sex);
                 a.sex = s_partyData.sex;
                 a.ability = s_partyData.ability;
                 a.natureMint = s_partyData.nature;
@@ -813,6 +808,9 @@ void setup_ui() {
                 _.min = 1;
                 _.value = 1;
                 _.max = 2634;
+                if (is_version("2.0.0")) {
+                    _.max = 2684;
+                }
             });
             _.FunctionElement([itemID]() {
                 auto value = itemID->value;

@@ -70,6 +70,7 @@ HkTrampoline<gfl::fs::Result, gfl::fs::FlatBufferLoader *> FlatBufferOpenHook = 
 HkTrampoline<gfl::fs::Result, gfl::fs::FlatBufferLoader*, void*, long> FlatBufferReadHook = hk::hook::trampoline([](gfl::fs::FlatBufferLoader* p1, void* p2, long p3) {
     if (p1->mode == 3) {
         std::string path = std::string(ROM_MOUNT) + ":/" + p1->path.m_stringHolder.m_content.m_string;
+        // Logger::log("Accessing path: %s (hash: %016lX)\n", p1->path.m_stringHolder.m_content.m_string, p1->path.m_stringHolder.m_content.m_hash);
         if (FileUtil::exists(path)) {
             Logger::log("Redirecting file access for %s\n", p1->path.m_stringHolder.m_content.m_string);
             gfl::fs::FlatBufferReadInfo info {};

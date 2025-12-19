@@ -2,7 +2,7 @@ add_custom_target(all_modules)
 add_custom_target(all_modules_zips)
 
 function(create_mod name folder)
-    cmake_parse_arguments(MODULE_ARGS "WITH_VARIANTS;WITH_OLD_SDK;WITH_NVN;WITH_DEBUGRENDERER;WITH_IMGUI;WITH_HEAPSOURCE_BSS;WITH_HEAPSOURCE_DYNAMIC;WITH_EXPHEAP;SDK_PAST_1900" "HOOK_POOL_SIZE;BSS_HEAP_SIZE;TITLE_ID;GAME_TITLE" "INCLUDE;SOURCE;SOURCE_SHALLOW;LIBRARIES" ${ARGN})
+    cmake_parse_arguments(MODULE_ARGS "WITH_VARIANTS;WITH_OLD_SDK;WITH_NVN;WITH_DEBUGRENDERER;WITH_IMGUI;WITH_HEAPSOURCE_BSS;WITH_HEAPSOURCE_DYNAMIC;WITH_EXPHEAP;SDK_PAST_1300;SDK_PAST_1900" "HOOK_POOL_SIZE;BSS_HEAP_SIZE;TITLE_ID;GAME_TITLE" "INCLUDE;SOURCE;SOURCE_SHALLOW;LIBRARIES" ${ARGN})
 
     set(ALL_INCLUDE)
     set(ALL_SOURCE)
@@ -110,7 +110,12 @@ function(create_mod name folder)
     endif ()
 
     if (${MODULE_ARGS_SDK_PAST_1900})
+        set(MODULE_ARGS_SDK_PAST_1300 TRUE)
         list(APPEND ALL_DEFINES __RTLD_PAST_19XX__)
+    endif ()
+
+    if (${MODULE_ARGS_SDK_PAST_1300})
+        list(APPEND ALL_DEFINES __RTLD_PAST_13XX__)
     endif ()
 
     # Defaults
@@ -183,11 +188,7 @@ function(create_mod_variant module variant title_id game)
     cmake_parse_arguments(VARIANT_ARGS "" "NPDM_TEMPLATE" "INCLUDE;SOURCE" ${ARGN})
 
     if (NOT DEFINED VARIANT_ARGS_NPDM_TEMPLATE)
-        if ((${CMAKE_BUILD_TYPE} STREQUAL "Debug") OR (${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo"))
-            set(VARIANT_ARGS_NPDM_TEMPLATE ${PROJECT_SOURCE_DIR}/build-files/npdm-debug.json.template)
-        else ()
-            set(VARIANT_ARGS_NPDM_TEMPLATE ${PROJECT_SOURCE_DIR}/build-files/npdm.json.template)
-        endif ()
+        set(VARIANT_ARGS_NPDM_TEMPLATE ${PROJECT_SOURCE_DIR}/build-files/npdm.json.template)
     endif()
 
     if (NOT TARGET ${module})
@@ -221,10 +222,12 @@ function(create_mod_variant module variant title_id game)
     target_include_directories(${variant} PUBLIC ${ALL_INCLUDE} ${PARENT_INCLUDE})
 
     string(LENGTH ${module} MODULE_NAME_LEN)
+    string(REPLACE "_" " " module_spaces ${module})
     target_compile_definitions(
         ${variant}
         PUBLIC
         MODULE_NAME=${module}
+        MODULE_NAME_SPACES=${module_spaces}
         MODULE_NAME_LEN=${MODULE_NAME_LEN}
         HK_TITLE_ID=0x${title_id}
         LOGGER_IP="${LOGGER_IP}"
@@ -270,6 +273,7 @@ function(create_mod_variant module variant title_id game)
         "-T${PROJECT_SOURCE_DIR}/lib/hakkun/data/link.aarch64.ld"
         "-T${PROJECT_SOURCE_DIR}/lib/hakkun/data/misc.ld"
         -Wl,-init=__module_entry__
+        -Wl,--build-id=sha1
         -Wl,--pie
         -Wl,--export-dynamic-symbol=_ZN2nn2ro6detail15g_pAutoLoadListE
         -Wl,--unresolved-symbols=report-all
@@ -331,9 +335,9 @@ function(create_releases_main module)
     create_release(atmosphere TRUE "")
     create_release(modmanager TRUE "")
     create_release(ryujinx FALSE "$ENV{HOME}/.config/Ryujinx/sdcard")
-    create_release(yuzu FALSE "$ENV{HOME}/.local/share/suyu/sdmc")
+    create_release(yuzu FALSE "$ENV{HOME}/.local/share/eden/sdmc")
 #    create_release(ryujinx FALSE "$ENV{HOME}/.config/Ryujinx/")
-#    create_release(yuzu FALSE "$ENV{HOME}/.local/share/suyu/")
+#    create_release(yuzu FALSE "$ENV{HOME}/.local/share/eden/")
 endfunction()
 
 function(create_releases module game_name variant title_id)

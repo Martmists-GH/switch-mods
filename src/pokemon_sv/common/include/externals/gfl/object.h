@@ -2,7 +2,7 @@
 #include <checks.hpp>
 #include <nn/os.h>
 #include "externals/util.h"
-
+#include "util/MessageUtil.h"
 // TODO: A lot of these are wild guesses and likely wrong, and need a lot of cleanup
 namespace gfl {
     struct SizedHeap;
@@ -23,15 +23,10 @@ namespace gfl {
 
         _stack m_heapStack;
 
+        static nn::os::TlsSlot tlsSlot;
+
         static ThreadLocalHelper* GetInstance() {
-            auto offset = 0;
-            if (is_version("3.0.1") || is_version("4.0.0")) {
-                offset = 0x04765a30;
-            } else {
-                MessageUtil::abort("ThreadLocalHelper::GetInstance Not implemented for version!");
-            }
-            auto tlsPtr = reinterpret_cast<nn::os::TlsSlot*>(hk::ro::getMainModule()->range().start() + offset);
-            return reinterpret_cast<ThreadLocalHelper*>(nn::os::GetTlsValue(*tlsPtr));
+            return reinterpret_cast<ThreadLocalHelper*>(nn::os::GetTlsValue(tlsSlot));
         }
 
         static void PushHeap(gfl::SizedHeap* heap) {
@@ -118,7 +113,7 @@ namespace gfl {
             void* unk1;
             void* unk2;
             void*(*allocate)(gfl::SizedHeap*, int size, int align);
-            void* deallocate;
+            void (*deallocate)(gfl::SizedHeap*, void* ptr, int size, int align);
             void* unk5;
             void* unk6;
             void* unk7;
@@ -150,10 +145,21 @@ namespace gfl {
         };
 
         struct fields {
-            char* unk1;
-            bool unk2;
-            bool unk3;
+            void* unk;
+            char* label;
+            EXTERNAL_PAD(0x10);
+            uint64_t size;
+            EXTERNAL_PAD(8);
+            uint64_t allocSize;
+            uint64_t allocCount;
+            uint64_t allocMax;
         };
+
+        static SizedHeap::instance* s_globalHeap;
+
+        void* Allocate(int size, int align) { return impl()->vtable->allocate(this, size, align); }
+        void Deallocate(void* arg, int size, int align) { impl()->vtable->deallocate(this, arg, size, align); }
+
 
         template <typename T, typename ...Args>
         typename T::instance* Create(Args&& ...args) {
@@ -170,6 +176,31 @@ namespace gfl {
             gfl::ThreadLocalHelper::PopHeap(this);
             return obj;
         }
+    };
+
+    struct HeapManager : ExternalType<HeapManager> {
+        struct childHeap {
+            gfl::SizedHeap::instance* m_heap;
+            gfl::SizedHeap::instance* m_parentHeap;
+            void* unk1;
+            long unk2;
+        };
+
+        struct vtable {
+            int32_t(*GetCount)(gfl::HeapManager*);
+            gfl::SizedHeap::instance*(*GetHeap)(gfl::HeapManager*, int32_t index);
+            void* unk2;
+            void* unk3;
+        };
+        struct fields {
+            childHeap heaps[3];
+        };
+
+        int32_t GetCount() { return impl()->vtable->GetCount(this); }
+        gfl::SizedHeap::instance* GetHeap(int32_t index) { return impl()->vtable->GetHeap(this, index); }
+
+        static gfl::HeapManager::instance* s_managerList;
+        static uint32_t s_managerCount;
     };
 
     template <typename T>

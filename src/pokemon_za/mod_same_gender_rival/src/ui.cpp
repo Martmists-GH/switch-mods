@@ -9,7 +9,7 @@ void setGenderModShouldPatch(bool shouldPatch);
 
 void setup_ui() {
     ROOT.Window([](Window& _){
-        _.title = "ZA Toolbox - By Martmists";
+        _.title = STR(MODULE_NAME_SPACES) " - By Martmists";
         _.toggleable = false;
         //_.flags |= ImGuiWindowFlags_MenuBar;
         _.initialPos = ImVec2(50, 50);

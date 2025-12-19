@@ -5,6 +5,7 @@
 #include <cstring>
 #include <hk/ro/RoUtil.h>
 #include <hk/svc/api.h>
+#include <logger/logger.h>
 
 inline bool is_game(u64 game_id) {
     u64 id;
@@ -34,18 +35,27 @@ enum NXHost {
     YUZU
 };
 
-inline NXHost get_host() {
+static NXHost get_host() {
     auto offset = hk::ro::getMainModule()->range().start();
 
     if (offset == 0x08504000 || offset == 0x08505000) {
         return NXHost::RYUJINX;
-    } else if (offset == 0x80004000 || offset == 0x80005000 || offset == 0x80085000) {
+    } else if (offset == 0x80004000 || offset == 0x80005000 || offset == 0x80084000 || offset == 0x80085000) {
         return NXHost::YUZU;
     } else {
-        return NXHost::HARDWARE;
+        hk::Handle curProcess;
+        u64 tmp;
+        hk::svc::getProcessHandleMesosphere(&curProcess);
+        auto err = hk::svc::GetSystemInfo(&tmp, hk::svc::SystemInfoType::SystemInfoType_UsedPhysicalMemorySize, curProcess, hk::svc::PhysicalMemorySystemInfo::PhysicalMemorySystemInfo_System);
+        if (err.succeeded() || err.getValue() == ams::svc::ResultInvalidHandle::InnerValue) {
+            return NXHost::HARDWARE;
+        } else {
+            return NXHost::YUZU;
+        }
     }
 }
 
-inline bool is_emulator() {
-    return get_host() != NXHost::HARDWARE;
+static bool is_emulator() {
+    static NXHost host = get_host();
+    return host != NXHost::HARDWARE;
 }

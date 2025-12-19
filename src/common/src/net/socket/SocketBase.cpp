@@ -64,7 +64,7 @@ std::optional<std::tuple<bool, const std::string, u16, const std::string>> Socke
         path = "/";
     }
 
-    u16 portInt = std::stoi(port);
+    u16 portInt = atoi(port.c_str());
     return std::make_tuple(isSSL, std::move(domain), portInt, std::move(path));
 }
 

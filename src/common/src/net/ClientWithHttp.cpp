@@ -89,7 +89,7 @@ std::tuple<int, std::unordered_map<std::string, std::string>, std::string> Clien
         } else if (i == 0) {
             // HTTP Code
             auto codeStr = response.substr(9, 3);
-            httpCode = std::stoi(codeStr);
+            httpCode = atoi(codeStr.c_str());
         } else {
             // Header
             auto delimPos = line.find(':');

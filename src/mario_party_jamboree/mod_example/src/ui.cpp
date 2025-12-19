@@ -8,7 +8,7 @@ int getCounter();
 
 void setup_ui() {
     ROOT.Window([](Window& _){
-        _.title = "SMPJ Toolbox - By Martmists";
+        _.title = STR(MODULE_NAME_SPACES) " - By Martmists";
         _.toggleable = false;
         //_.flags |= ImGuiWindowFlags_MenuBar;
         _.initialPos = ImVec2(50, 50);

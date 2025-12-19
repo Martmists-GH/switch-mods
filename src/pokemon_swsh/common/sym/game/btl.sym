@@ -1,0 +1,12 @@
+@game:132_sw
+// btl::EventLauncher::scEvent_SkipAvoidCheck(btl::BTL_POKEPARAM*, btl::BTL_POKEPARAM*, void*)
+_ZN3btl13EventLauncher22scEvent_SkipAvoidCheckEPNS_13BTL_POKEPARAMES2_Pv = 0x0082a640
+
+// btl::Capture::JudgeCapture(btl::Capture::JudgeResult*, btl::Capture::JudgeParam*)
+_ZN3btl7Capture12JudgeCaptureEPNS0_11JudgeResultEPNS0_10JudgeParamE = 0x008a7040
+
+// btl::Section_DecrementPP::Execute(btl::Section_DecrementPP::Result*, btl::Section_DecrementPP::Description*)
+_ZN3btl19Section_DecrementPP7ExecuteEPNS0_6ResultEPNS0_11DescriptionE = 0x00850650
+
+// btl::BTL_POKEPARAM::HpMinus(short)
+_ZN3btl13BTL_POKEPARAM7HpMinusEs = 0x007e37e0

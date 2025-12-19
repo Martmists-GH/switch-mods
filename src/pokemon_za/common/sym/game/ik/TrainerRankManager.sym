@@ -2,11 +2,17 @@
 // gfl::Singleton<ik::TrainerRankManager>::s_instance
 _ZN3gfl9SingletonIN2ik18TrainerRankManagerEE10s_instanceE = 0x05f0fdc0
 
+// ik::TrainerRankManager::AddPoint(int)
+_ZN2ik18TrainerRankManager8AddPointEib = 0x00bb1ae0
+
 @game:102
 _ZN3gfl9SingletonIN2ik18TrainerRankManagerEE10s_instanceE = 0x05f10dc0
+_ZN2ik18TrainerRankManager8AddPointEib = 0x00bb1ec0
 
 @game:103
 _ZN3gfl9SingletonIN2ik18TrainerRankManagerEE10s_instanceE = 0x05f12dc0
+_ZN2ik18TrainerRankManager8AddPointEib = 0x00bb19b0
 
 @game:200
 _ZN3gfl9SingletonIN2ik18TrainerRankManagerEE10s_instanceE = 0x0610a580
+_ZN2ik18TrainerRankManager8AddPointEib = 0x00ce4e90

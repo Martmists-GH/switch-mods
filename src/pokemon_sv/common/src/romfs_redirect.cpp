@@ -7,56 +7,84 @@
 #include <util/FileUtil.h>
 #include <util/MessageUtil.h>
 
-#include "externals/gfl/fs.h"
+#include "externals/gfl/string.h"
+#include "game_constants.h"
 
-HkTrampoline<gfl::fs::Result, gfl::fs::FlatBufferLoader *, void *, ulong> FlatBufferReadHook = hk::hook::trampoline([](gfl::fs::FlatBufferLoader *thisPtr, void *buffer, ulong bufferSize) {
-    if (thisPtr->mFileInfo && thisPtr->field_148 && thisPtr->field_A8) {
-        if (FileUtil::exists(thisPtr->mFileInfo->mPath)) {
-            Logger::log("Redirecting file access for %s\n", thisPtr->mFileInfo->mPath);
+namespace gfl::fs {
+    struct Result {
+        u64 unk1;
+        u64 unk2;
+    };
 
-            gfl::fs::FlatBufferReadInfo readInfo{};
-            readInfo.mPosition = 0;
+    struct Path {
+        gfl::String::instance* m_string;
+        gfl::StringHolder m_stringHolder;
+        uint8_t m_type;
+    };
 
-            nn::Result openResult = nn::fs::OpenFile(&readInfo.mHandle, thisPtr->mFileInfo->mPath,
-                                                     nn::fs::OpenMode::OpenMode_Read);
-            if (openResult.IsSuccess()) {
-                auto result = gfl::fs::ReadFileToBuffer(&readInfo, buffer, bufferSize);
+    struct FlatBufferReadInfo {
+        long mSize;
+        long mPosition;
+        nn::fs::FileHandle mHandle;
 
-                nn::fs::CloseFile(readInfo.mHandle);
+        gfl::fs::Result ReadToBuffer(void* buffer, long bufferSize);
+    };
 
-                thisPtr->field_180 = 1;
-                thisPtr->mReadPosition = readInfo.mPosition;
+    struct FlatBufferLoader {
+        EXTERNAL_PAD(0x40);
+        gfl::fs::Path path;
+        gfl::fs::Path originalPath;
+        EXTERNAL_PAD(0x10);
+        FlatBufferReadInfo readInfo;
+        EXTERNAL_PAD(0xb4);
+        char mode;
+        EXTERNAL_PAD(0x58);
+        ulong mSize;
+        ulong mPosition;
+
+        gfl::fs::Result Open();
+        gfl::fs::Result Read(void* buffer, long bufferSize);
+    };
+
+    static_assert(offsetof(FlatBufferLoader, path) == 0x40);
+    static_assert(offsetof(FlatBufferLoader, readInfo) == 0xb0);
+    static_assert(offsetof(FlatBufferLoader, mode) == 0x17c);
+    static_assert(offsetof(FlatBufferLoader, mSize) == 0x1d8);
+}
+
+HkTrampoline<gfl::fs::Result, gfl::fs::FlatBufferLoader *> FlatBufferOpenHook = hk::hook::trampoline([](gfl::fs::FlatBufferLoader *thisPtr) {
+    auto res = FlatBufferOpenHook.orig(thisPtr);
+
+    std::string path = std::string(ROM_MOUNT) + ":/" + thisPtr->path.m_stringHolder.m_content.m_string;
+    if (FileUtil::exists(path)) {
+        auto newSize = FileUtil::getFileSize(path);
+        thisPtr->mSize = newSize;
+    }
+
+    return res;
+});
+
+HkTrampoline<gfl::fs::Result, gfl::fs::FlatBufferLoader*, void*, long> FlatBufferReadHook = hk::hook::trampoline([](gfl::fs::FlatBufferLoader* p1, void* p2, long p3) {
+    if (p1->mode == 3) {
+        std::string path = std::string(ROM_MOUNT) + ":/" + p1->path.m_stringHolder.m_content.m_string;
+        // Logger::log("Accessing path: %s (hash: %016lX)\n", p1->path.m_stringHolder.m_content.m_string, p1->path.m_stringHolder.m_content.m_hash);
+        if (FileUtil::exists(path)) {
+            Logger::log("Redirecting file access for %s\n", p1->path.m_stringHolder.m_content.m_string);
+            gfl::fs::FlatBufferReadInfo info {};
+            auto res = nn::fs::OpenFile(&info.mHandle, path.c_str(), nn::fs::OpenMode_Read);
+            if (res.IsSuccess()) {
+                auto result = info.ReadToBuffer(p2, p3);
+                nn::fs::CloseFile(info.mHandle);
+                p1->mPosition = info.mPosition;
                 return result;
             }
         }
     }
-
-    return FlatBufferReadHook.orig(thisPtr, buffer, bufferSize);
+    return FlatBufferReadHook.orig(p1, p2, p3);
 });
 
-void NOINLINE fileRedirectionFunc(gfl::fs::FlatBufferLoader *loader) {
-    if (loader->mFileInfo && loader->field_148 && loader->field_A8) {
-        if (FileUtil::exists(loader->mFileInfo->mPath)) {
-            auto fileSize = FileUtil::getFileSize(loader->mFileInfo->mPath);
-            loader->mBufferSize = fileSize;
-        }
-    }
-}
-
-#define ReadInvokeHook(n) HkTrampoline<gfl::fs::Result, gfl::fs::FlatBufferLoader *> FlatBufferReadInvokeHook##n = hk::hook::trampoline([](gfl::fs::FlatBufferLoader* thisPtr) { fileRedirectionFunc(thisPtr); return FlatBufferReadInvokeHook##n.orig(thisPtr); })
-
-ReadInvokeHook(0);
-ReadInvokeHook(1);
-ReadInvokeHook(2);
 
 void romfs_hooks() {
-    FlatBufferReadHook.installAtPtr(gfl::fs::Read);
-
-    if (is_version("3.0.1") || is_version("4.0.0")) {
-        FlatBufferReadInvokeHook0.installAtMainOffset(0x00cc8138);
-        FlatBufferReadInvokeHook1.installAtMainOffset(0x0203da2c);
-        FlatBufferReadInvokeHook2.installAtMainOffset(0x0208a980);
-    } else {
-        MessageUtil::abort("ReadInvokeHook Not implemented for version!");
-    }
+    FlatBufferOpenHook.installAtPtr(pun<void*>(&gfl::fs::FlatBufferLoader::Open));
+    FlatBufferReadHook.installAtPtr(pun<void*>(&gfl::fs::FlatBufferLoader::Read));
 }

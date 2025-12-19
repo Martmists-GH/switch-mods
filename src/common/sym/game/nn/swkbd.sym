@@ -1,4 +1,7 @@
 @sdk
+// nn::swkbd::InitializeKeyboardConfig(nn::swkbd::KeyboardConfig*)
+_ZN2nn5swkbd24InitializeKeyboardConfigEPNS0_14KeyboardConfigE
+
 // nn::swkbd::MakePreset(nn::swkbd::KeyboardConfig*, nn::swkbd::Preset)
 _ZN2nn5swkbd10MakePresetEPNS0_14KeyboardConfigENS0_6PresetE
 
@@ -16,6 +19,9 @@ _ZN2nn5swkbd25GetRequiredWorkBufferSizeEb
 
 // nn::swkbd::GetRequiredStringBufferSize()
 _ZN2nn5swkbd27GetRequiredStringBufferSizeEv
+
+// nn::swkbd::GetRequiredTextCheckWorkBufferSize()
+_ZN2nn5swkbd34GetRequiredTextCheckWorkBufferSizeEv
 
 // nn::swkbd::ShowKeyboard(nn::swkbd::String*, nn::swkbd::ShowKeyboardArg const&)
 _ZN2nn5swkbd12ShowKeyboardEPNS0_6StringERKNS0_15ShowKeyboardArgE

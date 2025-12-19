@@ -1,4 +1,5 @@
 #pragma once
+#ifdef IMGUI_ENABLED
 #include <functional>
 #include <imgui.h>
 #include <vector>
@@ -30,3 +31,4 @@ public:
         m_renderCallbacks.push_back(callback);
     }
 };
+#endif

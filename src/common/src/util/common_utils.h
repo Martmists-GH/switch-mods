@@ -1,7 +1,10 @@
 #pragma once
+#include <checks.hpp>
 #include <cstdlib>
 #include <format>
 #include <ios>
+
+#include "MessageUtil.h"
 #define HK_ASSERT_MSG(CONDITION, MSG)             \
 do {                                              \
     const bool _condition_temp = (CONDITION);     \
@@ -28,4 +31,18 @@ static std::string dumpHex(void* ptr, size_t size) {
         out.append(std::format("{:02x} ", bytes[i]));
     }
     return out;
+}
+
+inline void show_yuzu_warning() {
+    if (get_host() == NXHost::YUZU) {
+        MessageUtil::popup(0, "Detected Yuzu Emulator, press Details.", R"(This mod will not be disabled, but please note that no support will be offered.
+If you are experiencing issues with Yuzu, do the following:
+
+1. Reproduce the issue on Ryujinx or Switch
+2. Did the same problem happen?
+    Yes: Report the issue to me (using Ryujinx/Switch logs)
+    No: Report the issue to Yuzu
+
+If you are not using Yuzu but a derivative (Suyu, Citron, Eden, etc.) replace "Yuzu" in the text above with that emulator.)");
+    }
 }

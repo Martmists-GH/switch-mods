@@ -1,0 +1,3 @@
+@game:132_sw
+// pml::pokepara::Factory::InitCoreData(void*, pml::pokepara::InitialSpec*)
+_ZN3pml8pokepara7Factory12InitCoreDataEPvPNS0_11InitialSpecE = 0x00766f60

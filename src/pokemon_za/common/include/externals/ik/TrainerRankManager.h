@@ -8,5 +8,7 @@ namespace ik {
         int m_rank;
         int m_tickets;
         int m_ticketsInfinite;
+
+        void AddPoint(int amount, bool unk);  // Seems to be false usually?
     };
 }

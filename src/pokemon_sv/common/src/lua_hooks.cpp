@@ -121,7 +121,7 @@ HkTrampoline<void, hxlua::State*, char*, uint64_t, gfl::StringHolder*> AfterMain
     auto L = state->L;
     gLuaState = L;
 
-    Logger::log("AfterMainHook executing file: %s\n", fileName->m_string);
+    Logger::log("AfterMainHook executing file: %s\n", fileName->m_content.m_string);
 
     if (++counter == 6) {
         registerLuaUtils(L);

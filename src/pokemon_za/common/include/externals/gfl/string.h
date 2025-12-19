@@ -5,7 +5,7 @@
 
 namespace gfl {
     struct StringContent {
-        long m_hash;
+        uint64_t m_hash;
         const char* m_string;
         size_t m_length;
     };
