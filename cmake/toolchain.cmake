@@ -5,8 +5,6 @@ set(CMAKE_SYSTEM_PROCESSOR aarch64)
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_VERSION "NX/Clang")
 
-# FIXME: Apparently everything breaks on clang 21 onwards?
-
 find_program(CLANG_PATH NAMES clang-20 clang)
 cmake_path(SET ${CLANG_PATH} ${CLANG_PATH})
 cmake_path(GET ${CLANG_PATH} PARENT_PATH CLANG_DIR)
@@ -72,6 +70,8 @@ endif()
 
 set(ARCH "--target=${TARGET_TRIPLE} -march=${MARCH} -mtune=cortex-a57 -fPIC -nodefaultlibs ${ARCH}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARCH} -Werror=return-type -Wno-invalid-offsetof")
+# For clang 21 once I figure out why it doesn't link fakesymbols.so:
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARCH} -Werror=return-type -Wno-invalid-offsetof -Wno-error=uninitialized-const-pointer -Wno-error=unterminated-string-initialization")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ARCH} ${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections -fno-exceptions -frtti")
 set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${ARCH}")
 list(JOIN DEFAULTLIBS " " DEFAULTLIBS_STR)
@@ -81,4 +81,4 @@ set(CMAKE_CXX_COMPILER_WORKS true)
 set(CMAKE_ASM_COMPILER_WORKS true)
 
 # Cmake compile bullshit
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${DEFAULTLIBS_STR}")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${DEFAULTLIBS_STR} -fuse-ld=lld")

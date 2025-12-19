@@ -254,12 +254,15 @@ function(create_mod_variant module variant title_id game)
     )
     create_sail(${variant} "${CMAKE_CURRENT_BINARY_DIR}/sail_syms_${variant}/sym")
 
-    target_link_libraries(
-        ${variant} PUBLIC
-
+    target_link_options(${variant} PRIVATE
         "${CMAKE_CURRENT_BINARY_DIR}/sail_output_${variant}/datablocks.o"
         "${CMAKE_CURRENT_BINARY_DIR}/sail_output_${variant}/fakesymbols.so"
         "${CMAKE_CURRENT_BINARY_DIR}/sail_output_${variant}/symboldb.o"
+    )
+
+    target_link_libraries(
+        ${variant} PUBLIC
+
         nnsdk
         nlohmann_json
         MbedTLS::mbedtls
@@ -272,6 +275,7 @@ function(create_mod_variant module variant title_id game)
         -Wl,--gc-sections
         "-T${PROJECT_SOURCE_DIR}/lib/hakkun/data/link.aarch64.ld"
         "-T${PROJECT_SOURCE_DIR}/lib/hakkun/data/misc.ld"
+        -Wl,--Bdynamic
         -Wl,-init=__module_entry__
         -Wl,--build-id=sha1
         -Wl,--pie
