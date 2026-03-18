@@ -17,3 +17,7 @@ _ZN2ik24EventSystemCallFunctions17ReleaseFixWeatherEv = 0x007b70c0
 @game:200
 _ZN2ik24EventSystemCallFunctions10FixWeatherEPN3gfa12EventContextE = 0x00497aa4
 _ZN2ik24EventSystemCallFunctions17ReleaseFixWeatherEv = 0x004908f0
+
+@game:201
+_ZN2ik24EventSystemCallFunctions10FixWeatherEPN3gfa12EventContextE = 0x00497c94
+_ZN2ik24EventSystemCallFunctions17ReleaseFixWeatherEv = 0x00490ae0

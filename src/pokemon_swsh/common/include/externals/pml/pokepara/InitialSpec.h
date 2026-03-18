@@ -1,5 +1,5 @@
 #pragma once
-#include "externals/util.h"
+#include "ls/util.h"
 
 namespace pml::pokepara {
     struct InitialSpec {

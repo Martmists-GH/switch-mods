@@ -10,3 +10,6 @@ _ZN3pml8pokepara8CalcTool22CorrectColorRndForRareEjj = 0x00d1aee8
 
 @game:200
 _ZN3pml8pokepara8CalcTool22CorrectColorRndForRareEjj = 0x00e5d83c
+
+@game:201
+_ZN3pml8pokepara8CalcTool22CorrectColorRndForRareEjj = 0x00e5d21c

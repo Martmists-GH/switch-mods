@@ -1,34 +1,24 @@
 #pragma once
+#include <externals/stl.h>
 
 namespace gfl {
-    template <typename K, typename V, typename S = uint64_t>
-    struct Map {
-        struct Entry {
-            Entry* next;
-            S hash;
-            K key;
-            V value;
-        };
-        Entry* entries;
-        // TODO: Other fields
+    struct _DummyAllocator {
+        EXTERNAL_PAD(8);
     };
 
-    template <typename T>
-    struct Set {
-        struct Entry {
-            Entry* next;
-            ulong hash;
-            T value;
-        };
-        Entry* entries;
-        // TODO: Other fields
-    };
+    template <typename K, typename V, typename S = gfl::FnvHash64>
+    using Map = stl::unordered_map<K, V, _DummyAllocator, S>;
 
-    template <typename T>
-    struct Vector {
-        T* m_begin;
-        T* m_end;
-        void** unk;
+    static_assert(sizeof(gfl::Map<int, int, int>) == 0x38);
+
+    template <typename T, typename S = gfl::FnvHash64>
+    using Set = stl::unordered_set<T, _DummyAllocator, S>;
+
+    struct _VectorAllocator {
+        EXTERNAL_PAD(8);
         gfl::SizedHeap* m_heap;
     };
+
+    template <typename T>
+    using Vector = stl::vector<T, _VectorAllocator>;
 }

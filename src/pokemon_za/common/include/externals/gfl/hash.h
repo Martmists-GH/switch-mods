@@ -22,6 +22,10 @@ namespace gfl {
             return result;
         }
 
+        static constexpr long operator()(const char* value) {
+            return hash(value);
+        }
+
     private:
         static const long FNV_BASIS = 0xCBF29CE484222645;
         static const long FNV_PRIME = 0x00000100000001B3;

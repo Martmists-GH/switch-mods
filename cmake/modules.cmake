@@ -2,7 +2,7 @@ add_custom_target(all_modules)
 add_custom_target(all_modules_zips)
 
 function(create_mod name folder)
-    cmake_parse_arguments(MODULE_ARGS "WITH_VARIANTS;WITH_OLD_SDK;WITH_NVN;WITH_DEBUGRENDERER;WITH_IMGUI;WITH_HEAPSOURCE_BSS;WITH_HEAPSOURCE_DYNAMIC;WITH_EXPHEAP;SDK_PAST_1300;SDK_PAST_1900" "HOOK_POOL_SIZE;BSS_HEAP_SIZE;TITLE_ID;GAME_TITLE" "INCLUDE;SOURCE;SOURCE_SHALLOW;LIBRARIES" ${ARGN})
+    cmake_parse_arguments(MODULE_ARGS "WITH_VARIANTS;WITH_OLD_SDK;WITH_NVN;WITH_DEBUGRENDERER;WITH_IMGUI;WITH_HEAPSOURCE_BSS;WITH_HEAPSOURCE_DYNAMIC;WITH_EXPHEAP;SDK_PAST_1300;SDK_PAST_1900" "HOOK_POOL_SIZE;BSS_HEAP_SIZE;TITLE_ID;GAME_TITLE" "INCLUDE;SOURCE;SOURCE_SHALLOW;LIBRARIES;DEFINES" ${ARGN})
 
     set(ALL_INCLUDE)
     set(ALL_SOURCE)
@@ -11,7 +11,7 @@ function(create_mod name folder)
     set(EXTRA_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/common/src" "${CMAKE_CURRENT_SOURCE_DIR}/${folder}/src" "${PROJECT_SOURCE_DIR}/src/common/src")
 
     # Hakkun
-    list(APPEND ALL_INCLUDE "${HAKKUN_LIB_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/common/include" "${CMAKE_CURRENT_SOURCE_DIR}/${folder}/include")
+    list(APPEND ALL_INCLUDE "${HAKKUN_LIB_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/common/include" "${CMAKE_CURRENT_SOURCE_DIR}/${folder}/include" "${PROJECT_SOURCE_DIR}/src/common/include")
     list(APPEND ALL_SOURCE
         "${HAKKUN_LIB_DIR}/src/hk/diag/ipclogger.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/diag/ResultName.cpp"
@@ -138,9 +138,17 @@ function(create_mod name folder)
     endforeach()
     foreach(source ${MODULE_ARGS_SOURCE_SHALLOW})
         file(GLOB SOURCE_FILES CONFIGURE_DEPENDS ${source}/*.c ${source}/*.cpp ${source}/*.s)
+
+        if ("${source}" MATCHES ".*/lib/lua")
+            list(REMOVE_ITEM SOURCE_FILES ${source}/lua.c)
+        endif ()
+
         list(APPEND ALL_INCLUDE ${source})
         list(APPEND ALL_SOURCE ${SOURCE_FILES})
     endforeach()
+    foreach (define ${MODULE_ARGS_DEFINES})
+        list(APPEND ALL_DEFINES "${define}")
+    endforeach ()
 
     # FIXME: This won't always regenerate files???
     add_custom_command(
@@ -282,6 +290,12 @@ function(create_mod_variant module variant title_id game)
         -Wl,--export-dynamic-symbol=_ZN2nn2ro6detail15g_pAutoLoadListE
         -Wl,--unresolved-symbols=report-all
     )
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+        target_link_options(${variant} PRIVATE
+            -Wl,--export-dynamic
+            -Wl,--exclude-libs=ALL
+        )
+    endif ()
 
     create_nso(${variant} "subsdk9")
 

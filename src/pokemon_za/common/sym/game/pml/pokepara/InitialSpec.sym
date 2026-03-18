@@ -7,3 +7,6 @@ _ZN3pml8pokepara11InitialSpec11FixInitSpecEv = 0x006ae3d0
 
 @game:200
 _ZN3pml8pokepara11InitialSpec11FixInitSpecEv = 0x00656ed0
+
+@game:201
+_ZN3pml8pokepara11InitialSpec11FixInitSpecEv = 0x00656f80

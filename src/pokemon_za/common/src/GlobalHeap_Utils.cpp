@@ -3,6 +3,7 @@
 #include <externals/gfl/object.h>
 #include <logger/logger.h>
 #include <nn/ro.h>
+#include <util/common_utils.h>
 
 struct HeapData {
     void* ptr;
@@ -10,7 +11,7 @@ struct HeapData {
     size_t alignment;
 };
 
-constexpr size_t MAX_HEAP_TRACKED = 0x1000;
+constexpr size_t MAX_HEAP_TRACKED = 0x8000;
 static HeapData m_heapAllocData[MAX_HEAP_TRACKED];
 static size_t m_heapAllocCount = 0;
 

@@ -20,6 +20,6 @@ namespace btl {
             bool isCriticalEnable;
         };
 
-        static void JudgeCapture(JudgeResult* result, void* param);
+        static void JudgeCapture(JudgeResult* result, JudgeParam* param);
     };
 }

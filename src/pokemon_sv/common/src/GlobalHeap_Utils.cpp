@@ -37,6 +37,7 @@ static void EnsureSystemAllocators() {
 }
 
 extern "C" {
+__attribute__((visibility("hidden")))
 void* malloc(size_t size) {
     constexpr size_t defaultAlignment = alignof(std::max_align_t);
     auto heap = gfl::SizedHeap::s_globalHeap;
@@ -49,6 +50,7 @@ void* malloc(size_t size) {
     return aligned_alloc(defaultAlignment, size);
 }
 
+__attribute__((visibility("hidden")))
 void* aligned_alloc(size_t alignment, size_t size) {
     auto heap = gfl::SizedHeap::s_globalHeap;
     if (!heap) {
@@ -69,6 +71,7 @@ void* aligned_alloc(size_t alignment, size_t size) {
     return ptr;
 }
 
+__attribute__((visibility("hidden")))
 void free(void* ptr) {
     if (!ptr) return;
     auto heap = gfl::SizedHeap::s_globalHeap;
@@ -91,6 +94,7 @@ void free(void* ptr) {
     if (s_sysFree) s_sysFree(ptr);
 }
 
+__attribute__((visibility("hidden")))
 void* calloc(size_t num, size_t size) {
     auto heap = gfl::SizedHeap::s_globalHeap;
 
@@ -105,6 +109,7 @@ void* calloc(size_t num, size_t size) {
     return ptr;
 }
 
+__attribute__((visibility("hidden")))
 void* realloc(void* ptr, size_t newSize) {
     auto heap = gfl::SizedHeap::s_globalHeap;
 
@@ -137,22 +142,27 @@ void* realloc(void* ptr, size_t newSize) {
     return nullptr;
 }
 
+__attribute__((visibility("hidden")))
 void* _Znwm(size_t size) {
     return malloc(size);
 }
 
+__attribute__((visibility("hidden")))
 void* _Znam(size_t size) {
     return malloc(size);
 }
 
+__attribute__((visibility("hidden")))
 void _ZdlPv(void* ptr) {
     free(ptr);
 }
 
+__attribute__((visibility("hidden")))
 void _ZdlPvm(void* ptr) {
     free(ptr);
 }
 
+__attribute__((visibility("hidden")))
 void _ZdaPv(void* ptr) {
     free(ptr);
 }

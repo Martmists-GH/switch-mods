@@ -13,3 +13,7 @@ _ZN2ik15QuestCompletionD1Ev = 0x002a96d4
 @game:200
 _ZN2ik15QuestCompletionC1EPN3gfl9SizedHeapEPNS_5quest5QuestEi = 0x00292e20
 _ZN2ik15QuestCompletionD1Ev = 0x00292cdc
+
+@game:201
+_ZN2ik15QuestCompletionC1EPN3gfl9SizedHeapEPNS_5quest5QuestEi = 0x00292e30
+_ZN2ik15QuestCompletionD1Ev = 0x00292cec

@@ -25,6 +25,7 @@
 #include "externals/pe/text/lua/Text.h"
 #include "externals/pml/personal/PersonalSystem.h"
 #include "imgui_ext.h"
+#include "flag_work.h"
 
 using namespace ui;
 
@@ -237,6 +238,80 @@ void PokemonEditor(PokemonData* data, T& _, bool withExtraSettings) {
             });
         }
     });
+}
+
+static constexpr const char* const OP_TYPES[] = {
+    "Invalid",
+    "Equal",
+    "Not equal",
+    "Greater than",
+    "Less than",
+    "Greater than or equal",
+    "Less than or equal",
+    "Between",
+    "Between or equal",
+};
+static constexpr const char* const REWARD_TYPES[] = {
+    "Invalid",
+    "Money",
+    "Item",
+    "Pokemon",
+    "Unlock Shop Item(?)",
+    "Unknown",
+    "Research points"
+};
+void QuestCondition(ik::quest::Condition* condition) {
+    auto& groups = condition->m_groups;
+    if (groups.size() > 0) {
+        ImGui::PushID(condition);
+        if (ImGui::BeginTabBar("##condition_groups")) {
+            auto i = 0;
+            for (auto group = groups.m_begin; group != groups.m_end; group++) {
+                if (ImGui::BeginTabItem(std::format("Group {}", ++i).c_str())) {
+                    auto j = 0;
+                    for (auto cond = group->m_conditions.m_begin; cond != group->m_conditions.m_end; cond++) {
+                        if (ImGui::TreeNodeEx(cond, ImGuiTreeNodeFlags_DefaultOpen, "Condition %d", ++j)) {
+                            ImGui::PushID(cond);
+                            if (ImGui::TreeNodeEx("part_icon", ImGuiTreeNodeFlags_Leaf, "Icon: %d", cond->m_icon)) ImGui::TreePop();
+                            if (ImGui::TreeNodeEx("part_text", ImGuiTreeNodeFlags_Leaf, "Text: %s", &cond->m_text->m_start)) ImGui::TreePop();
+                            if (ImGui::TreeNodeEx("part_type", ImGuiTreeNodeFlags_Leaf, "Type: %s", &cond->m_type->m_start)) ImGui::TreePop();
+                            if (cond->m_op < std::size(OP_TYPES)) {
+                                if (ImGui::TreeNodeEx("part_op", ImGuiTreeNodeFlags_Leaf, "Op: %s", OP_TYPES[cond->m_op])) ImGui::TreePop();
+                            } else {
+                                if (ImGui::TreeNodeEx("part_op", ImGuiTreeNodeFlags_Leaf, "Op: ???")) ImGui::TreePop();
+                            }
+
+                            auto valid0 = cond->m_param[0] != nullptr && strlen(&cond->m_param[0]->m_start) > 0;
+                            auto valid1 = cond->m_param[1] != nullptr && strlen(&cond->m_param[1]->m_start) > 0;
+                            auto valid2 = cond->m_param[2] != nullptr && strlen(&cond->m_param[2]->m_start) > 0;
+                            if ((valid0 || valid1 || valid2) && ImGui::TreeNodeEx("param_list", ImGuiTreeNodeFlags_DefaultOpen, "Parameters")) {
+                                if (valid0 && ImGui::TreeNodeEx("param_0", ImGuiTreeNodeFlags_Leaf, "%s", &cond->m_param[0]->m_start)) ImGui::TreePop();
+                                if (valid1 && ImGui::TreeNodeEx("param_1", ImGuiTreeNodeFlags_Leaf, "%s", &cond->m_param[1]->m_start)) ImGui::TreePop();
+                                if (valid2 && ImGui::TreeNodeEx("param_2", ImGuiTreeNodeFlags_Leaf, "%s", &cond->m_param[2]->m_start)) ImGui::TreePop();
+                                ImGui::TreePop();
+                            }
+
+                            if (strcmp(&cond->m_type->m_start, "flag_condition") == 0) {
+                                if (ImGui::Button("Reset")) {
+                                    ik::FlagWorkManager::s_instance.SetFlag(&cond->m_param[0]->m_start, false);
+                                }
+                                if (ImGui::Button("Complete")) {
+                                    ik::FlagWorkManager::s_instance.SetFlag(&cond->m_param[0]->m_start, true);
+                                }
+                            }
+
+                            ImGui::PopID();
+                            ImGui::TreePop();
+                        }
+                    }
+
+                    ImGui::EndTabItem();
+                }
+            }
+            ImGui::EndTabBar();
+        }
+        ImGui::PopID();
+    }
 }
 
 static std::string memorySize(uint64_t numBytes) {
@@ -490,7 +565,268 @@ void setup_ui() {
         });
     });
 
-    ROOT.Window([](Window& _){
+    static constexpr const char* const QUEST_TYPES[] = {
+        "Main",
+        "Side",
+        "Lab",
+    };
+    static auto questWindow = ROOT.Window([](Window &_) {
+        _.title = "Quest Inspector";
+        _.initialPos = ImVec2(500, 50);
+        _.initialSize = ImVec2(800, 600);
+
+        static char questName[0x100] = {0};
+        static ik::quest::Quest* quest;
+
+        auto type = _.ComboSimple([](ComboSimple &_) {
+            _.label = "Quest Type";
+            _.items = QUEST_TYPES;
+            _.items_count = 3;
+            _.onChange = [](int arg) {
+                quest = nullptr;
+            };
+        });
+        _.FunctionElement([type]() {
+            auto& mgr = ik::QuestManager::s_instance;
+            if (ImGui::BeginCombo("Quest", (quest == nullptr) ? nullptr : questName)) {
+                ik::Quest* questContainer;
+                gfl::StringHolder filenameHolder{};
+
+                switch (type->selected) {
+                    default:
+                        questContainer = mgr.m_mainQuests;
+                        filenameHolder = gfl::StringHolder::Create("questlist_main");
+                        break;
+                    case 1:
+                        questContainer = mgr.m_subQuests;
+                        filenameHolder = gfl::StringHolder::Create("questlist_sub");
+                        break;
+                    case 2:
+                        questContainer = mgr.m_labQuests;
+                        filenameHolder = gfl::StringHolder::Create("questlist_mj");
+                        break;
+                }
+
+                std::vector<ik::quest::Quest*> quests;
+                auto iterHead = questContainer->m_items.first;
+                while (iterHead != nullptr) {
+                    quests.push_back(&iterHead->value);
+                    iterHead = iterHead->next;
+                }
+
+                std::ranges::sort(quests, [&filenameHolder](const ik::quest::Quest* a, const ik::quest::Quest* b) {
+                    if (a == nullptr || b == nullptr) return false;
+                    auto labelA = gfl::StringHolder::Create(&a->m_label->m_start);
+                    auto labelB = gfl::StringHolder::Create(&b->m_label->m_start);
+                    auto strA = pe::text::lua::Text::GetText(&filenameHolder, &labelA);
+                    auto strB = pe::text::lua::Text::GetText(&filenameHolder, &labelB);
+
+                    if (strA.m_ptr == nullptr || strB.m_ptr == nullptr) return false;
+                    return strA.m_ptr->asString() < strB.m_ptr->asString();
+                });
+
+                for (auto entry : quests) {
+                    auto entryLabel = gfl::StringHolder::Create(&entry->m_label->m_start);
+                    auto entryNamePtr = pe::text::lua::Text::GetText(&filenameHolder, &entryLabel);
+
+                    if (entryNamePtr.m_ptr != nullptr) {
+                        auto entryName = entryNamePtr.m_ptr->asString();
+                        auto entryNameC = entryName.c_str();
+                        if (ImGui::Selectable(entryNameC, quest == entry)) {
+                            memcpy(&questName, entryNameC, strlen(entryNameC));
+                            questName[strlen(entryNameC)] = 0;
+                            quest = entry;
+                        }
+                    }
+                }
+
+                ImGui::EndCombo();
+            }
+        });
+
+        _.Grid([](Grid &_) {
+            _.columns = 4;
+            _.Text("ID");
+            _.FunctionElement([]() {
+                if (quest != nullptr) {
+                    ImGui::Text("%s", &quest->m_id->m_start);
+                }
+            });
+
+            _.Text("Label");
+            _.FunctionElement([]() {
+                if (quest != nullptr) {
+                    ImGui::Text("%s", &quest->m_label->m_start);
+                }
+            });
+
+            _.Text("Client");
+            _.FunctionElement([]() {
+                if (quest != nullptr) {
+                    ImGui::Text("%s", &quest->m_client->m_start);
+                }
+            });
+
+            _.Text("Quest number");
+            _.FunctionElement([]() {
+                if (quest != nullptr) {
+                    ImGui::Text("%d", quest->m_questNum);
+                }
+            });
+
+            _.Text("Subquest number");
+            _.FunctionElement([]() {
+                if (quest != nullptr) {
+                    ImGui::Text("%d", quest->m_subQuestNum);
+                }
+            });
+
+            _.Text("Priority");
+            _.FunctionElement([]() {
+                if (quest != nullptr) {
+                    ImGui::Text("%d", quest->m_priority);
+                }
+            });
+
+            _.Text("Work ID");
+            _.FunctionElement([]() {
+                if (quest != nullptr) {
+                    ImGui::Text("%s", &quest->m_work->m_start);
+                }
+            });
+
+            _.Text("Work Value");
+            _.FunctionElement([]() {
+                if (quest != nullptr) {
+                    auto& mgr = ik::FlagWorkManager::s_instance;
+                    auto holder = gfl::StringHolder::Create(&quest->m_work->m_start);
+                    auto value = mgr.GetWorkValue(&holder);
+                    ImGui::Text("%d", value);
+                }
+            });
+        });
+
+        _.Grid([](Grid& _) {
+            _.columns = 3;
+
+            _.Button([](Button &_) {
+                _.label = "Complete";
+                _.onClick = []() {
+                    auto holder = gfl::StringHolder::Create(&quest->m_id->m_start);
+                    auto& mgr = ik::QuestManager::s_instance;
+                    mgr.QuestComplete(&holder, true);
+                    mgr.SendQuestProgressUpdate(quest, 1);
+                    auto work = gfl::StringHolder::Create(&quest->m_work->m_start);
+                    ik::FlagWorkManager::s_instance.SetWorkValue(&work, 255);
+                };
+            });
+
+            _.Button([](Button &_) {
+                _.label = "Reset progress";
+                _.onClick = []() {
+                    auto work = gfl::StringHolder::Create(&quest->m_work->m_start);
+                    ik::FlagWorkManager::s_instance.SetWorkValue(&work, 0);
+                    auto& mgr = ik::QuestManager::s_instance;
+                    mgr.SendQuestProgressUpdate(quest, 1);
+                };
+            });
+        });
+
+        _.TextSeparator("Progress");
+        _.FunctionElement([type]() {
+            if (quest != nullptr) {
+                std::vector<ik::quest::Progress*> parts {};
+                auto iterHead = quest->m_progress.first;
+                while (iterHead != nullptr) {
+                    parts.emplace_back(&iterHead->value);
+                    iterHead = iterHead->next;
+                }
+                std::ranges::sort(parts, [](ik::quest::Progress* a, ik::quest::Progress* b) {
+                    return a->m_id < b->m_id;
+                });
+
+                if (!parts.empty() && ImGui::BeginTabBar("##progress")) {
+                    for (auto item : parts) {
+                        ImGui::PushID(item);
+                        if (ImGui::BeginTabItem(std::format("{}", item->m_id).c_str())) {
+                            ImGui::BeginColumns("##fields", 2);
+                            ImGui::Text("ID"); ImGui::NextColumn();
+                            ImGui::Text("%d", item->m_id); ImGui::NextColumn();
+                            ImGui::Text("ID after completion"); ImGui::NextColumn();
+                            ImGui::Text("%d", item->m_nextId); ImGui::NextColumn();
+                            ImGui::Text("Summary"); ImGui::NextColumn();
+                            ImGui::Text("%s", &item->m_summary->m_start); ImGui::NextColumn();
+                            ImGui::EndColumns();
+
+                            ImGui::BeginColumns("##actions", 3);
+                            if (ImGui::Button("Set active")) {
+                                auto holder = gfl::StringHolder::Create(&quest->m_work->m_start);
+                                ik::FlagWorkManager::s_instance.SetWorkValue(&holder, item->m_id);
+                                auto& mgr = ik::QuestManager::s_instance;
+                                mgr.SendQuestProgressUpdate(quest, 1);
+                            }
+                            ImGui::EndColumns();
+
+                            if (item->m_condition.m_groups.size() > 0 && ImGui::CollapsingHeader("Conditions")) {
+                                QuestCondition(&item->m_condition);
+                            }
+
+                            if ((item->m_purpose.m_text != nullptr || item->m_purpose.m_items.size() > 0) && ImGui::CollapsingHeader("Purpose")) {
+                                ImGui::BeginColumns("##purpose_fields", 2);
+                                if (item->m_purpose.m_text != nullptr) {
+                                    ImGui::Text("Text"); ImGui::NextColumn();
+                                    ImGui::Text("%s", &item->m_purpose.m_text->m_start); ImGui::NextColumn();
+                                }
+                                ImGui::EndColumns();
+                                auto j = 0;
+                                for (auto purpose = item->m_purpose.m_items.m_begin; purpose != item->m_purpose.m_items.m_end; purpose++) {
+                                    ImGui::PushID(purpose);
+                                    if (ImGui::TreeNodeEx("node", ImGuiTreeNodeFlags_DefaultOpen, "Purpose %d", j)) {
+                                        if (purpose->m_map != nullptr && ImGui::TreeNodeEx("map", ImGuiTreeNodeFlags_Leaf, "Map ID: %s", &purpose->m_map->m_start)) ImGui::TreePop();
+                                        if (purpose->m_object != nullptr && ImGui::TreeNodeEx("object", ImGuiTreeNodeFlags_Leaf, "Object ID: %s", &purpose->m_object->m_start)) ImGui::TreePop();
+
+                                        QuestCondition(&purpose->m_displayCondition);
+                                        ImGui::TreePop();
+                                    }
+
+                                    ImGui::PopID();
+                                }
+                            }
+
+                            ImGui::EndTabItem();
+                        }
+                        ImGui::PopID();
+                    }
+                    ImGui::EndTabBar();
+                }
+
+                if (quest->m_rewards.size() > 0) {
+                    ImGui::SeparatorText("Rewards");
+                    for (auto reward = quest->m_rewards.m_begin; reward != quest->m_rewards.m_end; reward++) {
+                        ImGui::PushID(reward);
+                        bool open;
+                        if (reward->m_type >= 0 && reward->m_type < std::size(REWARD_TYPES)) {
+                            open = ImGui::TreeNodeEx("type", ImGuiTreeNodeFlags_DefaultOpen, "%s", REWARD_TYPES[reward->m_type]);
+                        } else {
+                            open = ImGui::TreeNodeEx("type", ImGuiTreeNodeFlags_DefaultOpen, "??? (type: %d)", reward->m_type);
+                        }
+
+                        if (open) {
+                            if (reward->m_param[0] != nullptr && strlen(&reward->m_param[0]->m_start) > 0 && ImGui::TreeNodeEx("param_0", ImGuiTreeNodeFlags_Leaf, "%s", &reward->m_param[0]->m_start)) ImGui::TreePop();
+                            if (reward->m_param[1] != nullptr && strlen(&reward->m_param[1]->m_start) > 0 && ImGui::TreeNodeEx("param_1", ImGuiTreeNodeFlags_Leaf, "%s", &reward->m_param[1]->m_start)) ImGui::TreePop();
+                            if (reward->m_param[2] != nullptr && strlen(&reward->m_param[2]->m_start) > 0 && ImGui::TreeNodeEx("param_2", ImGuiTreeNodeFlags_Leaf, "%s", &reward->m_param[2]->m_start)) ImGui::TreePop();
+
+                            ImGui::TreePop();
+                        }
+
+                        ImGui::PopID();
+                    }
+                }
+            }
+        });
+    });
+
+    ROOT.Window([](Window& _) {
         _.title = STR(MODULE_NAME_SPACES) " - By Martmists";
         _.toggleable = false;
         _.flags |= ImGuiWindowFlags_MenuBar;
@@ -519,6 +855,10 @@ void setup_ui() {
                 _.MenuItem([](MenuItem &_) {
                     _.label = "Party Inspector";
                     _.checked = &partyWindow->open;
+                });
+                _.MenuItem([](MenuItem &_) {
+                    _.label = "Quest Inspector";
+                    _.checked = &questWindow->open;
                 });
             });
         });
@@ -808,7 +1148,7 @@ void setup_ui() {
                 _.min = 1;
                 _.value = 1;
                 _.max = 2634;
-                if (is_version("2.0.0")) {
+                if (is_version("2.0.0") || is_version("2.0.1")) {
                     _.max = 2684;
                 }
             });
@@ -855,129 +1195,58 @@ void setup_ui() {
             });
         });
 
-        static constexpr const char* const QUEST_TYPES[3] = {
-            "Main",
-            "Side",
-            "Lab",
-        };
-        static ik::quest::Quest* questSelected = nullptr;
-        static char questSelectedNameBuffer[0x100] = {0};
-
-        _.CollapsingHeader([](CollapsingHeader &_) {
-            _.label = "Quests";
-            _.Text("Use at your own risk!");
-            auto type = _.ComboSimple([](ComboSimple &_) {
-                _.label = "Quest Type";
-                _.items = QUEST_TYPES;
-                _.items_count = 3;
-                _.onChange = [](int arg) {
-                    questSelected = nullptr;
-                };
-            });
-            _.FunctionElement([type]() {
-                auto& mgr = ik::QuestManager::s_instance;
-                if (ImGui::BeginCombo("Quest", (questSelected == nullptr) ? nullptr : questSelectedNameBuffer)) {
-                    ik::Quest* questContainer;
-                    gfl::StringHolder filenameHolder;
-                    switch (type->selected) {
-                        default:
-                            questContainer = mgr.m_mainQuests;
-                            filenameHolder = gfl::StringHolder::Create("questlist_main");
-                            break;
-                        case 1:
-                            questContainer = mgr.m_subQuests;
-                            filenameHolder = gfl::StringHolder::Create("questlist_sub");
-                            break;
-                        case 2:
-                            questContainer = mgr.m_labQuests;
-                            filenameHolder = gfl::StringHolder::Create("questlist_mj");
-                            break;
-                    }
-                    auto entry = questContainer->m_items.entries;
-                    while (entry != nullptr) {
-                        auto entryLabel = &entry->value.m_label->m_start;
-                        auto labelHolder = gfl::StringHolder::Create(entryLabel);
-                        auto entryNamePtr = pe::text::lua::Text::GetText(&filenameHolder, &labelHolder);
-                        if (entryNamePtr.m_ptr != nullptr) {
-                            auto entryName = entryNamePtr.m_ptr->asString();
-                            auto entryNameC = entryName.c_str();
-                            if (ImGui::Selectable(entryNameC, questSelected == &entry->value)) {
-                                memcpy(&questSelectedNameBuffer, entryNameC, strlen(entryNameC));
-                                questSelectedNameBuffer[strlen(entryNameC)] = 0;
-                                questSelected = &entry->value;
-                            }
-                        }
-
-                        entry = entry->next;
-                    }
-
-                    ImGui::EndCombo();
-                }
-            });
-            _.Row([type](Row &_) {
-                // FIXME: Not working :(
-                // _.Button("Unlock Quest", [type]() {
-                //     if (questSelected != nullptr) {
-                //         auto workString = gfl::StringHolder::Create(&questSelected->m_work->m_start);
-                //         ik::FlagWorkManager::s_instance.SetWorkValue(&workString, 1);
-                //         ik::QuestManager::s_instance.SendQuestProgressUpdate(questSelected, type->selected);
-                //     }
-                // });
-                _.Button("Complete Quest", [type]() {
-                    if (questSelected != nullptr) {
-                        auto holder = gfl::StringHolder::Create(&questSelected->m_id->m_start);
-
-                        auto progress = questSelected->GetCurrentProgress();
-                        if (progress->m_id == 255) return;
-
-                        auto workString = gfl::StringHolder::Create(&questSelected->m_work->m_start);
-                        while (true) {
-                            ik::FlagWorkManager::s_instance.SetWorkValue(&workString, progress->m_nextId);
-                            if (progress->m_nextId == 255) {
-                                break;
-                            }
-                            progress = questSelected->GetCurrentProgress();
-                        }
-
-                        switch (type->selected) {
-                            default: {
-                                ik::QuestManager::s_instance.QuestComplete(&holder, false);
-                                break;
-                            }
-                            case 1: {
-                                ik::QuestManager::s_instance.QuestComplete(&holder, false);
-                                break;
-                            }
-                            case 2: {
-                                ik::QuestCompletion completion(ik::QuestManager::s_instance.m_resource, questSelected, type->selected);
-
-                                completion.m_before.level = ik::ResearchLevelManager::s_instance.GetLevel();
-                                completion.m_before.points = ik::ResearchLevelManager::s_instance.GetPoint();
-                                completion.m_before.pointsNextLevel = ik::ResearchLevelManager::s_instance.GetNextLevelPoint();
-                                completion.m_before.progress = ik::ResearchLevelManager::s_instance.GetNextLevelProgress();
-
-                                ik::QuestManager::s_instance.QuestComplete(&holder, false);
-
-                                if (ik::ResearchLevelManager::s_instance.CanLevelUp()) {
-                                    ik::ResearchLevelManager::s_instance.ExecuteLevelUp();
-                                }
-
-                                completion.m_after.level = ik::ResearchLevelManager::s_instance.GetLevel();
-                                completion.m_after.points = ik::ResearchLevelManager::s_instance.GetPoint();
-                                completion.m_after.pointsNextLevel = ik::ResearchLevelManager::s_instance.GetNextLevelPoint();
-                                completion.m_after.progress = ik::ResearchLevelManager::s_instance.GetNextLevelProgress();
-
-                                ik::HudMomijiQuestAchievementUIAccessor::s_instance->AddCompletion(&completion);
-
-                                break;
-                            }
-                        }
-
-                        ik::QuestManager::s_instance.SendQuestProgressUpdate(questSelected, type->selected);
-                    }
-                });
-            });
-        });
+        // static char flagSelectedNameBuffer[0x100] = {0};
+        // static char workSelectedNameBuffer[0x100] = {0};
+        //
+        // _.CollapsingHeader([](CollapsingHeader& _) {
+        //     _.label = "Flags";
+        //     _.Grid([](Grid &_) {
+        //         _.columns = 3;
+        //
+        //         _.Text("Flag");
+        //         _.FunctionElement([] {
+        //             if (ImGui::BeginCombo("Flag Name", flagSelectedNameBuffer)) {
+        //                 for (auto flag : ALL_FLAG) {
+        //                     if (ImGui::Selectable(flag, strcmp(flagSelectedNameBuffer, flag) == 0)) {
+        //                         auto size = strlen(flag);
+        //                         memcpy(flagSelectedNameBuffer, flag, size);
+        //                         flagSelectedNameBuffer[size] = '\0';
+        //                     }
+        //                 }
+        //                 ImGui::EndCombo();
+        //             }
+        //         });
+        //         _.FunctionElement([] {
+        //             if (flagSelectedNameBuffer[0] == '\0') return;
+        //             bool out = ik::FlagWorkManager::s_instance.GetFlag(flagSelectedNameBuffer);
+        //             if (ImGui::Checkbox("Value", &out)) {
+        //                 ik::FlagWorkManager::s_instance.SetFlag(flagSelectedNameBuffer, out);
+        //             }
+        //         });
+        //
+        //         _.Text("Work");
+        //         _.FunctionElement([] {
+        //             if (ImGui::BeginCombo("Work Name", workSelectedNameBuffer)) {
+        //                 for (auto work : ALL_WORK) {
+        //                     if (ImGui::Selectable(work, strcmp(workSelectedNameBuffer, work) == 0)) {
+        //                         auto size = strlen(work);
+        //                         memcpy(workSelectedNameBuffer, work, size);
+        //                         workSelectedNameBuffer[size] = '\0';
+        //                     }
+        //                 }
+        //                 ImGui::EndCombo();
+        //             }
+        //         });
+        //         _.FunctionElement([] {
+        //             if (workSelectedNameBuffer[0] == '\0') return;
+        //             auto s = gfl::StringHolder::Create(workSelectedNameBuffer);
+        //             int out = ik::FlagWorkManager::s_instance.GetWorkValue(&s);
+        //             if (ImGui::InputInt("Value", &out)) {
+        //                 ik::FlagWorkManager::s_instance.SetWorkValue(&s, out);
+        //             }
+        //         });
+        //     });
+        // });
 
         _.CollapsingHeader([](CollapsingHeader &_) {
             _.label = "Weather";

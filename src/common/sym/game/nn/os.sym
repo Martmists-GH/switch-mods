@@ -37,3 +37,12 @@ _ZN2nn2os11UnlockMutexEPNS0_9MutexTypeE
 
 // nn::os::FinalizeMutex(nn::os::MutexType*)
 _ZN2nn2os13FinalizeMutexEPNS0_9MutexTypeE
+
+// nn::os::SetUserExceptionHandler(void (*)(nn::os::UserExceptionInfo*), void*, unsigned long, nn::os::UserExceptionInfo*)
+_ZN2nn2os23SetUserExceptionHandlerEPFvPNS0_17UserExceptionInfoEEPvmS2_
+
+// nn::os::DefaultUserExceptionHandler(nn::os::UserExceptionInfo*)
+_ZN2nn2os27DefaultUserExceptionHandlerEPNS0_17UserExceptionInfoE
+
+// nn::os::EnableUserExceptionHandlerOnDebugging(bool)
+_ZN2nn2os37EnableUserExceptionHandlerOnDebuggingEb

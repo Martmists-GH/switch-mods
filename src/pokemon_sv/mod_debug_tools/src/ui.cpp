@@ -11,6 +11,9 @@
 
 using namespace ui;
 
+void setIsExpShareOn(bool value);
+void setExpMultiplier(int value);
+void setExpMultiplierInvert(bool value);
 extern PokemonData s_dataForEncounter;
 
 static std::string memorySize(uint64_t numBytes) {
@@ -170,16 +173,10 @@ void setup_ui() {
         });
 
         _.Text("Press ZL+R to toggle all menus.\nHold Y to move or resize.");
+        _.Text("Warning: Keyboard input may crash the menu.");
         _.Text("Early access on patreon.com/martmists");
 
         _.Spacing();
-
-        _.InputInt([](InputInt& _) {
-            _.min = 0;
-            _.max = 100;
-            _.value = 1;
-            _.label = "Test";
-        });
 
         // _.CollapsingHeader([](CollapsingHeader &_) {
         //     _.label = "Money";
@@ -286,33 +283,30 @@ void setup_ui() {
         //     });
         // });
         //
-        // _.CollapsingHeader([](CollapsingHeader &_) {
-        //     _.label = "Battle";
-        //
-        //     _.Checkbox("100% Capture Rate", false, [](bool it) {
-        //         setIsMustCapture(it);
-        //     });
-        //     _.Checkbox("Enable EXP Share", true, [](bool it) {
-        //         setIsExpShareOn(it);
-        //     });
-        //     _.Row([](Row &_) {
-        //         _.SliderInt([](SliderInt &_) {
-        //             _.label = "EXP Multiplier";
-        //             _.min = 0;
-        //             _.max = 30;
-        //             _.value = 1;
-        //             _.onChange = [](int mult) {
-        //                 setExpMultiplier(mult);
-        //             };
-        //         });
-        //         _.Checkbox("Invert (x2 -> x0.5)", [](bool value) {
-        //             setExpMultiplierInvert(value);
-        //         });
-        //     });
-        //     _.Checkbox("Always Max Mega Energy", [](bool it){
-        //         setAlwaysMaxEnergy(it);
-        //     });
-        // });
+        _.CollapsingHeader([](CollapsingHeader &_) {
+            _.label = "Battle";
+
+            // _.Checkbox("100% Capture Rate", false, [](bool it) {
+            //     setIsMustCapture(it);
+            // });
+            _.Checkbox("Enable EXP Share", true, [](bool it) {
+                setIsExpShareOn(it);
+            });
+            _.Row([](Row &_) {
+                _.SliderInt([](SliderInt &_) {
+                    _.label = "EXP Multiplier";
+                    _.min = 0;
+                    _.max = 30;
+                    _.value = 1;
+                    _.onChange = [](int mult) {
+                        setExpMultiplier(mult);
+                    };
+                });
+                _.Checkbox("Invert (x2 -> x0.5)", [](bool value) {
+                    setExpMultiplierInvert(value);
+                });
+            });
+        });
         //
         // _.CollapsingHeader([](CollapsingHeader &_) {
         //     _.label = "Encounter Editor";

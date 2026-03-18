@@ -7,3 +7,6 @@ _ZN3pml7Capture5JudgeEv = 0x00446b4c
 
 @game:200
 _ZN3pml7Capture5JudgeEv = 0x00447210
+
+@game:201
+_ZN3pml7Capture5JudgeEv = 0x00447400

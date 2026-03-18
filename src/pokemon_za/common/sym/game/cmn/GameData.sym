@@ -11,3 +11,6 @@ _ZN3cmn8GameData14GetPlayerPartyEv = 0x009297dc
 
 @game:200
 _ZN3cmn8GameData14GetPlayerPartyEv = 0x0096e300
+
+@game:201
+_ZN3cmn8GameData14GetPlayerPartyEv = 0x0096e390

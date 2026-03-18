@@ -6,7 +6,7 @@
 
 namespace ik {
     struct Quest {
-        char unk[0x118];
+        char unk[0x100];
         gfl::Map<gfl::FnvHash64, ik::quest::Quest> m_items;
     };
 }

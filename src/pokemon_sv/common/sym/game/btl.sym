@@ -1,6 +1,6 @@
 @game:301_s,301_v
-// btl::Capture::JudgeCapture(btl::Capture::JudgeResult*, void*)
-_ZN3btl7Capture12JudgeCaptureEPNS0_11JudgeResultEPv = 0x0197e0f4
+// btl::Capture::JudgeCapture(btl::Capture::JudgeResult*, btl::Capture::JudgeParam*)
+_ZN3btl7Capture12JudgeCaptureEPNS0_11JudgeResultEPNS0_10JudgeParamE = 0x0197e0f4
 
 // btl::EventLauncher::Event_CalcTypeMatchRatio(void*, unsigned short)
 _ZN3btl13EventLauncher24Event_CalcTypeMatchRatioEPvt = 0x01330100
@@ -8,8 +8,23 @@ _ZN3btl13EventLauncher24Event_CalcTypeMatchRatioEPvt = 0x01330100
 // btl::EventLauncher::Event_CheckDamageAffinity(void*, void*, unsigned char, unsigned char, bool)
 _ZN3btl13EventLauncher25Event_CheckDamageAffinityEPvS1_hhb = 0x02d0c404
 
-// btl::Exp::CalcExp(void*, btl::Exp::CalcResult*)
-_ZN3btl3Exp7CalcExpEPvPNS0_10CalcResultE = 0x01781ce8
+// btl::Exp::CalcExp(btl::Exp::CalcParam*, btl::Exp::CalcResult*)
+_ZN3btl3Exp7CalcExpEPNS0_9CalcParamEPNS0_10CalcResultE = 0x01781ce8
 
 // btl::TYPE_EFFECT_TBL
 _ZN3btl15TYPE_EFFECT_TBLE = 0x03c6286c
+
+// btl::BattleUnit::HpMinus(short)
+_ZN3btl10BattleUnit7HpMinusEs = 0x02d3d7ac
+
+// btl::Section_DecrementPP::Execute(btl::Section_DecrementPP::Result*, btl::Section_DecrementPP::Description*)
+_ZN3btl19Section_DecrementPP7ExecuteEPNS0_6ResultEPNS0_11DescriptionE = 0x01605774
+
+// btl::EventLauncher::Event_SkipAvoidCheck(ExternalType<btl::BattleUnit>::instance*, ExternalType<btl::BattleUnit>::instance*, void*)
+_ZN3btl13EventLauncher20Event_SkipAvoidCheckEPN12ExternalTypeINS_10BattleUnitEE8instanceES5_Pv = 0x0157d2e4
+
+// btl::MainModule::GetGameLimitTime()
+_ZN3btl10MainModule16GetGameLimitTimeEv = 0x0126b004
+
+// btl::PokeIDTable::PokeIdToClientId(unsigned char)
+_ZN3btl11PokeIDTable16PokeIdToClientIdEh = 0x010e2dd4

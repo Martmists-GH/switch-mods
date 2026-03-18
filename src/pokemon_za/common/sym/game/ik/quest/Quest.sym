@@ -7,3 +7,6 @@ _ZN2ik5quest5Quest18GetCurrentProgressEv = 0x002acf14
 
 @game:200
 _ZN2ik5quest5Quest18GetCurrentProgressEv = 0x00296ab4
+
+@game:201
+_ZN2ik5quest5Quest18GetCurrentProgressEv = 0x00296ac4

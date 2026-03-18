@@ -1,0 +1,12 @@
+@game:301_s,301_v
+// pml::pokepara::Accessor::StartFastMode()
+_ZN3pml8pokepara8Accessor13StartFastModeEv = 0x00d677e8
+
+// pml::pokepara::Accessor::EndFastMode()
+_ZN3pml8pokepara8Accessor11EndFastModeEv = 0x00d679f0
+
+// pml::pokepara::CoreParam::ctor(short, short, long)
+_ZN3pml8pokepara9CoreParam4ctorEssl = 0x012615e8
+
+// pml::pokepara::CoreParam::ctor2(pml::pokepara::InitialSpec*)
+_ZN3pml8pokepara9CoreParam5ctor2EPNS0_11InitialSpecE = 0x00dec698

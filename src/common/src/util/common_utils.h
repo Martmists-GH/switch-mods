@@ -1,6 +1,7 @@
 #pragma once
 #include <checks.hpp>
 #include <cstdlib>
+#include <cxxabi.h>
 #include <format>
 #include <ios>
 
@@ -43,6 +44,16 @@ If you are experiencing issues with Yuzu, do the following:
     Yes: Report the issue to me (using Ryujinx/Switch logs)
     No: Report the issue to Yuzu
 
-If you are not using Yuzu but a derivative (Suyu, Citron, Eden, etc.) replace "Yuzu" in the text above with that emulator.)");
+If you are not using Yuzu but a derivative (Suyu, Citron, Eden, etc.) the same applies.)");
     }
+}
+
+static std::string demangle(const char* name) {
+    int status = -1;
+    std::unique_ptr<char, void(*)(void*)> res {
+        __cxxabiv1::__cxa_demangle(name, NULL, NULL, &status),
+        std::free
+    };
+
+    return (status==0) ? res.get() : name ;
 }

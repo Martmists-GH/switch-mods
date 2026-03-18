@@ -6,6 +6,7 @@ create_mod(
     SDK_PAST_1900
     TITLE_ID "0100F43008C44000"
     GAME_TITLE "Pokemon Legends Z-A"
+    DEFINES "REMOVE_YUZU_WARNING"
 )
 
 # Same Gender Rival mod

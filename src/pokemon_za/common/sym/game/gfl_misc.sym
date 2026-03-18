@@ -22,3 +22,8 @@ _ZN3gfl9SizedHeap12s_globalHeapE = 0x03d9c3e8
 _ZN3gfl11HeapManager13s_managerListE = 0x03f93778
 _ZN3gfl11HeapManager14s_managerCountE = 0x03f93f78
 _ZN3gfl9SizedHeap12s_globalHeapE = 0x03f93768
+
+@game:201
+_ZN3gfl11HeapManager13s_managerListE = 0x03f98778
+_ZN3gfl11HeapManager14s_managerCountE = 0x03f98f78
+_ZN3gfl9SizedHeap12s_globalHeapE = 0x03f98768

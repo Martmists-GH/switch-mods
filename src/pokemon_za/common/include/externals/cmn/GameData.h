@@ -16,6 +16,8 @@ namespace ik {
             void* unk5[9];
         };
 
+        struct fields {};
+
         gfl::RefPointer<ik::PokemonParam> GetMemberPtr(int idx) {
             return impl()->vtable->GetMemberPtr(this, idx);
         }
