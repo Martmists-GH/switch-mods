@@ -17,6 +17,6 @@ _ZN2ik18TrainerRankManager8AddPointEib = 0x00bb19b0
 _ZN3gfl9SingletonIN2ik18TrainerRankManagerEE10s_instanceE = 0x0610a580
 _ZN2ik18TrainerRankManager8AddPointEib = 0x00ce4e90
 
-@game:201
+@game:201,202
 _ZN3gfl9SingletonIN2ik18TrainerRankManagerEE10s_instanceE = 0x0610f580
 _ZN2ik18TrainerRankManager8AddPointEib = 0x00ce4510

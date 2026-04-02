@@ -135,9 +135,9 @@ static std::string disasm(uint32_t insn) {
 
     if ((insn & 0x3B000000) == 0x39000000) {
         uint32_t size = (insn >> 30) & 0x3;
-        uint32_t imm  = ((insn >> 10) & 0xFFF) << size;
-        uint32_t rn   = (insn >> 5) & 0x1F;
-        uint32_t rt   = insn & 0x1F;
+        uint32_t imm = ((insn >> 10) & 0xFFF) << size;
+        uint32_t rn = (insn >> 5) & 0x1F;
+        uint32_t rt = insn & 0x1F;
 
         bool load = insn & (1u << 22);
         const char* m = load ? "ldr" : "str";
@@ -210,7 +210,6 @@ static void reportException(nn::os::UserExceptionInfo const* info, const char* f
                     body += std::format(" 0x{:016x} ({}:0x{:x})\n", ptr, module->getModuleName(), ptr - start);
                 }
                 body += std::format("  {}\n", disasm(*reinterpret_cast<int*>(ptr)));
-                // body += std::format("  {}\n", disasm(ptr));
             }
         }
 
@@ -245,7 +244,6 @@ static void reportException(nn::os::UserExceptionInfo const* info, const char* f
                     body += std::format(" 0x{:016x} ({}:0x{:x})\n", ptr, module->getModuleName(), ptr - start);
                 }
                 body += std::format("  {}\n", disasm(*reinterpret_cast<int*>(ptr)));
-                // body += std::format("  {}\n", disasm(ptr));
             }
             fp = fp->prev;
         } while (fp != nullptr);

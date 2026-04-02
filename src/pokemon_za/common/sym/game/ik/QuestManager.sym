@@ -24,7 +24,7 @@ _ZN3gfl9SingletonIN2ik12QuestManagerEE10s_instanceE = 0x0610a800
 _ZN2ik12QuestManager13QuestCompleteEPN3gfl12StringHolderEb = 0x0082a490
 _ZN2ik12QuestManager23SendQuestProgressUpdateEPNS_5quest5QuestEi = 0x0048b050
 
-@game:201
+@game:201,202
 _ZN3gfl9SingletonIN2ik12QuestManagerEE10s_instanceE = 0x0610f800
 _ZN2ik12QuestManager13QuestCompleteEPN3gfl12StringHolderEb = 0x0082a690
 _ZN2ik12QuestManager23SendQuestProgressUpdateEPNS_5quest5QuestEi = 0x0048b240

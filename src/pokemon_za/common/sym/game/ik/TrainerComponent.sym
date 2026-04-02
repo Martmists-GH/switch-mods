@@ -9,5 +9,5 @@ _ZN2ik16TrainerComponent13SetMegaEnergyEf = 0x002e5138
 @game:200
 _ZN2ik16TrainerComponent13SetMegaEnergyEf = 0x00200444
 
-@game:201
+@game:201,202
 _ZN2ik16TrainerComponent13SetMegaEnergyEf = 0x00200454

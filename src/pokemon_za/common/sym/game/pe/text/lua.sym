@@ -17,6 +17,6 @@ _ZN2pe4text3lua4Text7GetTextEPN3gfl12StringHolderES5_ = 0x00a58570
 _ZN2pe4text3lua4Text11LoadMsgDataEPN3gfl12StringHolderE = 0x0129ac2c
 _ZN2pe4text3lua4Text7GetTextEPN3gfl12StringHolderES5_ = 0x009bbb80
 
-@game:201
+@game:201,202
 _ZN2pe4text3lua4Text11LoadMsgDataEPN3gfl12StringHolderE = 0x0129a60c
 _ZN2pe4text3lua4Text7GetTextEPN3gfl12StringHolderES5_ = 0x009bd3e0

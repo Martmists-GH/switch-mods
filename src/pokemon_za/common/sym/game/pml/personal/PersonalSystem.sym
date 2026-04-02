@@ -13,6 +13,6 @@ _ZN3pml8personal14PersonalSystem9GetMinExpEjjj = 0x008e272c
 _ZN3pml8personal14PersonalSystem14CheckPokeExistEjj = 0x00290194
 _ZN3pml8personal14PersonalSystem9GetMinExpEjjj = 0x00ced50c
 
-@game:201
+@game:201,202
 _ZN3pml8personal14PersonalSystem14CheckPokeExistEjj = 0x002901a4
 _ZN3pml8personal14PersonalSystem9GetMinExpEjjj = 0x00cecb8c

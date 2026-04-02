@@ -11,5 +11,5 @@ _ZN3pml6battle3Exp7CalcExpEPNS1_10CalcResultEPNS1_9CalcParamE = 0x008eefc0
 @game:200
 _ZN3pml6battle3Exp7CalcExpEPNS1_10CalcResultEPNS1_9CalcParamE = 0x009a3614
 
-@game:201
+@game:201,202
 _ZN3pml6battle3Exp7CalcExpEPNS1_10CalcResultEPNS1_9CalcParamE = 0x009a4e74

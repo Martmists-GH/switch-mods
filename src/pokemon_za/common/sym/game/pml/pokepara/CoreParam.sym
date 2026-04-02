@@ -18,6 +18,6 @@ _ZN3pml8pokepara9CoreParam15UpdateCalcDatasEb = 0x00cff8ac
 _ZN3pml8pokepara9CoreParam6IsRareEv = 0x0000f464
 _ZN3pml8pokepara9CoreParam15UpdateCalcDatasEb = 0x00e41d70
 
-@game:201
+@game:201,202
 _ZN3pml8pokepara9CoreParam6IsRareEv = 0x0000f464
 _ZN3pml8pokepara9CoreParam15UpdateCalcDatasEb = 0x00e41750

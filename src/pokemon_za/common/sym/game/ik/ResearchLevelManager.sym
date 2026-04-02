@@ -48,7 +48,7 @@ _ZN2ik20ResearchLevelManager20GetNextLevelProgressEv = 0x00828c04
 _ZN2ik20ResearchLevelManager10CanLevelUpEv = 0x00828ffc
 _ZN2ik20ResearchLevelManager14ExecuteLevelUpEv = 0x0082dcd4
 
-@game:201
+@game:201,202
 _ZN3gfl9SingletonIN2ik20ResearchLevelManagerEE10s_instanceE = 0x0612d240
 _ZN2ik20ResearchLevelManager8GetLevelEv = 0x00828bcc
 _ZN2ik20ResearchLevelManager8GetPointEv = 0x00828ff4

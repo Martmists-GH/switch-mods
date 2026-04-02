@@ -23,7 +23,7 @@ _ZN3gfl2fs16FlatBufferLoader4OpenEv = 0x00018fa0
 _ZN3gfl2fs16FlatBufferLoader4ReadEPvl = 0x000327a0
 _ZN3gfl2fs18FlatBufferReadInfo12ReadToBufferEPvl = 0x01a9bb74
 
-@game:201
+@game:201,202
 _ZN3gfl2fs16FlatBufferLoader4OpenEv = 0x00018fa0
 _ZN3gfl2fs16FlatBufferLoader4ReadEPvl = 0x000327a0
 _ZN3gfl2fs18FlatBufferReadInfo12ReadToBufferEPvl = 0x01a9b554

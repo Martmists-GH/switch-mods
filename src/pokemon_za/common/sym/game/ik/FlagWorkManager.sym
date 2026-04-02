@@ -35,7 +35,7 @@ _ZN2ik15FlagWorkManager12GetWorkValueEPN3gfl12StringHolderE = 0x0048b1c0
 _ZN2ik15FlagWorkManager7GetFlagEPc = 0x000391fc
 _ZN2ik15FlagWorkManager7SetFlagEPcb = 0x00487800
 
-@game:201
+@game:201,202
 _ZN2ik15FlagWorkManager10s_instanceE = 0x0610df00
 _ZN2ik15FlagWorkManager12SetWorkValueEPN3gfl12StringHolderEj = 0x0092dca0
 _ZN2ik15FlagWorkManager12GetWorkValueEPN3gfl12StringHolderE = 0x0048b3b0

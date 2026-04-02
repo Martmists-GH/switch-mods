@@ -24,7 +24,7 @@ _ZN5hxluaL10luaB_printEP9lua_State = 0x017ccef0
 _ZN5hxlua5State4LoadEPcmPN3gfl12StringHolderE = 0x017f8fe0
 _ZN5hxlua5State7OnPanicEP9lua_State = 0x017f82b4
 
-@game:201
+@game:201,202
 _ZN5hxluaL10luaB_printEP9lua_State = 0x017cc8d0
 _ZN5hxlua5State4LoadEPcmPN3gfl12StringHolderE = 0x017f89c0
 _ZN5hxlua5State7OnPanicEP9lua_State = 0x017f7c94

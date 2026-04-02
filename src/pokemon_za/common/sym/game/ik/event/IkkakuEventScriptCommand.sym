@@ -23,7 +23,7 @@ _ZN2ik5event24IkkakuEventScriptCommand17AddAndShowMonyeUIEj = 0x0294fe3c
 _ZN2ik5event24IkkakuEventScriptCommand15GetCurrentMoneyEv = 0x0294fef0
 _ZN2ik5event24IkkakuEventScriptCommand7AddItemEjj = 0x029505c8
 
-@game:201
+@game:201,202
 _ZN2ik5event24IkkakuEventScriptCommand17AddAndShowMonyeUIEj = 0x0294fc7c
 _ZN2ik5event24IkkakuEventScriptCommand15GetCurrentMoneyEv = 0x0294fd30
 _ZN2ik5event24IkkakuEventScriptCommand7AddItemEjj = 0x02950408
