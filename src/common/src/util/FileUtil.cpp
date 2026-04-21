@@ -79,10 +79,11 @@ namespace FileUtil {
 
         size_t alignedSize = ALIGN_UP(size, alignment);
         Logger::log("Reading file %s with aligned size %d (from %d)\n", path.c_str(), alignedSize, size);
-        const auto ptr = std::malloc(alignedSize);  // FIXME: This seems to align in *some* games at least, but aligned_alloc causes errors in others. Needs a better fix!
+        const auto ptr = aligned_alloc(alignment, alignedSize);  // FIXME: This seems to align in *some* games at least, but aligned_alloc causes errors in others. Needs a better fix!
 
         if (nn::fs::ReadFile(handle, 0, ptr, size).IsFailure()) {
             nn::fs::CloseFile(handle);
+            free(ptr);
             return std::nullopt;
         }
 

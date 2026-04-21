@@ -1,5 +1,6 @@
 #include <cmath>
 #include <cstring>
+#include "game_constants.h"
 
 #ifdef IMGUI_ENABLED
 #include "imgui_impl_nvn.hpp"
@@ -139,9 +140,9 @@ namespace ImguiNvnBackend {
         if (!bd->vtxBuffer || bd->vtxBuffer->GetPoolSize() < totalVtxSize) {
             if (bd->vtxBuffer) {
                 bd->vtxBuffer->Finalize();
-                IM_FREE(bd->vtxBuffer);
+                free(bd->vtxBuffer);
             }
-            bd->vtxBuffer = IM_NEW(MemoryBuffer)(totalVtxSize);
+            bd->vtxBuffer = new MemoryBuffer(totalVtxSize);
             Logger::log("(Re)sized Vertex Buffer to Size: %d\n", totalVtxSize);
         }
 
@@ -316,7 +317,7 @@ namespace ImguiNvnBackend {
             return false;
         }
 
-        bd->shaderMemory = IM_NEW(MemoryBuffer)(binarySize, nvn::MemoryPoolFlags::CPU_UNCACHED |
+        bd->shaderMemory = new MemoryBuffer(binarySize, nvn::MemoryPoolFlags::CPU_UNCACHED |
                                                             nvn::MemoryPoolFlags::GPU_CACHED |
                                                             nvn::MemoryPoolFlags::SHADER_CODE);
 
@@ -347,7 +348,7 @@ namespace ImguiNvnBackend {
 
         // Uniform Block Object Memory Setup
 
-        bd->uniformMemory = IM_NEW(MemoryBuffer)(UBOSIZE);
+        bd->uniformMemory = new MemoryBuffer(UBOSIZE);
 
         if (!bd->uniformMemory->IsBufferReady()) {
             Logger::log("Uniform Memory Pool not Ready! Unable to continue.\n");
@@ -385,7 +386,7 @@ namespace ImguiNvnBackend {
 
         Logger::log("Creating Backend Data.\n");
 
-        auto *bd = IM_NEW(NvnBackendData)();
+        auto *bd = new NvnBackendData();
         HK_ASSERT_MSG(bd, "Backend was not Created!");
 
         io.BackendRendererUserData = (void *) bd;
@@ -394,21 +395,23 @@ namespace ImguiNvnBackend {
 
         bd->device = initInfo.device;
         bd->queue = initInfo.queue;
-        bd->cmdBuf = new nvn::CommandBuffer();
+        bd->cmdBuf = (nvn::CommandBuffer*)aligned_alloc(8, sizeof(nvn::CommandBuffer));
 
-#define MEGABYTE 1024 * 1024
-#define CMD_POOL_SIZE ALIGN_UP(UBOSIZE, MEGABYTE)
-#define CTRL_POOL_SIZE ALIGN_UP(UBOSIZE, MEGABYTE)
+#define CMD_POOL_SIZE ALIGN_UP(UBOSIZE, 512)
+#define CTRL_POOL_SIZE ALIGN_UP(UBOSIZE, 256)
 
-        auto pool = (void*)ALIGN_UP(IM_ALLOC(CMD_POOL_SIZE + MEGABYTE), MEGABYTE);
+        auto pool = aligned_alloc(0x1000, CMD_POOL_SIZE);
 
         nvn::MemoryPoolBuilder builder = {};
         nvn::pfncpp_nvnMemoryPoolBuilderSetDevice(&builder, bd->device);
         nvn::pfncpp_nvnMemoryPoolBuilderSetFlags(&builder, nvn::MemoryPoolFlags::CPU_UNCACHED | nvn::MemoryPoolFlags::GPU_CACHED | nvn::MemoryPoolFlags::SHADER_CODE);
         nvn::pfncpp_nvnMemoryPoolBuilderSetStorage(&builder, pool, CMD_POOL_SIZE);
-        nvn::pfncpp_nvnMemoryPoolInitialize(&bd->cmdCmdPool, &builder);
+        if (!nvn::pfncpp_nvnMemoryPoolInitialize(&bd->cmdCmdPool, &builder)) {
+            Logger::log("Failed to Initialize Command Pool!\n");
+            return;
+        }
 
-        bd->cmdCtrlPool = (void*)ALIGN_UP(IM_ALLOC(CTRL_POOL_SIZE + MEGABYTE), MEGABYTE);
+        bd->cmdCtrlPool = aligned_alloc(8, CMD_POOL_SIZE);
 
         bd->cmdBuf->Initialize(bd->device);
         bd->cmdBuf->AddCommandMemory(&bd->cmdCmdPool, 0, CMD_POOL_SIZE);
@@ -587,7 +590,7 @@ namespace ImguiNvnBackend {
                 Logger::log("Initializing Vertex Buffer to Size: %d\n", totalVtxSize);
             }
 
-            bd->vtxBuffer = IM_NEW(MemoryBuffer)(totalVtxSize);
+            bd->vtxBuffer = new MemoryBuffer(totalVtxSize);
         }
 
         // initializes/resizes buffer used for all index data created by ImGui
@@ -603,8 +606,7 @@ namespace ImguiNvnBackend {
                 Logger::log("Initializing Index Buffer to Size: %d\n", totalIdxSize);
             }
 
-            bd->idxBuffer = IM_NEW(MemoryBuffer)(totalIdxSize);
-
+            bd->idxBuffer = new MemoryBuffer(totalIdxSize);
         }
 
         // if we fail to resize/init either buffers, end execution before we try to use said invalid buffer(s)
@@ -613,12 +615,18 @@ namespace ImguiNvnBackend {
             return;
         }
 
+        // Logger::log("Adding memory to Command Buffer: %p, %p\n", bd->cmdCmdPool.GetBufferAddress(), bd->cmdCtrlPool);
+
         bd->cmdBuf->AddCommandMemory(&bd->cmdCmdPool, 0, CMD_POOL_SIZE);
         bd->cmdBuf->AddControlMemory(bd->cmdCtrlPool, CTRL_POOL_SIZE);
         bd->cmdBuf->BeginRecording(); // start recording our commands to the cmd buffer
 
+        // Logger::log("Binding %p to %p\n", &bd->shaderProgram, bd->cmdBuf);
+
         bd->cmdBuf->BindProgram(&bd->shaderProgram, nvn::ShaderStageBits::VERTEX |
                                                     nvn::ShaderStageBits::FRAGMENT); // bind main imgui shader
+
+        // Logger::log("Binding buffer %p to %p\n", bd->uniformMemory->GetBufferAddress(), bd->cmdBuf);
 
         bd->cmdBuf->BindUniformBuffer(nvn::ShaderStage::VERTEX, 0, *bd->uniformMemory,
                                       UBOSIZE); // bind uniform block ptr

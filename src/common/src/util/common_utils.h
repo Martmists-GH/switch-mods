@@ -1,4 +1,5 @@
 #pragma once
+#include "game_constants.h"
 #include <checks.hpp>
 #include <cstdlib>
 #include <cxxabi.h>
@@ -49,6 +50,9 @@ If you are not using Yuzu but a derivative (Suyu, Citron, Eden, etc.) the same a
 }
 
 static std::string demangle(const char* name) {
+#ifdef NO_MALLOC_EXCEPTIONS
+    return name;
+#else
     int status = -1;
     std::unique_ptr<char, void(*)(void*)> res {
         __cxxabiv1::__cxa_demangle(name, NULL, NULL, &status),
@@ -56,4 +60,5 @@ static std::string demangle(const char* name) {
     };
 
     return (status==0) ? res.get() : name ;
+#endif
 }

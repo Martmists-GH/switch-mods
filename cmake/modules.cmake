@@ -2,7 +2,7 @@ add_custom_target(all_modules)
 add_custom_target(all_modules_zips)
 
 function(create_mod name folder)
-    cmake_parse_arguments(MODULE_ARGS "WITH_VARIANTS;WITH_OLD_SDK;WITH_NVN;WITH_DEBUGRENDERER;WITH_IMGUI;WITH_HEAPSOURCE_BSS;WITH_HEAPSOURCE_DYNAMIC;WITH_EXPHEAP;SDK_PAST_1300;SDK_PAST_1900" "HOOK_POOL_SIZE;BSS_HEAP_SIZE;TITLE_ID;GAME_TITLE" "INCLUDE;SOURCE;SOURCE_SHALLOW;LIBRARIES;DEFINES" ${ARGN})
+    cmake_parse_arguments(MODULE_ARGS "WITH_VARIANTS;WITH_OLD_SDK;WITH_NVN;WITH_DEBUGRENDERER;WITH_IMGUI;WITH_HEAPSOURCE_BSS;WITH_HEAPSOURCE_DYNAMIC;WITH_EXPHEAP;SDK_PAST_1300;SDK_PAST_1900;NO_SYMBOLS" "HOOK_POOL_SIZE;BSS_HEAP_SIZE;TITLE_ID;GAME_TITLE" "INCLUDE;SOURCE;SOURCE_SHALLOW;LIBRARIES;DEFINES" ${ARGN})
 
     set(ALL_INCLUDE)
     set(ALL_SOURCE)
@@ -15,6 +15,7 @@ function(create_mod name folder)
     list(APPEND ALL_SOURCE
         "${HAKKUN_LIB_DIR}/src/hk/diag/ipclogger.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/diag/ResultName.cpp"
+        "${HAKKUN_LIB_DIR}/src/hk/diag/diag.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/hook/MapUtil.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/hook/Trampoline.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/init/mod0.S"
@@ -183,6 +184,10 @@ function(create_mod name folder)
             TARGET ${name}
             PROPERTY FOLDER ${folder}
     )
+    set_property(
+            TARGET ${name}
+            PROPERTY NO_SYMBOLS ${MODULE_ARGS_NO_SYMBOLS}
+    )
 
     create_releases_main(${name})
 
@@ -225,6 +230,7 @@ function(create_mod_variant module variant title_id game)
     get_target_property(PARENT_POOL_SIZE ${module} HOOK_POOL_SIZE)
     get_target_property(PARENT_DEFINES ${module} DEFINES)
     get_target_property(PARENT_FOLDER ${module} FOLDER)
+    get_target_property(PARENT_NO_SYMBOLS ${module} NO_SYMBOLS)
 
     add_executable(${variant} ${ALL_SOURCE} ${PARENT_SOURCE})
     target_include_directories(${variant} PUBLIC ${ALL_INCLUDE} ${PARENT_INCLUDE})
@@ -287,14 +293,17 @@ function(create_mod_variant module variant title_id game)
         -Wl,-init=__module_entry__
         -Wl,--build-id=sha1
         -Wl,--pie
+#        -Wl,--wrap=__stdio_write
         -Wl,--export-dynamic-symbol=_ZN2nn2ro6detail15g_pAutoLoadListE
         -Wl,--unresolved-symbols=report-all
     )
     if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
-        target_link_options(${variant} PRIVATE
-            -Wl,--export-dynamic
-            -Wl,--exclude-libs=ALL
-        )
+        if (NOT PARENT_NO_SYMBOLS)
+            target_link_options(${variant} PRIVATE
+                -Wl,--export-dynamic
+                -Wl,--exclude-libs=ALL
+            )
+        endif ()
     endif ()
 
     create_nso(${variant} "subsdk9")

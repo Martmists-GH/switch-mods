@@ -1,0 +1,4 @@
+@game = Colony.nss
+100 = 56BF85BD535413464CB75BB6C2683B67
+
+@sdk = nnSdk

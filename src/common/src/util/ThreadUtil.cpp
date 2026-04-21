@@ -16,7 +16,7 @@ std::shared_ptr<ThreadUtil::ThreadHandle> ThreadUtil::createThread(void* threadD
     handle->threadStack = std::move(ptr);
     handle->callback = std::move(callback);
     handle->data = threadData;
-    nn::os::CreateThread(&handle->handle, reinterpret_cast<void(*)(void*)>(&ThreadHandle::threadImpl), handle.get(), threadStack, stackSize, 16, 0);
+    nn::os::CreateThread(&handle->handle, reinterpret_cast<void(*)(void*)>(&ThreadHandle::threadImpl), handle.get(), threadStack, stackSize, 16);
 
     if (strlen(name) > 0) {
         nn::os::SetThreadName(&handle->handle, name);

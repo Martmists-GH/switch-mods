@@ -23,9 +23,7 @@ static WebsocketClient& getLogWs() {
 }
 
 HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
-    Logger::addListener([](const char *message, size_t len) {
-        hk::svc::OutputDebugString(message, len);
-    });
+    Logger::addListener(hk::svc::OutputDebugString);
 
 #ifndef DISABLE_LOGGER
     if (nn::fs::MountSdCardForDebug("sd")) {
@@ -69,7 +67,7 @@ HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
                 ws.receive();
                 nn::os::SleepThread(nn::TimeSpan::FromSeconds(3));
             }
-        });
+        }, "WS Listener Thread", 0x40000);
 
         threadRef->start();
         Logger::log("Connected to logging server!\n");
@@ -97,6 +95,10 @@ HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
             break;
     }
 
+#ifdef HAKKUN_BSS_HEAP_SIZE
+    Logger::log("Hakkun Heap Size: %x\n", HAKKUN_BSS_HEAP_SIZE);
+#endif
+
     MainInitHook.orig();
 });
 
@@ -114,6 +116,9 @@ inline int32_t sign_extend(uint32_t v, int bits) {
 }
 
 static std::string disasm(uint32_t insn) {
+#ifdef NO_MALLOC_EXCEPTIONS
+    return ".unknown";
+#endif
     if ((insn & 0x7C000000) == 0x94000000) {
         int32_t imm = sign_extend(insn & 0x03FFFFFF, 26) << 2;
         return std::format("bl {:+#x}", imm);
@@ -149,22 +154,45 @@ static std::string disasm(uint32_t insn) {
     return std::format(".word {:#010x}", insn);
 }
 
+template <int bufferSize>
+class FixedBuffer : public std::streambuf {
+public:
+    FixedBuffer() : std::streambuf() {
+        std::memset(buffer, 0, sizeof(buffer));
+        setp(buffer, &buffer[bufferSize-1]);         // Remember the -1 to preserve the terminator.
+        setg(buffer, buffer, &buffer[bufferSize-1]); // Technically not necessary for an std::ostream.
+    }
+
+    std::string get() const
+    {
+        return buffer;
+    }
+
+private:
+    char buffer[bufferSize];
+};
+
+#define REPORT_APPEND(format, ...) \
+    memset(tmp, 0, sizeof(tmp)); \
+    snprintf(tmp, sizeof(tmp), format, ##__VA_ARGS__); \
+    os << tmp;
+
 static void reportException(nn::os::UserExceptionInfo const* info, const char* funcLog, const char* fileLog, int code, const char* reasonLog, int resCode) {
-    std::string body;
+    FixedBuffer<0x1000> exceptionBuffer;
+    char tmp[0x1000];
+    std::ostream os(&exceptionBuffer);
 
     DEBUG("ERR:Header");
     if (resCode == -1) {
-        body = "Unexpected abort occurred!\n";
+        os << "Unexpected abort occurred!\n";
     } else {
-        body = std::format(
-            "Abort occurred at {} in file {}\n"
-            "Error Code: {}, Reason: {}, Result: {:x}\n",
+        REPORT_APPEND("Abort occurred at %s in file %s\n"
+            "Error Code: %d, Reason: %s, Result: %x\n",
             funcLog,
             fileLog,
             code,
             reasonLog,
-            resCode
-        );
+            resCode);
     }
 
     DEBUG("ERR:Frame pointer");
@@ -177,39 +205,44 @@ static void reportException(nn::os::UserExceptionInfo const* info, const char* f
 
     DEBUG("ERR:Stack trace");
     if (fp == nullptr) {
-        body += "Stack trace: [could not recover]\n";
+        os << "Stack trace: [could not recover]\n";
     } else {
-        body += "Stack trace:\n";
+        os << "Stack trace:\n";
         if (info != nullptr) {
-            auto ptr = info->PC.x;
-            hk::ro::RoModule* module;
-            for (int i = 0; i < hk::ro::getNumModules(); ++i) {
-                auto mod = hk::ro::getModuleByIndex(i);
-                if (mod->range().start() <= ptr && ptr < mod->range().end()) {
-                    module = mod;
-                }
-            }
-            if (module == nullptr) {
-                body += std::format(" 0x{:016x} (unknown)\n", ptr);
-            } else {
-                auto start = module->range().start();
-                auto nnModule = module->getNnModule();
-                const Elf64_Sym* bestFit = nullptr;
-                for (int j = 0; j < nnModule->m_Symbols; ++j) {
-                    auto& sym = nnModule->m_pDynSym[j];
-                    if (sym.st_value + start < ptr && ptr < sym.st_value + start + sym.st_size) {
-                        bestFit = &sym;
+            u64 ptrs[] = {
+                info->PC.x,
+                info->LR.x - 4,
+            };
+            for (auto ptr : ptrs) {
+                hk::ro::RoModule* module;
+                for (int i = 0; i < hk::ro::getNumModules(); ++i) {
+                    auto mod = hk::ro::getModuleByIndex(i);
+                    if (mod->range().start() <= ptr && ptr < mod->range().end()) {
+                        module = mod;
                     }
                 }
-                if (bestFit != nullptr) {
-                    auto offsetInSym = ptr - (bestFit->st_value + start);
-                    auto symPtr = nnModule->m_pStrTab + bestFit->st_name;
-                    auto symNameDemangled = demangle(symPtr);
-                    body += std::format(" 0x{:016x} ({}:0x{:x}) => {}+0x{:x}\n", ptr, module->getModuleName(), ptr - start, symNameDemangled, offsetInSym);
+                if (module == nullptr) {
+                    REPORT_APPEND(" 0x%016lx (unknown)\n", ptr);
                 } else {
-                    body += std::format(" 0x{:016x} ({}:0x{:x})\n", ptr, module->getModuleName(), ptr - start);
+                    auto start = module->range().start();
+                    auto nnModule = module->getNnModule();
+                    const Elf64_Sym* bestFit = nullptr;
+                    for (int j = 0; j < nnModule->m_Symbols; ++j) {
+                        auto& sym = nnModule->m_pDynSym[j];
+                        if (sym.st_value + start < ptr && ptr < sym.st_value + start + sym.st_size) {
+                            bestFit = &sym;
+                        }
+                    }
+                    if (bestFit != nullptr) {
+                        auto offsetInSym = ptr - (bestFit->st_value + start);
+                        auto symPtr = nnModule->m_pStrTab + bestFit->st_name;
+                        auto symNameDemangled = demangle(symPtr);
+                        REPORT_APPEND(" 0x%016lx (%s:0x%lx) => %s+0x%lx\n", ptr, module->getModuleName(), ptr - start, symNameDemangled.c_str(), offsetInSym);
+                    } else {
+                        REPORT_APPEND(" 0x%016lx (%s:0x%lx)\n", ptr, module->getModuleName(), ptr - start)
+                    }
+                    REPORT_APPEND("  %s", disasm(*reinterpret_cast<int*>(ptr)).c_str());
                 }
-                body += std::format("  {}\n", disasm(*reinterpret_cast<int*>(ptr)));
             }
         }
 
@@ -221,10 +254,11 @@ static void reportException(nn::os::UserExceptionInfo const* info, const char* f
                 auto mod = hk::ro::getModuleByIndex(i);
                 if (mod->range().start() <= ptr && ptr < mod->range().end()) {
                     module = mod;
+                    if (i == 0) goto loop_end;  // Don't log nnrtld
                 }
             }
             if (module == nullptr) {
-                body += std::format(" 0x{:016x} (unknown)\n", ptr);
+                REPORT_APPEND(" 0x%016lx (unknown)\n", ptr);
             } else {
                 auto start = module->range().start();
                 auto nnModule = module->getNnModule();
@@ -239,52 +273,45 @@ static void reportException(nn::os::UserExceptionInfo const* info, const char* f
                     auto offsetInSym = ptr - (bestFit->st_value + start);
                     auto symPtr = nnModule->m_pStrTab + bestFit->st_name;
                     auto symNameDemangled = demangle(symPtr);
-                    body += std::format(" 0x{:016x} ({}:0x{:x}) => {}+0x{:x}\n", ptr, module->getModuleName(), ptr - start, symNameDemangled, offsetInSym);
+                    REPORT_APPEND(" 0x%016lx (%s:0x%lx) => %s+0x%lx\n", ptr, module->getModuleName(), ptr - start, symNameDemangled.c_str(), offsetInSym);
                 } else {
-                    body += std::format(" 0x{:016x} ({}:0x{:x})\n", ptr, module->getModuleName(), ptr - start);
+                    REPORT_APPEND(" 0x%016lx (%s:0x%lx)\n", ptr, module->getModuleName(), ptr - start)
                 }
-                body += std::format("  {}\n", disasm(*reinterpret_cast<int*>(ptr)));
+                REPORT_APPEND("  %s", disasm(*reinterpret_cast<int*>(ptr)).c_str());
             }
             fp = fp->prev;
         } while (fp != nullptr);
+
+        loop_end:
     }
 
     DEBUG("ERR:Modules");
-    body += "Modules:\n";
+    os << "Modules:\n";
     for (int i = 0; i < hk::ro::getNumModules(); ++i) {
         auto module = hk::ro::getModuleByIndex(i);
-        body += std::format(
-            " {0}: 0x{1:016x}-0x{2:016x}\n",
-            module->getModuleName(),
-            module->range().start(),
-            module->range().end()
-        );
+        REPORT_APPEND(" %s: 0x%016lx-0x%016lx", module->getModuleName(), module->range().start(), module->range().end());
     }
 
     DEBUG("ERR:Registers");
     if (info != nullptr) {
-        body += "Registers:\n";
+        os << "Registers:\n";
         for (int i = 0; i < 29; ++i) {
-            body += std::format(
-                " X{0:<2} 0x{1:016x} {1}\n",
-                i,
-                info->CpuRegisters[i].x
-            );
+            REPORT_APPEND(" X%-2d 0x%016lx %ld\n", i, info->CpuRegisters[i].x, info->CpuRegisters[i].x);
         }
-        body += std::format(" FP  0x{0:016x} {0}\n", info->FP.x);
-        body += std::format(" LR  0x{0:016x} {0}\n", info->LR.x);
-        body += std::format(" SP  0x{0:016x} {0}\n", info->SP.x);
-        body += std::format(" PC  0x{0:016x} {0}\n", info->PC.x);
+        REPORT_APPEND(" FP  0x%016lx %ld\n", info->FP.x, info->FP.x);
+        REPORT_APPEND(" LR  0x%016lx %ld\n", info->LR.x, info->LR.x);
+        REPORT_APPEND(" SP  0x%016lx %ld\n", info->SP.x, info->SP.x);
+        REPORT_APPEND(" PC  0x%016lx %ld\n", info->PC.x, info->PC.x);
         if (info->PC.x != 0) {
-            body += std::format("  {}", disasm(*reinterpret_cast<int*>(info->PC.x - 4)));
+            REPORT_APPEND("  %s", disasm(*reinterpret_cast<int*>(info->PC.x - 4)).c_str());
         }
     } else {
-        body += "Registers: [unknown]\n";
+        os << "Registers: [unknown]\n";
     }
 
     // FIXME: Crashes on render thread
-    Logger::log("!!!Abort!!!\n%s\n",  body.c_str());
-    MessageUtil::popup(resCode, "!!!Abort!!!", body);
+    Logger::log("!!!Abort!!!\n%s\n",  exceptionBuffer.get().c_str());
+    MessageUtil::popup(resCode, "!!!Abort!!!", exceptionBuffer.get());
 }
 
 #ifdef __RTLD_PAST_13XX__
@@ -364,10 +391,10 @@ extern "C" void hkMain() {
     // Do common init/hooks
     MainInitHook.installAtPtr(&nnMain);
 
-    AbortHook.installAtPtr(&nn::diag::detail::VAbortImpl);
+    // AbortHook.installAtPtr(&nn::diag::detail::VAbortImpl);
 
-    nn::os::SetUserExceptionHandler(&handleUserException, &exceptionStack, sizeof(exceptionStack), &exceptionStorage);
-    nn::os::EnableUserExceptionHandlerOnDebugging(true);
+    // nn::os::SetUserExceptionHandler(&handleUserException, &exceptionStack, sizeof(exceptionStack), &exceptionStorage);
+    // nn::os::EnableUserExceptionHandlerOnDebugging(true);
 
 #ifdef ENABLE_FS_LOG
     fsErrorResultLogHook.installAtPtr(&nn::fs::detail::LogResultErrorMessage);

@@ -1,5 +1,6 @@
 #include <hk/hook/Trampoline.h>
 #include <util/InputUtil.h>
+#include "game_constants.h"
 
 #ifdef IMGUI_ENABLED
 #include <nn/primitives.h>
@@ -12,9 +13,8 @@
 #include "nn/hid_detail.h"
 #include "logger/logger.h"
 
-nvn::Device *nvnDevice;
-nvn::Queue *nvnQueue;
-nvn::CommandBuffer *nvnCmdBuf;
+nvn::Device *nvnDevice = nullptr;
+nvn::Queue *nvnQueue = nullptr;
 
 nvn::DeviceGetProcAddressFunc tempGetProcAddressFuncPtr;
 
@@ -43,8 +43,13 @@ ui::Root& getRootElement() {
     return root;
 }
 
+__attribute__((weak))
+bool canInitImgui() {
+    return true;
+}
+
 bool InitImGui() {
-    if (nvnDevice && nvnQueue && nvnCmdBuf) {
+    if (nvnDevice && nvnQueue && canInitImgui()) {
         Logger::log("Creating ImGui.\n");
         IMGUI_CHECKVERSION();
 
@@ -71,7 +76,6 @@ bool InitImGui() {
         ImguiNvnBackend::NvnBackendInitInfo initInfo = {
                 .device = nvnDevice,
                 .queue = nvnQueue,
-                .cmdBuf = nvnCmdBuf
         };
 
         Logger::log("Initializing Backend.\n");
@@ -112,11 +116,11 @@ void presentTexture(nvn::Queue *queue, nvn::Window *window, int texIndex) {
 
     if (hasInitImGui) {
         procDraw();
-        buf->BeginRecording();
-        tempCommandSetTexturePoolFunc(buf, pool);
-        tempCommandSetSamplerPoolFunc(buf, samplerPool);
-        auto handle = buf->EndRecording();
-        queue->SubmitCommands(1, &handle);
+        // buf->BeginRecording();
+        // tempCommandSetTexturePoolFunc(buf, pool);
+        // tempCommandSetSamplerPoolFunc(buf, samplerPool);
+        // auto handle = buf->EndRecording();
+        // queue->SubmitCommands(1, &handle);
     }
     tempPresentTexFunc(queue, window, texIndex);
 }
@@ -142,25 +146,41 @@ void setCrop(nvn::Window *window, int x, int y, int w, int h) {
 
 NVNboolean deviceInit(nvn::Device *device, const nvn::DeviceBuilder *builder) {
     NVNboolean result = tempDeviceInitFuncPtr(device, builder);
-    nvnDevice = device;
+    if (!nvnDevice) {
+        nvnDevice = device;
+    }
     nvn::nvnLoadCPPProcs(nvnDevice, tempGetProcAddressFuncPtr);
     return result;
 }
 
 NVNboolean queueInit(nvn::Queue *queue, const nvn::QueueBuilder *builder) {
     NVNboolean result = tempQueueInitFuncPtr(queue, builder);
-    nvnQueue = queue;
+    if (!nvnQueue) {
+        nvnQueue = queue;
+    }
     return result;
 }
 
 NVNboolean cmdBufInit(nvn::CommandBuffer *buffer, nvn::Device *device) {
     NVNboolean result = tempBufferInitFuncPtr(buffer, device);
-    nvnCmdBuf = buffer;
 
-    if (!hasInitImGui) {
+    if (!hasInitImGui && nvnQueue && nvnDevice) {
         Logger::log("Initializing ImGui.\n");
         hasInitImGui = InitImGui();
         if (hasInitImGui) {
+#ifdef IMGUI_NVN_SRGB
+            ImGuiStyle &style = ImGui::GetStyle();
+            for (int i = 0; i < ImGuiCol_COUNT; i++) {
+                ImVec4 &col = style.Colors[i];
+                col.x = col.x <= 0.04045f ? col.x / 12.92f
+                                          : pow((col.x + 0.055f) / 1.055f, 2.4f);
+                col.y = col.y <= 0.04045f ? col.y / 12.92f
+                                          : pow((col.y + 0.055f) / 1.055f, 2.4f);
+                col.z = col.z <= 0.04045f ? col.z / 12.92f
+                                          : pow((col.z + 0.055f) / 1.055f, 2.4f);
+            }
+#endif
+
             setup_ui();
         }
     }

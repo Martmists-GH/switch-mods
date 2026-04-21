@@ -12,18 +12,18 @@ MemoryBuffer::MemoryBuffer(size_t size) {
 
     size_t alignedSize = ALIGN_UP(size, 0x1000);
 
-    memBuffer = IM_ALLOC(alignedSize + 0x1000);
-    memset(memBuffer, 0, alignedSize + 0x1000);
+    memBuffer = aligned_alloc(0x1000, alignedSize);
+    memset(memBuffer, 0, alignedSize);
 
     bd->memPoolBuilder.SetDefaults()
             .SetDevice(bd->device)
             .SetFlags(nvn::MemoryPoolFlags::CPU_UNCACHED | nvn::MemoryPoolFlags::GPU_CACHED)
-            .SetStorage((void*)ALIGN_UP(memBuffer, 0x1000), alignedSize);
+            .SetStorage(memBuffer, alignedSize);
 
     if (!pool.Initialize(&bd->memPoolBuilder)) {
         Logger::log("Failed to Create Memory Pool! (1)\n");
         Logger::log("Buffer: %p", memBuffer);
-        Logger::log("Aligned Buffer: %p", ALIGN_UP(memBuffer, 0x1000));
+        Logger::log("Aligned Buffer: %p", memBuffer, 0x1000);
         return;
     }
 
@@ -42,13 +42,13 @@ MemoryBuffer::MemoryBuffer(size_t size, nvn::MemoryPoolFlags flags) {
     auto *bd = ImguiNvnBackend::getBackendData();
 
     size_t alignedSize = ALIGN_UP(size, 0x1000);
-    memBuffer = IM_ALLOC(alignedSize + 0x1000);
-    memset(memBuffer, 0, alignedSize + 0x1000);
+    memBuffer = aligned_alloc(0x1000, alignedSize);
+    memset(memBuffer, 0, alignedSize);
 
     bd->memPoolBuilder.SetDefaults()
             .SetDevice(bd->device)
             .SetFlags(flags)
-            .SetStorage((void*)ALIGN_UP(memBuffer, 0x1000), alignedSize);
+            .SetStorage(memBuffer, alignedSize);
 
 
     if (!pool.Initialize(&bd->memPoolBuilder)) {
@@ -93,7 +93,7 @@ MemoryBuffer::MemoryBuffer(size_t size, void *bufferPtr, nvn::MemoryPoolFlags fl
 }
 
 void MemoryBuffer::Finalize() {
-    IM_FREE(memBuffer);
+    free(memBuffer);
     pool.Finalize();
     buffer.Finalize();
 }

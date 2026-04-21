@@ -52,3 +52,6 @@ _ZN2nn2fs6detail18IsEnabledAccessLogEv
 
 // nn::fs::detail::OutputAccessLogToOnlySdCard(char const*, ...)
 _ZN2nn2fs6detail27OutputAccessLogToOnlySdCardEPKcz
+
+// nn::fs::Commit(char const*)
+_ZN2nn2fs6CommitEPKc

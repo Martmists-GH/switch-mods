@@ -38,19 +38,18 @@ enum NXHost {
 static NXHost get_host() {
     auto offset = hk::ro::getMainModule()->range().start();
 
-    if (offset == 0x08504000 || offset == 0x08505000) {
+    if ((offset & 0xffff0000) == 0x08500000) {
         return NXHost::RYUJINX;
-    } else if (offset == 0x80004000 || offset == 0x80005000 || offset == 0x80084000 || offset == 0x80085000) {
+    } else if (((offset == 0xffff0000) == 0x80000000) || ((offset == 0xffff0000) == 0x80080000)) {
         return NXHost::YUZU;
     } else {
         hk::Handle curProcess;
-        u64 tmp;
         hk::svc::getProcessHandleMesosphere(&curProcess);
-        auto err = hk::svc::GetSystemInfo(&tmp, hk::svc::SystemInfoType::SystemInfoType_UsedPhysicalMemorySize, curProcess, hk::svc::PhysicalMemorySystemInfo::PhysicalMemorySystemInfo_System);
-        if (err.succeeded() || err.getValue() == ams::svc::ResultInvalidHandle::InnerValue) {
-            return NXHost::HARDWARE;
-        } else {
+        auto err = hk::svc::BreakDebugProcess(curProcess);
+        if (!err.succeeded() && err.getValue() == ams::svc::ResultNotImplemented::InnerValue) {
             return NXHost::YUZU;
+        } else {
+            return NXHost::HARDWARE;
         }
     }
 }

@@ -11,6 +11,9 @@ _ZN2nn2os13GetSystemTickEv
 // nn::os::CreateThread(nn::os::ThreadType*, void (*)(void*), void*, void*, unsigned long, int, int)
 _ZN2nn2os12CreateThreadEPNS0_10ThreadTypeEPFvPvES3_S3_mii
 
+// nn::os::CreateThread(nn::os::ThreadType*, void (*)(void*), void*, void*, unsigned long, int)
+_ZN2nn2os12CreateThreadEPNS0_10ThreadTypeEPFvPvES3_S3_mi
+
 // nn::os::SetThreadName(nn::os::ThreadType*, char const*)
 _ZN2nn2os13SetThreadNameEPNS0_10ThreadTypeEPKc
 

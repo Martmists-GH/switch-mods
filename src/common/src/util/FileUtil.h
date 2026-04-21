@@ -29,6 +29,10 @@ namespace FileUtil {
         return writeFile(path, reinterpret_cast<const void*>(&content), sizeof(content));
     }
 
+    inline nn::Result writeFile(const std::string& path, const char* content) {
+        return writeFile(path, static_cast<const void*>(content), strlen(content));
+    }
+
     std::optional<FileHandle> readFile(const std::string& path, int alignment = 1);
     template <typename T>
     std::optional<T> readFile(const std::string& path) {

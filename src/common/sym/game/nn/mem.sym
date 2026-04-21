@@ -2,6 +2,9 @@
 // nn::mem::StandardAllocator::Allocate(unsigned long)
 _ZN2nn3mem17StandardAllocator8AllocateEm
 
+// nn::mem::StandardAllocator::Allocate(unsigned long, unsigned long)
+_ZN2nn3mem17StandardAllocator8AllocateEmm
+
 // nn::mem::StandardAllocator::Free(void*)
 _ZN2nn3mem17StandardAllocator4FreeEPv
 

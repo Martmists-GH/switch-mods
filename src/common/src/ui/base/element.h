@@ -41,7 +41,9 @@ namespace ui {
                 ImGui::BeginDisabled(this->disabled);
             }
             if (this->beginDraw()) {
+                // ImGui::PushID(this);
                 this->draw();
+                // ImGui::PopID();
                 this->endDraw();
             }
             if (canDisable) {

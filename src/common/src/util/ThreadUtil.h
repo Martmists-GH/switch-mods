@@ -8,6 +8,7 @@ class ThreadUtil {
     class ThreadHandle {
         std::shared_ptr<void> threadStack;
         nn::os::ThreadType handle = {};
+        char paddingJustInCase[0x100];
         bool isRunning = false;
         void* data;
         std::function<void(void*)> callback;

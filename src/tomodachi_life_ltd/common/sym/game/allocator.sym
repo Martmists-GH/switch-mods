@@ -1,0 +1,4 @@
+@game:100
+
+gGlobalAllocator = 0x038654e8
+_ZN4sead14gAllocatorListE = 0x0528b4f0

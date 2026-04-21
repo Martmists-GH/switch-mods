@@ -11,7 +11,7 @@
   "pool_partition": 0,
   "is_64_bit": true,
   "address_space_type": 3,
-  "system_resource_size": "0x01000000",
+  "system_resource_size": "0x00200000",
   "filesystem_access": {
     "permissions": "0xffffffffffffffff"
   },

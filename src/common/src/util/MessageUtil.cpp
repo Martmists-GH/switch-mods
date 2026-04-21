@@ -58,7 +58,7 @@ namespace MessageUtil {
     }
 
     void popup(u32 errcode, const char *message, const char *description, va_list args) {
-        char buffer[0x2000] = {};
+        char buffer[0x2000];
         if (vsnprintf(buffer, sizeof(buffer), description, args) >= 0) {
             nn::err::ApplicationErrorArg arg;
             arg.SetApplicationErrorCodeNumber(errcode);

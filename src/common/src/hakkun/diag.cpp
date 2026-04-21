@@ -19,13 +19,18 @@ namespace hk::diag {
         memset(buffer, 0, len + 1);
         if (len > 0) {
             std::vsnprintf(buffer, len, msgFmt, arg);
+            svc::OutputDebugString(buffer, strlen(buffer));
             buffer[len] = '\0';
         } else {
             strcpy(buffer, "(formatting error)");
             buffer[18] = '\0';
         }
 
-        MessageUtil::abort("!!!Hakkun Abort!!!", "Aborted at line %d in %s:\n%s", line, file, buffer);
+        if (strstr(buffer, "UnresolvedSymbol") != nullptr) {
+            MessageUtil::abort("Wrong Version!", "Aborted at line %d in %s:\n%s", line, file, buffer);
+        } else {
+            MessageUtil::abort("!!!Hakkun Abort!!!", "Aborted at line %d in %s:\n%s", line, file, buffer);
+        }
     }
 
     hk_noreturn void abortImpl(svc::BreakReason reason, Result result, const char* file, int line, const char* msgFmt, ...) {
