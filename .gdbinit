@@ -14,7 +14,7 @@ define switch_bt
   set $prev_frame = 0
   while $frame != 0 && $prev_frame != $frame
       set $prev_frame = $frame
-      set $frame_addr = ((unsigned long long *)$frame)[1] - $base_addr
+      set $frame_addr = ((unsigned long long *)$frame)[1]
 
       # Print the address this would have in ghidra
       p/x $frame_addr - $base_addr - 4 + $ghidra_offset_base

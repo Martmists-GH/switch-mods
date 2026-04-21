@@ -20,7 +20,11 @@ void WebsocketClient::reconnect(const std::string& url) {
     auto isSSL = std::get<0>(tuple);
 
     sock = makeSocket(isSSL);
-    sock->connect(std::get<1>(tuple), std::get<2>(tuple));
+    auto nnRes = sock->connect(std::get<1>(tuple), std::get<2>(tuple));
+    if (nnRes.IsFailure()) {
+        sock = nullptr;
+        return;
+    }
 
     auto body = buildRequest("GET", std::get<3>(tuple), {
         {"Upgrade", "websocket"},
