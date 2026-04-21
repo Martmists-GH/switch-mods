@@ -14,12 +14,21 @@
 #include <util/ThreadUtil.h>
 #include <nn/diag.h>
 #include "game_constants.h"
+#include "../../../lib/hakkun/addons/HeapSourceBss/include/hk/mem/BssHeap.h"
+#include "hk/os/Thread.h"
 
 #include "imgui_backend/hooks.h"
 
 static WebsocketClient& getLogWs() {
     static WebsocketClient logWs("ws://" LOGGER_IP ":" STR(LOGGER_PORT));
     return logWs;
+}
+
+static void handleWs(WebsocketClient* ws) {
+    while (ws->open()) {
+        ws->receive();
+        nn::os::SleepThread(nn::TimeSpan::FromSeconds(3));
+    }
 }
 
 HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
@@ -55,21 +64,17 @@ HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
 
     // Handle ws PINGs
 #ifdef HK_DEBUG
-    auto& ws = getLogWs();
+    static auto& ws = getLogWs();
     if (ws.open()) {
-        Logger::addListener([&ws](const char *message, size_t len) {
+        Logger::addListener([](const char *message, size_t len) {
             ws.send(std::string(message, len));
         });
 
         // static to keep a reference to it
-        static auto threadRef = ThreadUtil::createThread([&ws]() {
-            while (ws.open()) {
-                ws.receive();
-                nn::os::SleepThread(nn::TimeSpan::FromSeconds(3));
-            }
-        }, "WS Listener Thread", 0x40000);
+        static auto threadRef = hk::os::Thread(handleWs, &ws);
+        threadRef.setName("Websocket Thread");
+        threadRef.start();
 
-        threadRef->start();
         Logger::log("Connected to logging server!\n");
     } else {
         Logger::log("Failed to connect to logging server!\n");
@@ -406,6 +411,10 @@ extern "C" void hkMain() {
     mod_init();
 #ifdef IMGUI_ENABLED
     imgui_hooks();
+#endif
+
+#ifdef HK_ADDON_HeapSourceBss
+    hk::mem::initializeMainHeap();
 #endif
 
 #ifndef REMOVE_YUZU_WARNING

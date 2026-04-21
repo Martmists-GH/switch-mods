@@ -43,8 +43,7 @@ static NXHost get_host() {
     } else if (((offset == 0xffff0000) == 0x80000000) || ((offset == 0xffff0000) == 0x80080000)) {
         return NXHost::YUZU;
     } else {
-        hk::Handle curProcess;
-        hk::svc::getProcessHandleMesosphere(&curProcess);
+        auto curProcess = hk::svc::getProcessHandleMesosphere();
         auto err = hk::svc::BreakDebugProcess(curProcess);
         if (!err.succeeded() && err.getValue() == ams::svc::ResultNotImplemented::InnerValue) {
             return NXHost::YUZU;

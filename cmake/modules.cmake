@@ -2,7 +2,7 @@ add_custom_target(all_modules)
 add_custom_target(all_modules_zips)
 
 function(create_mod name folder)
-    cmake_parse_arguments(MODULE_ARGS "WITH_VARIANTS;WITH_OLD_SDK;WITH_NVN;WITH_DEBUGRENDERER;WITH_IMGUI;WITH_HEAPSOURCE_BSS;WITH_HEAPSOURCE_DYNAMIC;WITH_EXPHEAP;SDK_PAST_1300;SDK_PAST_1900;NO_SYMBOLS" "HOOK_POOL_SIZE;BSS_HEAP_SIZE;TITLE_ID;GAME_TITLE" "INCLUDE;SOURCE;SOURCE_SHALLOW;LIBRARIES;DEFINES" ${ARGN})
+    cmake_parse_arguments(MODULE_ARGS "WITH_VARIANTS;WITH_OLD_SDK;WITH_NVN;WITH_DEBUGRENDERER;WITH_IMGUI;WITH_HEAPSOURCE_BSS;WITH_HEAPSOURCE_DYNAMIC;WITH_EXPHEAP`;SDK_PAST_1300;SDK_PAST_1900;NO_SYMBOLS" "HOOK_POOL_SIZE;BSS_HEAP_SIZE;TITLE_ID;GAME_TITLE" "INCLUDE;SOURCE;SOURCE_SHALLOW;LIBRARIES;DEFINES" ${ARGN})
 
     set(ALL_INCLUDE)
     set(ALL_SOURCE)
@@ -11,25 +11,52 @@ function(create_mod name folder)
     set(EXTRA_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/common/src" "${CMAKE_CURRENT_SOURCE_DIR}/${folder}/src" "${PROJECT_SOURCE_DIR}/src/common/src")
 
     # Hakkun
-    list(APPEND ALL_INCLUDE "${HAKKUN_LIB_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/common/include" "${CMAKE_CURRENT_SOURCE_DIR}/${folder}/include" "${PROJECT_SOURCE_DIR}/src/common/include")
+    list(APPEND ALL_INCLUDE
+            "${HAKKUN_LIB_DIR}/core/include"
+            "${HAKKUN_LIB_DIR}/include"
+            "${CMAKE_CURRENT_SOURCE_DIR}/common/include"
+            "${CMAKE_CURRENT_SOURCE_DIR}/${folder}/include"
+            "${PROJECT_SOURCE_DIR}/src/common/include")
     list(APPEND ALL_SOURCE
-        "${HAKKUN_LIB_DIR}/src/hk/diag/ipclogger.cpp"
-        "${HAKKUN_LIB_DIR}/src/hk/diag/ResultName.cpp"
-        "${HAKKUN_LIB_DIR}/src/hk/diag/diag.cpp"
+        "${HAKKUN_LIB_DIR}/core/src/hk/diag/ResultName.cpp"
+        "${HAKKUN_LIB_DIR}/core/src/hk/diag/diag.cpp"
+
         "${HAKKUN_LIB_DIR}/src/hk/hook/MapUtil.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/hook/Trampoline.cpp"
+
         "${HAKKUN_LIB_DIR}/src/hk/init/mod0.S"
         "${HAKKUN_LIB_DIR}/src/hk/init/moduleEntry.S"
-        "${HAKKUN_LIB_DIR}/src/hk/init/module.cpp"
+
         "${HAKKUN_LIB_DIR}/src/hk/os/Libcxx.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/os/Thread.cpp"
+
         "${HAKKUN_LIB_DIR}/src/hk/ro/RoUtil.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/ro/RoModule.cpp"
+
         "${HAKKUN_LIB_DIR}/src/hk/sail/detail.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/sail/init.cpp"
+
+        "${HAKKUN_LIB_DIR}/src/hk/services/am.cpp"
+        "${HAKKUN_LIB_DIR}/src/hk/services/apm.cpp"
+        "${HAKKUN_LIB_DIR}/src/hk/services/fsp.cpp"
+        "${HAKKUN_LIB_DIR}/src/hk/services/socket.cpp"
+        "${HAKKUN_LIB_DIR}/src/hk/services/sm.cpp"
+        "${HAKKUN_LIB_DIR}/src/hk/services/pm.cpp"
+        "${HAKKUN_LIB_DIR}/src/hk/services/nv.cpp"
+        "${HAKKUN_LIB_DIR}/src/hk/services/vi.cpp"
+        "${HAKKUN_LIB_DIR}/src/hk/services/lm.cpp"
+        "${HAKKUN_LIB_DIR}/src/hk/services/ldr.cpp"
+
+        "${HAKKUN_LIB_DIR}/src/hk/sf/sf.cpp"
+
         "${HAKKUN_LIB_DIR}/src/hk/util/Context.cpp"
+
         "${HAKKUN_LIB_DIR}/src/rtld/RoModule.cpp"
+
         "${HAKKUN_LIB_DIR}/src/hk/svc/api.aarch64.S"
+
+        "${HAKKUN_LIB_DIR}/src/hk/diag/ipclogger.cpp"
+        "${HAKKUN_LIB_DIR}/src/hk/init/module.cpp"
     )
 
     # Hakkun addons

@@ -8,5 +8,5 @@ create_mod(
         NO_SYMBOLS
         TITLE_ID "010051F0207B2000"
         GAME_TITLE "Tomodachi Life: Living The Dream"
-        BSS_HEAP_SIZE 0x400000
+        BSS_HEAP_SIZE 0x40000
 )

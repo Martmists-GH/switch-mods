@@ -6,7 +6,6 @@
 #include "imgui_impl_nvn.hpp"
 
 #include <util/FileUtil.h>
-#include "fonts/migu_1p.h"
 #include "imgui_hid_mappings.h"
 
 #include "nn/os.h"
@@ -21,6 +20,10 @@
 #include "util/common_utils.h"
 
 #include "game_constants.h"
+
+#ifdef WITH_MIGU_FONT
+#include "fonts/migu_1p.h"
+#endif
 
 #define UBOSIZE 0x1000
 
@@ -427,9 +430,10 @@ namespace ImguiNvnBackend {
         Logger::log("Adding Migu 1P Font.\n");
         ImFontConfig config;
         config.MergeMode = true;
+#ifdef WITH_MIGU_FONT
         io.Fonts->AddFontFromMemoryCompressedTTF(&migu_1p_compressed_data, migu_1p_compressed_size, 18.0f, &config, io.Fonts->GetGlyphRangesJapanese());
         io.Fonts->AddFontFromMemoryCompressedTTF(&migu_1p_compressed_data, migu_1p_compressed_size, 18.0f, &config, io.Fonts->GetGlyphRangesChineseFull());
-
+#endif
         Logger::log("Creating Shaders.\n");
 
         if (createShaders()) {
