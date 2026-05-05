@@ -10,11 +10,15 @@ This repository template is free to use under CC0, with the code in `src/` requi
 
 Pokemon Scarlet/Violet
 
-| Mod Name                                                     | Description                              |
-|--------------------------------------------------------------|------------------------------------------|
-| [SV_CrowdControl](src/pokemon_sv/mod_crowd_control)          | Crowd Control for Pokemon Scarlet/Violet |
-| [ZA_Debug_Tools](src/pokemon_za/mod_debug_tools)             | Debug Menu for Pokemon Legends ZA        |
-| [ZA_Same_Gender_Rival](src/pokemon_za/mod_same_gender_rival) | Same Gender Rival for Pokemon Legends ZA |
+| Mod Name                                                     | Description                                           |
+|--------------------------------------------------------------|-------------------------------------------------------|
+| [SV_CrowdControl](src/pokemon_sv/mod_crowd_control)          | Crowd Control for Pokemon Scarlet/Violet              |
+| [SV_Debug_Tools](src/pokemon_sv/mod_debug_tools)             | Debug Menu for Pokemon Scarlet/Violet                 |
+| [SV_Trinity_Bypass](src/pokemon_sv/mod_trinity_bypass)       | Trinity Bypass for Pokemon Scarlet/Violet             |
+| [ZA_Debug_Tools](src/pokemon_za/mod_debug_tools)             | Debug Menu for Pokemon Legends ZA                     |
+| [ZA_Same_Gender_Rival](src/pokemon_za/mod_same_gender_rival) | Same Gender Rival for Pokemon Legends ZA (deprecated) |
+| [ZA_Trinity_Bypass](src/pokemon_za/mod_trinity_bypass)       | Trinity Bypass for Pokemon Legends ZA                 |
+| [LTD_Debug_Tools](src/tomodachi_life_ltd/mod_debug_tools)    | Debug Menu for Tomodachi Life: Living the Dream       |
 
 ## Repository contents
 
