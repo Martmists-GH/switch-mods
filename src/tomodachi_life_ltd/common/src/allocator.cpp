@@ -1,9 +1,13 @@
-#include <new>
-
-#include "nn/mem.h"
 #include "externals/sead/Heap.h"
 #include "hk/mem/BssHeap.h"
 #include "logger/logger.h"
+#include "memory/object.h"
+
+static bool gSetForceBssHeap;
+
+void onExceptionHandler() {
+    gSetForceBssHeap = true;
+}
 
 struct HeapData {
     void* ptr;
@@ -23,7 +27,7 @@ __attribute__((visibility("hidden")))
 void* aligned_alloc(size_t alignment, size_t size) {
     auto heap = sead::gAllocatorList.m_items[0]->castTo<sead::Heap>();
 
-    if (heap != nullptr && heap->fields.m_children.m_size >= 6) {
+    if (!gSetForceBssHeap && heap != nullptr && heap->fields.m_children.m_size >= 6) {
         heap = heap->fields.m_children.get(5)->impl();  // sead::TaskMgr
         heap = heap->fields.m_children.get(0)->impl();  // RootTask
         heap = heap->fields.m_children.get(5)->impl();  // ResourceMgr

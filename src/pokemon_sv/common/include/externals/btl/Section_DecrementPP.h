@@ -1,7 +1,8 @@
 #pragma once
+#include "Section.h"
 
 namespace btl {
-    struct Section_DecrementPP {
+    struct Section_DecrementPP : btl::Section {
         struct Result {
             bool isDecrement;
         };

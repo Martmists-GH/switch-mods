@@ -14,7 +14,6 @@
 #include <util/ThreadUtil.h>
 #include <nn/diag.h>
 #include "game_constants.h"
-#include "../../../lib/hakkun/addons/HeapSourceBss/include/hk/mem/BssHeap.h"
 #include "hk/os/Thread.h"
 
 #include "imgui_backend/hooks.h"
@@ -182,7 +181,12 @@ private:
     snprintf(tmp, sizeof(tmp), format, ##__VA_ARGS__); \
     os << tmp;
 
+__attribute__((weak))
+void onExceptionHandler() { }
+
 static void reportException(nn::os::UserExceptionInfo const* info, const char* funcLog, const char* fileLog, int code, const char* reasonLog, int resCode) {
+    onExceptionHandler();
+
     FixedBuffer<0x1000> exceptionBuffer;
     char tmp[0x1000];
     std::ostream os(&exceptionBuffer);
@@ -286,6 +290,7 @@ static void reportException(nn::os::UserExceptionInfo const* info, const char* f
             }
             fp = fp->prev;
         } while (fp != nullptr);
+        REPORT_APPEND("\n");
 
         loop_end:
     }
@@ -294,7 +299,7 @@ static void reportException(nn::os::UserExceptionInfo const* info, const char* f
     os << "Modules:\n";
     for (int i = 0; i < hk::ro::getNumModules(); ++i) {
         auto module = hk::ro::getModuleByIndex(i);
-        REPORT_APPEND(" %s: 0x%016lx-0x%016lx", module->getModuleName(), module->range().start(), module->range().end());
+        REPORT_APPEND(" %s: 0x%016lx-0x%016lx\n", module->getModuleName(), module->range().start(), module->range().end());
     }
 
     DEBUG("ERR:Registers");
@@ -396,10 +401,10 @@ extern "C" void hkMain() {
     // Do common init/hooks
     MainInitHook.installAtPtr(&nnMain);
 
-    // AbortHook.installAtPtr(&nn::diag::detail::VAbortImpl);
+    AbortHook.installAtPtr(&nn::diag::detail::VAbortImpl);
 
-    // nn::os::SetUserExceptionHandler(&handleUserException, &exceptionStack, sizeof(exceptionStack), &exceptionStorage);
-    // nn::os::EnableUserExceptionHandlerOnDebugging(true);
+    nn::os::SetUserExceptionHandler(&handleUserException, &exceptionStack, sizeof(exceptionStack), &exceptionStorage);
+    nn::os::EnableUserExceptionHandlerOnDebugging(true);
 
 #ifdef ENABLE_FS_LOG
     fsErrorResultLogHook.installAtPtr(&nn::fs::detail::LogResultErrorMessage);

@@ -5,3 +5,7 @@ _ZN4sead9SingletonI19GameData_LiberationE10s_instanceE = 0x0396a798
 
 // sead::Singleton<SaveDataMgr>::s_instance
 _ZN4sead9SingletonI11SaveDataMgrE10s_instanceE = 0x0396d0f0
+
+@game:101
+_ZN4sead9SingletonI19GameData_LiberationE10s_instanceE = 0x039507c8
+_ZN4sead9SingletonI11SaveDataMgrE10s_instanceE = 0x03953120

@@ -2,7 +2,7 @@ add_custom_target(all_modules)
 add_custom_target(all_modules_zips)
 
 function(create_mod name folder)
-    cmake_parse_arguments(MODULE_ARGS "WITH_VARIANTS;WITH_OLD_SDK;WITH_NVN;WITH_DEBUGRENDERER;WITH_IMGUI;WITH_HEAPSOURCE_BSS;WITH_HEAPSOURCE_DYNAMIC;WITH_EXPHEAP`;SDK_PAST_1300;SDK_PAST_1900;NO_SYMBOLS" "HOOK_POOL_SIZE;BSS_HEAP_SIZE;TITLE_ID;GAME_TITLE" "INCLUDE;SOURCE;SOURCE_SHALLOW;LIBRARIES;DEFINES" ${ARGN})
+    cmake_parse_arguments(MODULE_ARGS "WITH_VARIANTS;WITH_OLD_SDK;WITH_NVN;WITH_DEBUGRENDERER;WITH_IMGUI;WITH_HEAPSOURCE_BSS;WITH_HEAPSOURCE_DYNAMIC;WITH_EXPHEAP`;SDK_PAST_1300;SDK_PAST_1900;NO_SYMBOLS" "HOOK_POOL_SIZE;BSS_HEAP_SIZE;TITLE_ID;GAME_TITLE;SYSTEM_RESOURCE" "INCLUDE;SOURCE;SOURCE_SHALLOW;LIBRARIES;DEFINES" ${ARGN})
 
     set(ALL_INCLUDE)
     set(ALL_SOURCE)
@@ -154,6 +154,9 @@ function(create_mod name folder)
         set(MODULE_ARGS_BSS_HEAP_SIZE 0x4000000)
     endif ()
     list(APPEND ALL_DEFINES HK_HOOK_TRAMPOLINE_POOL_SIZE=${MODULE_ARGS_HOOK_POOL_SIZE} HAKKUN_BSS_HEAP_SIZE=${MODULE_ARGS_BSS_HEAP_SIZE})
+    if (NOT DEFINED MODULE_ARGS_SYSTEM_RESOURCE)
+        set(MODULE_ARGS_SYSTEM_RESOURCE 0x01000000)
+    endif ()
 
     # Handle paths
     foreach(include ${EXTRA_PATHS} ${MODULE_ARGS_INCLUDE})
@@ -215,6 +218,10 @@ function(create_mod name folder)
             TARGET ${name}
             PROPERTY NO_SYMBOLS ${MODULE_ARGS_NO_SYMBOLS}
     )
+    set_property(
+            TARGET ${name}
+            PROPERTY SYSTEM_RESOURCE ${MODULE_ARGS_SYSTEM_RESOURCE}
+    )
 
     create_releases_main(${name})
 
@@ -258,6 +265,7 @@ function(create_mod_variant module variant title_id game)
     get_target_property(PARENT_DEFINES ${module} DEFINES)
     get_target_property(PARENT_FOLDER ${module} FOLDER)
     get_target_property(PARENT_NO_SYMBOLS ${module} NO_SYMBOLS)
+    get_target_property(PARENT_SYSTEM_RESOURCE ${module} SYSTEM_RESOURCE)
 
     add_executable(${variant} ${ALL_SOURCE} ${PARENT_SOURCE})
     target_include_directories(${variant} PUBLIC ${ALL_INCLUDE} ${PARENT_INCLUDE})
@@ -278,6 +286,7 @@ function(create_mod_variant module variant title_id game)
 #    add_dependencies(${variant} ${variant}_strings)
 
     string(TOLOWER "0x${title_id}" CONFIG_TITLE_ID)
+    string(TOLOWER "${PARENT_SYSTEM_RESOURCE}" CONFIG_SYSTEM_RESOURCE)
 
     configure_file(
         ${VARIANT_ARGS_NPDM_TEMPLATE} ${CMAKE_CURRENT_BINARY_DIR}/${variant}.npdm.json

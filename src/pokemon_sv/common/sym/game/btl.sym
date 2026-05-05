@@ -17,8 +17,14 @@ _ZN3btl15TYPE_EFFECT_TBLE = 0x03c6286c
 // btl::BattleUnit::HpMinus(short)
 _ZN3btl10BattleUnit7HpMinusEs = 0x02d3d7ac
 
+// btl::BattleUnit::HpMinus(void*)
+_ZN3btl10BattleUnit5SetupEPv = 0x0147fe00
+
 // btl::Section_DecrementPP::Execute(btl::Section_DecrementPP::Result*, btl::Section_DecrementPP::Description*)
 _ZN3btl19Section_DecrementPP7ExecuteEPNS0_6ResultEPNS0_11DescriptionE = 0x01605774
+
+// btl::Section_ProcessAction::Execute(btl::Section_ProcessAction::Result*, btl::Section_ProcessAction::Description*)
+_ZN3btl21Section_ProcessAction7ExecuteEPNS0_6ResultEPNS0_11DescriptionE = 0x0113f94c
 
 // btl::EventLauncher::Event_SkipAvoidCheck(ExternalType<btl::BattleUnit>::instance*, ExternalType<btl::BattleUnit>::instance*, void*)
 _ZN3btl13EventLauncher20Event_SkipAvoidCheckEPN12ExternalTypeINS_10BattleUnitEE8instanceES5_Pv = 0x0157d2e4

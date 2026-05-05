@@ -101,3 +101,31 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/commission_vaulttecalex101")
 else()
     message(WARNING "${CMAKE_CURRENT_SOURCE_DIR}/commission_vaulttecalex101 does not exist!")
 endif()
+
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/commission_gameboyluke")
+    create_mod(
+            SV_commission_gameboyluke
+            commission_gameboyluke
+            WITH_VARIANTS
+            WITH_IMGUI
+            SDK_PAST_1300
+
+            SOURCE_SHALLOW "${CMAKE_SOURCE_DIR}/lib/lua"
+    )
+
+    create_mod_variant(
+            SV_commission_gameboyluke
+            Scarlet
+            0100A3D008C5C000
+            "Pokemon Scarlet"
+    )
+
+    create_mod_variant(
+            SV_commission_gameboyluke
+            Violet
+            01008F6008C5E000
+            "Pokemon Violet"
+    )
+else()
+    message(WARNING "${CMAKE_CURRENT_SOURCE_DIR}/commission_gameboyluke does not exist!")
+endif()

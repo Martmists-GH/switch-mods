@@ -15,10 +15,28 @@ namespace btl {
         PokeIDManager* pokeIdManager;
     };
 
+    struct BattleUnit;
+
+    struct BTL_PARTY {
+        btl::BattleUnit* members[6];
+        uint8_t memberCount;
+        EXTERNAL_PAD(7);
+    };
+
+    struct POKECON {
+        EXTERNAL_PAD(0x28);
+        btl::BTL_PARTY party[5];
+    };
+
     struct BattleEnv {
-        EXTERNAL_PAD(0x290);
+        EXTERNAL_PAD(0x30);
+        btl::POKECON* pokecon;
+        EXTERNAL_PAD(0x258);
         BattleEnvUtil* battleEnvUtil;
     };
+
+    static_assert(offsetof(BattleEnv, pokecon) == 0x30);
+    static_assert(offsetof(BattleEnv, battleEnvUtil) == 0x290);
 
     struct MainModule {
         EXTERNAL_PAD(0x8a);

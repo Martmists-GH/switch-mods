@@ -33,9 +33,10 @@ protected:
     SocketState state = UNINITIALIZED;
 
     static in_addr resolve(const std::string& domain);
-    static nn::Result initCommon();
 
 public:
+    static nn::Result initCommon();
+
     static std::optional<std::tuple<bool, const std::string, u16, const std::string>> parseURL(const char *url);
     static std::optional<std::tuple<bool, const std::string, u16, const std::string>> parseURL(const std::string& url);
 
