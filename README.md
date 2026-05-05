@@ -24,6 +24,7 @@ Pokemon Scarlet/Violet
 
 - `build-files` - Contains some files used by the toolchain to build the mod
 - `cmake` - Contains the build toolchain and utilities
+- `gdb` - Contains various useful GDB scripts I use for testing/debugging
 - `lib` - Contains all external libraries used
 - `src` - Contains all the source files for mods
   - `include` - Contains includes for the specific game/mod
