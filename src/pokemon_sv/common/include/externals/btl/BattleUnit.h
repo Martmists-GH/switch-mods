@@ -31,6 +31,13 @@ namespace btl {
     static_assert(offsetof(WAZA_SET, surface) == 10);
 
     struct BattleUnit : ExternalType<BattleUnit> {
+        struct vtable {
+            EXTERNAL_PAD(0x98);
+            int (*GetID)(BattleUnit*);
+            EXTERNAL_PAD(0x50);
+            short(*GetTokusei)(BattleUnit*);
+        };
+
         struct fields {
             EXTERNAL_PAD(0x48);
             int myID;
@@ -50,10 +57,19 @@ namespace btl {
             return this->impl()->fields.myID / 6;
         }
 
+        int GetID() {
+            return this->impl()->vtable->GetID(this);
+        }
+
+        int GetTokusei() {
+            return this->impl()->vtable->GetTokusei(this);
+        }
+
         void Setup(void* setupParam);
         void HpMinus(short amount);
     };
 
+    static_assert(offsetof(BattleUnit::vtable, GetTokusei) == 0xf0);
     static_assert(offsetof(BattleUnit::instance, fields.waza) == 0x426);
     static_assert(offsetof(BattleUnit::instance, fields.mainModule) == 0x708);
 }

@@ -17,7 +17,7 @@ _ZN3btl15TYPE_EFFECT_TBLE = 0x03c6286c
 // btl::BattleUnit::HpMinus(short)
 _ZN3btl10BattleUnit7HpMinusEs = 0x02d3d7ac
 
-// btl::BattleUnit::HpMinus(void*)
+// btl::BattleUnit::Setup(void*)
 _ZN3btl10BattleUnit5SetupEPv = 0x0147fe00
 
 // btl::Section_DecrementPP::Execute(btl::Section_DecrementPP::Result*, btl::Section_DecrementPP::Description*)
@@ -34,3 +34,15 @@ _ZN3btl10MainModule16GetGameLimitTimeEv = 0x0126b004
 
 // btl::PokeIDTable::PokeIdToClientId(unsigned char)
 _ZN3btl11PokeIDTable16PokeIdToClientIdEh = 0x010e2dd4
+
+// btl::ServerCommandExecutor::AddTokuseiHandler(btl::EventSystem*, btl::BattleUnit*, short)
+_ZN3btl21ServerCommandExecutor17AddTokuseiHandlerEPNS_11EventSystemEPNS_10BattleUnitEs = 0x013be3a0
+
+// btl::ServerCommandQueue::Put_Common(int, int, int)
+_ZN3btl18ServerCommandQueue10Put_CommonEiii = 0x0119aff0
+
+// btl::common::AddAdditionalTokusei(btl::EventFactor::EventHandlerArgs*, short)
+_ZN3btl6common20AddAdditionalTokuseiEPNS_11EventFactor16EventHandlerArgsEs = 0x0285e0b0
+
+// btl::EventLauncher::Event_GetAdditionalTokusei(unsigned char, short*)
+_ZN3btl13EventLauncher26Event_GetAdditionalTokuseiEhPs = 0x0114f6fc
