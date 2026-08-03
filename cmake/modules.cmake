@@ -322,7 +322,7 @@ function(create_mod_variant module variant title_id game)
         -Wno-unused-command-line-argument
 
         -Wl,--no-demangle
-        -Wl,--gc-sections
+#        -Wl,--gc-sections
         "-T${PROJECT_SOURCE_DIR}/lib/hakkun/data/link.aarch64.ld"
         "-T${PROJECT_SOURCE_DIR}/lib/hakkun/data/misc.ld"
         -Wl,--Bdynamic
@@ -432,7 +432,7 @@ function(create_releases module game_name variant title_id)
 
     create_release(atmosphere "atmosphere/contents/${title_id}/")
     create_release(modmanager "mods/${game_name}/${module}/contents/${title_id}/")
-#    create_release(ryujinx "atmosphere/contents/${title_id}/")
+    create_release(ryujinx "atmosphere/contents/${title_id}/")
 #    create_release(yuzu "atmosphere/contents/${title_id}/")
 endfunction()
 

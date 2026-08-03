@@ -61,7 +61,7 @@ if (NOT EXISTS "${PROJECT_SOURCE_DIR}/tools/sail")
         COMMAND ${python} ${PROJECT_SOURCE_DIR}/tools/setup_sail.py
     )
 endif ()
-set(sail ${PROJECT_SOURCE_DIR}/tools/sail)
+set(sail "${PROJECT_SOURCE_DIR}/tools/sail")
 function(create_sail variant module_folder)
     file(GLOB SAIL_FILES CONFIGURE_DEPENDS ${module_folder}/*.sym)
     add_custom_command(
@@ -78,6 +78,15 @@ function(create_sail variant module_folder)
     )
     add_dependencies(${variant} ${variant}_sail)
 endfunction()
+
+# UAM
+if (NOT EXISTS "${PROJECT_SOURCE_DIR}/tools/uam")
+    message("Building uam")
+    execute_process(
+            COMMAND ${python} ${PROJECT_SOURCE_DIR}/tools/setup_uam.py
+    )
+endif ()
+set(uam "${PROJECT_SOURCE_DIR}/tools/uam")
 
 # npdmtool
 find_program(npdmtool npdmtool ${SWITCHTOOLS})

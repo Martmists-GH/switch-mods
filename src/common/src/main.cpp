@@ -16,6 +16,9 @@
 #include "game_constants.h"
 #include "hk/os/Thread.h"
 
+#ifdef HK_ADDON_HeapSourceBss
+#include "hk/mem/BssHeap.h"
+#endif
 #include "imgui_backend/hooks.h"
 
 static WebsocketClient& getLogWs() {
@@ -99,270 +102,12 @@ HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
             break;
     }
 
-#ifdef HAKKUN_BSS_HEAP_SIZE
+#ifdef HK_ADDON_HeapSourceBss
     Logger::log("Hakkun Heap Size: %x\n", HAKKUN_BSS_HEAP_SIZE);
 #endif
 
     MainInitHook.orig();
 });
-
-struct frame {
-    frame* prev;
-    ulong ret_addr;
-};
-
-static constexpr const char* xreg[32] = { "x0","x1","x2","x3","x4","x5","x6","x7","x8","x9","x10","x11","x12","x13","x14","x15","x16","x17","x18","x19","x20","x21","x22","x23","x24","x25","x26","x27","x28","x29","x30","sp" };
-static constexpr const char* wreg[32] = { "w0","w1","w2","w3","w4","w5","w6","w7","w8","w9","w10","w11","w12","w13","w14","w15","w16","w17","w18","w19","w20","w21","w22","w23","w24","w25","w26","w27","w28","w29","w30","wsp" };
-
-inline int32_t sign_extend(uint32_t v, int bits) {
-    uint32_t m = 1u << (bits - 1);
-    return (v ^ m) - m;
-}
-
-static std::string disasm(uint32_t insn) {
-#ifdef NO_MALLOC_EXCEPTIONS
-    return ".unknown";
-#endif
-    if ((insn & 0x7C000000) == 0x94000000) {
-        int32_t imm = sign_extend(insn & 0x03FFFFFF, 26) << 2;
-        return std::format("bl {:+#x}", imm);
-    }
-    if ((insn & 0xFFFFFC1F) == 0xD61F0000) {
-        return std::format("br {}", xreg[(insn >> 5) & 0x1F]);
-    }
-    if ((insn & 0xFFFFFC1F) == 0xD63F0000) {
-        return std::format("blr {}", xreg[(insn >> 5) & 0x1F]);
-    }
-    if ((insn & 0x7F000000) == 0x34000000) {
-        int32_t off = sign_extend((insn >> 5) & 0x7FFFF, 19) << 2;
-        return std::format("cbz {}, {:+#x}", wreg[insn & 0x1F], off);
-    }
-    if ((insn & 0x7F000000) == 0x35000000) {
-        int32_t off = sign_extend((insn >> 5) & 0x7FFFF, 19) << 2;
-        return std::format("cbnz {}, {:+#x}", wreg[insn & 0x1F], off);
-    }
-
-    if ((insn & 0x3B000000) == 0x39000000) {
-        uint32_t size = (insn >> 30) & 0x3;
-        uint32_t imm = ((insn >> 10) & 0xFFF) << size;
-        uint32_t rn = (insn >> 5) & 0x1F;
-        uint32_t rt = insn & 0x1F;
-
-        bool load = insn & (1u << 22);
-        const char* m = load ? "ldr" : "str";
-        const char* const* r = (size == 3) ? xreg : wreg;
-
-        return std::format("{} {}, [{}, #{:#x}]", m, r[rt], xreg[rn], imm);
-    }
-
-    return std::format(".word {:#010x}", insn);
-}
-
-template <int bufferSize>
-class FixedBuffer : public std::streambuf {
-public:
-    FixedBuffer() : std::streambuf() {
-        std::memset(buffer, 0, sizeof(buffer));
-        setp(buffer, &buffer[bufferSize-1]);         // Remember the -1 to preserve the terminator.
-        setg(buffer, buffer, &buffer[bufferSize-1]); // Technically not necessary for an std::ostream.
-    }
-
-    std::string get() const
-    {
-        return buffer;
-    }
-
-private:
-    char buffer[bufferSize];
-};
-
-#define REPORT_APPEND(format, ...) \
-    memset(tmp, 0, sizeof(tmp)); \
-    snprintf(tmp, sizeof(tmp), format, ##__VA_ARGS__); \
-    os << tmp;
-
-__attribute__((weak))
-void onExceptionHandler() { }
-
-static void reportException(nn::os::UserExceptionInfo const* info, const char* funcLog, const char* fileLog, int code, const char* reasonLog, int resCode) {
-    onExceptionHandler();
-
-    FixedBuffer<0x1000> exceptionBuffer;
-    char tmp[0x1000];
-    std::ostream os(&exceptionBuffer);
-
-    DEBUG("ERR:Header");
-    if (resCode == -1) {
-        os << "Unexpected abort occurred!\n";
-    } else {
-        REPORT_APPEND("Abort occurred at %s in file %s\n"
-            "Error Code: %d, Reason: %s, Result: %x\n",
-            funcLog,
-            fileLog,
-            code,
-            reasonLog,
-            resCode);
-    }
-
-    DEBUG("ERR:Frame pointer");
-    frame* fp;
-    if (info != nullptr) {
-        fp = reinterpret_cast<frame*>(info->FP.x);
-    } else {
-        fp = (frame*)__builtin_frame_address(0);
-    }
-
-    DEBUG("ERR:Stack trace");
-    if (fp == nullptr) {
-        os << "Stack trace: [could not recover]\n";
-    } else {
-        os << "Stack trace:\n";
-        if (info != nullptr) {
-            u64 ptrs[] = {
-                info->PC.x,
-                info->LR.x - 4,
-            };
-            for (auto ptr : ptrs) {
-                hk::ro::RoModule* module;
-                for (int i = 0; i < hk::ro::getNumModules(); ++i) {
-                    auto mod = hk::ro::getModuleByIndex(i);
-                    if (mod->range().start() <= ptr && ptr < mod->range().end()) {
-                        module = mod;
-                    }
-                }
-                if (module == nullptr) {
-                    REPORT_APPEND(" 0x%016lx (unknown)\n", ptr);
-                } else {
-                    auto start = module->range().start();
-                    auto nnModule = module->getNnModule();
-                    const Elf64_Sym* bestFit = nullptr;
-                    for (int j = 0; j < nnModule->m_Symbols; ++j) {
-                        auto& sym = nnModule->m_pDynSym[j];
-                        if (sym.st_value + start < ptr && ptr < sym.st_value + start + sym.st_size) {
-                            bestFit = &sym;
-                        }
-                    }
-                    if (bestFit != nullptr) {
-                        auto offsetInSym = ptr - (bestFit->st_value + start);
-                        auto symPtr = nnModule->m_pStrTab + bestFit->st_name;
-                        auto symNameDemangled = demangle(symPtr);
-                        REPORT_APPEND(" 0x%016lx (%s:0x%lx) => %s+0x%lx\n", ptr, module->getModuleName(), ptr - start, symNameDemangled.c_str(), offsetInSym);
-                    } else {
-                        REPORT_APPEND(" 0x%016lx (%s:0x%lx)\n", ptr, module->getModuleName(), ptr - start)
-                    }
-                    REPORT_APPEND("  %s", disasm(*reinterpret_cast<int*>(ptr)).c_str());
-                }
-            }
-        }
-
-        do {
-            auto ptr = fp->ret_addr - 4;
-            if (ptr == static_cast<ulong>(-4)) break;
-            hk::ro::RoModule* module;
-            for (int i = 0; i < hk::ro::getNumModules(); ++i) {
-                auto mod = hk::ro::getModuleByIndex(i);
-                if (mod->range().start() <= ptr && ptr < mod->range().end()) {
-                    module = mod;
-                    if (i == 0) goto loop_end;  // Don't log nnrtld
-                }
-            }
-            if (module == nullptr) {
-                REPORT_APPEND(" 0x%016lx (unknown)\n", ptr);
-            } else {
-                auto start = module->range().start();
-                auto nnModule = module->getNnModule();
-                const Elf64_Sym* bestFit = nullptr;
-                for (int j = 0; j < nnModule->m_Symbols; ++j) {
-                    auto& sym = nnModule->m_pDynSym[j];
-                    if (sym.st_value + start < ptr && ptr < sym.st_value + start + sym.st_size) {
-                        bestFit = &sym;
-                    }
-                }
-                if (bestFit != nullptr) {
-                    auto offsetInSym = ptr - (bestFit->st_value + start);
-                    auto symPtr = nnModule->m_pStrTab + bestFit->st_name;
-                    auto symNameDemangled = demangle(symPtr);
-                    REPORT_APPEND(" 0x%016lx (%s:0x%lx) => %s+0x%lx\n", ptr, module->getModuleName(), ptr - start, symNameDemangled.c_str(), offsetInSym);
-                } else {
-                    REPORT_APPEND(" 0x%016lx (%s:0x%lx)\n", ptr, module->getModuleName(), ptr - start)
-                }
-                REPORT_APPEND("  %s", disasm(*reinterpret_cast<int*>(ptr)).c_str());
-            }
-            fp = fp->prev;
-        } while (fp != nullptr);
-        REPORT_APPEND("\n");
-
-        loop_end:
-    }
-
-    DEBUG("ERR:Modules");
-    os << "Modules:\n";
-    for (int i = 0; i < hk::ro::getNumModules(); ++i) {
-        auto module = hk::ro::getModuleByIndex(i);
-        REPORT_APPEND(" %s: 0x%016lx-0x%016lx\n", module->getModuleName(), module->range().start(), module->range().end());
-    }
-
-    DEBUG("ERR:Registers");
-    if (info != nullptr) {
-        os << "Registers:\n";
-        for (int i = 0; i < 29; ++i) {
-            REPORT_APPEND(" X%-2d 0x%016lx %ld\n", i, info->CpuRegisters[i].x, info->CpuRegisters[i].x);
-        }
-        REPORT_APPEND(" FP  0x%016lx %ld\n", info->FP.x, info->FP.x);
-        REPORT_APPEND(" LR  0x%016lx %ld\n", info->LR.x, info->LR.x);
-        REPORT_APPEND(" SP  0x%016lx %ld\n", info->SP.x, info->SP.x);
-        REPORT_APPEND(" PC  0x%016lx %ld\n", info->PC.x, info->PC.x);
-        if (info->PC.x != 0) {
-            REPORT_APPEND("  %s", disasm(*reinterpret_cast<int*>(info->PC.x - 4)).c_str());
-        }
-    } else {
-        os << "Registers: [unknown]\n";
-    }
-
-    // FIXME: Crashes on render thread
-    Logger::log("!!!Abort!!!\n%s\n",  exceptionBuffer.get().c_str());
-    MessageUtil::popup(resCode, "!!!Abort!!!", exceptionBuffer.get());
-}
-
-#ifdef __RTLD_PAST_13XX__
-HkTrampoline<void, char const*, char const*, char const*, int, nn::Result const*, nn::os::UserExceptionInfo const*, char const*, std::va_list&> AbortHook = hk::hook::trampoline([](char const* cond, char const* func, char const* file, int code, nn::Result const* res, nn::os::UserExceptionInfo const* info, char const* fmt, std::va_list& args) {
-#else
-HkTrampoline<void, char const*, char const*, char const*, int, nn::Result const*, nn::os::UserExceptionInfo const*, nn::diag::MetaLogContext const&, char const*, std::va_list> AbortHook = hk::hook::trampoline([](char const* cond, char const* func, char const* file, int code, nn::Result const* res, nn::os::UserExceptionInfo const* info, nn::diag::MetaLogContext const& ctx, char const* fmt, std::va_list args) {
-#endif
-    const char* funcLog;
-    const char* fileLog;
-    const char* reasonLog;
-    if (strlen(func) == 0) {
-        funcLog = "[unknown function]";  // TODO: Print offset from module?
-    } else {
-        funcLog = func;
-    }
-    if (strlen(file) == 0) {
-        fileLog = "[unknown file]";
-    } else {
-        fileLog = file;
-    }
-    if (strlen(cond) == 0) {
-        reasonLog = "[unknown reason]";
-    } else {
-        reasonLog = cond;
-    }
-
-    reportException(info, funcLog, fileLog, code, reasonLog, res->GetInnerValueForDebug());
-
-#ifdef __RTLD_PAST_13XX__
-    AbortHook.orig(cond, func, file, code, res, info, fmt, args);
-#else
-    AbortHook.orig(cond, func, file, code, res, info, ctx, fmt, args);
-#endif
-});
-
-alignas(0x10) static char exceptionStack[0x4000];
-static nn::os::UserExceptionInfo exceptionStorage;
-void handleUserException(nn::os::UserExceptionInfo* info) {
-    reportException(info, nullptr, nullptr, 0, nullptr, -1);
-    nn::os::DefaultUserExceptionHandler(info);
-}
 
 #ifdef ENABLE_FS_LOG
 static char buffer[0x200];
@@ -383,28 +128,21 @@ HkTrampoline<bool> fsEnableDebugLogHook = hk::hook::trampoline([]() {
 });
 
 HkTrampoline<void, char const*> fsDebugLogHook = hk::hook::trampoline([](char const* msg) {
-    // va_list args;
-    // va_start(args, msg);
-    // char buffer[0x200];
-    // vsnprintf(buffer, sizeof(buffer) - 1, msg, args);
     snprintf(buffer, sizeof(buffer) - 1, msg);
     buffer[0x200 - 1] = 0;
     Logger::log("FS Access Debug: %s", buffer);
-    // va_end(args);
 });
 #endif
 
 extern "C" extern void nnMain();
 
+void error_init();
 void mod_init();
 extern "C" void hkMain() {
     // Do common init/hooks
     MainInitHook.installAtPtr(&nnMain);
 
-    AbortHook.installAtPtr(&nn::diag::detail::VAbortImpl);
-
-    nn::os::SetUserExceptionHandler(&handleUserException, &exceptionStack, sizeof(exceptionStack), &exceptionStorage);
-    nn::os::EnableUserExceptionHandlerOnDebugging(true);
+    error_init();
 
 #ifdef ENABLE_FS_LOG
     fsErrorResultLogHook.installAtPtr(&nn::fs::detail::LogResultErrorMessage);

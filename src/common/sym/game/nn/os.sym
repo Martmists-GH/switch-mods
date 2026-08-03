@@ -49,3 +49,9 @@ _ZN2nn2os27DefaultUserExceptionHandlerEPNS0_17UserExceptionInfoE
 
 // nn::os::EnableUserExceptionHandlerOnDebugging(bool)
 _ZN2nn2os37EnableUserExceptionHandlerOnDebuggingEb
+
+// nn::os::GetCurrentThread()
+_ZN2nn2os16GetCurrentThreadEv
+
+// nn::os::GetThreadId(nn::os::ThreadType const*)
+_ZN2nn2os11GetThreadIdEPKNS0_10ThreadTypeE

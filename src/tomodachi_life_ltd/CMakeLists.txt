@@ -9,5 +9,5 @@ create_mod(
         TITLE_ID "010051F0207B2000"
         GAME_TITLE "Tomodachi Life: Living The Dream"
         SYSTEM_RESOURCE 0x00200000
-        BSS_HEAP_SIZE 0x40000
+        BSS_HEAP_SIZE 0x80000
 )

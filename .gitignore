@@ -11,6 +11,7 @@ commissions.cmake
 .python_env/
 tools/sail
 tools/compress_font
+tools/uam
 
 ### STL
 lib/std

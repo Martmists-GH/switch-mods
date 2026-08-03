@@ -1,0 +1,4 @@
+@game = touhou_luna_nights.nss
+105 = 9DAA2C55E89B82D179026AD4B85268BF
+
+@sdk = nnSdk

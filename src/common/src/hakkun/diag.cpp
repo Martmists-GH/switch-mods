@@ -18,9 +18,9 @@ namespace hk::diag {
         char buffer[std::max(len + 1, 19)];
         memset(buffer, 0, len + 1);
         if (len > 0) {
-            std::vsnprintf(buffer, len, msgFmt, arg);
-            svc::OutputDebugString(buffer, strlen(buffer));
-            buffer[len] = '\0';
+            std::vsnprintf(buffer, len + 1, msgFmt, arg);
+            svc::OutputDebugString(buffer, len + 1);
+            buffer[len + 1] = '\0';
         } else {
             strcpy(buffer, "(formatting error)");
             buffer[18] = '\0';

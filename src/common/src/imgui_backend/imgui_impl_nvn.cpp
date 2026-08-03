@@ -1,5 +1,4 @@
 #include <cmath>
-#include <cstring>
 #include "game_constants.h"
 
 #ifdef IMGUI_ENABLED
@@ -13,13 +12,10 @@
 
 #include "util/InputUtil.h"
 #include "MemoryPoolMaker.h"
-#include "nn/oe.h"
 #include "logger/logger.h"
 #include "checks.hpp"
 #include <nn/primitives.h>
 #include "util/common_utils.h"
-
-#include "game_constants.h"
 
 #ifdef WITH_MIGU_FONT
 #include "fonts/migu_1p.h"
@@ -83,106 +79,6 @@ namespace ImguiNvnBackend {
             return curId;
         }
     }
-
-    // places ImDrawVerts, starting at startIndex, that use the x,y,width, and height values to define vertex coords
-    void createQuad(ImDrawVert *verts, int startIndex, int x, int y, int width, int height, ImU32 col) {
-
-        float minXVal = x;
-        float maxXVal = x + width;
-        float minYVal = y; // 400
-        float maxYVal = y + height; // 400
-
-        // top left
-        ImDrawVert p1 = {
-                .pos = ImVec2(minXVal, minYVal),
-                .uv = ImVec2(0.0f, 0.0f),
-                .col = col
-        };
-        // top right
-        ImDrawVert p2 = {
-                .pos = ImVec2(minXVal, maxYVal),
-                .uv = ImVec2(0.0f, 1.0f),
-                .col = col
-        };
-        // bottom left
-        ImDrawVert p3 = {
-                .pos = ImVec2(maxXVal, minYVal),
-                .uv = ImVec2(1.0f, 0.0f),
-                .col = col
-        };
-        // bottom right
-        ImDrawVert p4 = {
-                .pos = ImVec2(maxXVal, maxYVal),
-                .uv = ImVec2(1.0f, 1.0f),
-                .col = col
-        };
-
-        verts[startIndex] = p4;
-        verts[startIndex + 1] = p2;
-        verts[startIndex + 2] = p1;
-
-        verts[startIndex + 3] = p1;
-        verts[startIndex + 4] = p3;
-        verts[startIndex + 5] = p4;
-    }
-
-    // this function is mainly what I used to debug the rendering of ImGui, so code is a bit messier
-    void renderTestShader(ImDrawData *drawData) {
-
-        auto bd = getBackendData();
-        auto io = ImGui::GetIO();
-
-        constexpr int triVertCount = 3;
-        constexpr int quadVertCount = triVertCount * 2;
-
-        int quadCount = 1; // modify to reflect how many quads need to be drawn per frame
-
-        int pointCount = quadVertCount * quadCount;
-
-        size_t totalVtxSize = pointCount * sizeof(ImDrawVert);
-        if (!bd->vtxBuffer || bd->vtxBuffer->GetPoolSize() < totalVtxSize) {
-            if (bd->vtxBuffer) {
-                bd->vtxBuffer->Finalize();
-                free(bd->vtxBuffer);
-            }
-            bd->vtxBuffer = new MemoryBuffer(totalVtxSize);
-            Logger::log("(Re)sized Vertex Buffer to Size: %d\n", totalVtxSize);
-        }
-
-        if (!bd->vtxBuffer->IsBufferReady()) {
-            Logger::log("Cannot Draw Data! Buffers are not Ready.\n");
-            return;
-        }
-
-        ImDrawVert *verts = (ImDrawVert *) bd->vtxBuffer->GetMemPtr();
-
-        float scale = 3.0f;
-
-        float imageX = 1 * scale; // bd->fontTexture.GetWidth();
-        float imageY = 1 * scale; // bd->fontTexture.GetHeight();
-
-        createQuad(verts, 0, (io.DisplaySize.x / 2) - (imageX), (io.DisplaySize.y / 2) - (imageY), imageX, imageY,
-                   IM_COL32_WHITE);
-
-        bd->cmdBuf->BeginRecording();
-        bd->cmdBuf->BindProgram(&bd->shaderProgram, nvn::ShaderStageBits::VERTEX | nvn::ShaderStageBits::FRAGMENT);
-
-        bd->cmdBuf->BindUniformBuffer(nvn::ShaderStage::VERTEX, 0, *bd->uniformMemory, UBOSIZE);
-        bd->cmdBuf->UpdateUniformBuffer(*bd->uniformMemory, UBOSIZE, 0, sizeof(projMatrix), &projMatrix);
-
-        bd->cmdBuf->BindVertexBuffer(0, (*bd->vtxBuffer), bd->vtxBuffer->GetPoolSize());
-
-        setRenderStates();
-
-//        bd->cmdBuf->BindTexture(nvn::ShaderStage::FRAGMENT, 0, bd->fontTexHandle);
-
-        bd->cmdBuf->DrawArrays(nvn::DrawPrimitive::TRIANGLES, 0, pointCount);
-
-        auto handle = bd->cmdBuf->EndRecording();
-        bd->queue->SubmitCommands(1, &handle);
-    }
-
-// backend impl
 
     NvnBackendData *getBackendData() {
         NvnBackendData *result = ImGui::GetCurrentContext() ? (NvnBackendData *) ImGui::GetIO().BackendRendererUserData
@@ -427,10 +323,10 @@ namespace ImguiNvnBackend {
 
         io.Fonts->AddFontDefault();
 
-        Logger::log("Adding Migu 1P Font.\n");
         ImFontConfig config;
         config.MergeMode = true;
 #ifdef WITH_MIGU_FONT
+        Logger::log("Adding Migu 1P Font.\n");
         io.Fonts->AddFontFromMemoryCompressedTTF(&migu_1p_compressed_data, migu_1p_compressed_size, 18.0f, &config, io.Fonts->GetGlyphRangesJapanese());
         io.Fonts->AddFontFromMemoryCompressedTTF(&migu_1p_compressed_data, migu_1p_compressed_size, 18.0f, &config, io.Fonts->GetGlyphRangesChineseFull());
 #endif

@@ -37,6 +37,7 @@ include_directories(
     ${LIBSTD_PATH}/llvm-project/build/include/c++/v1
     ${LIBSTD_PATH}/llvm-project/libunwind/include
     ${LIBSTD_PATH}/llvm-project/libc/include
+    ${LIBSTD_PATH}/llvm-project/libc
 #    ${LIBSTD_PATH}/llvm-project/libcxx/include
     ${LIBSTD_PATH}/musl/include
     ${LIBSTD_PATH}/musl/obj/include
@@ -72,7 +73,8 @@ set(ARCH "--target=${TARGET_TRIPLE} -march=${MARCH} -mtune=cortex-a57 -fPIC -nod
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARCH} -Werror=return-type -Wno-invalid-offsetof")
 # For clang 21 once I figure out why it doesn't link fakesymbols.so:
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARCH} -Werror=return-type -Wno-invalid-offsetof -Wno-error=uninitialized-const-pointer -Wno-error=unterminated-string-initialization")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ARCH} ${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections -fno-exceptions -frtti")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ARCH} ${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections -fno-exceptions -frtti")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ARCH} ${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections -frtti")
 set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${ARCH}")
 list(JOIN DEFAULTLIBS " " DEFAULTLIBS_STR)
 

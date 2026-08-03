@@ -33,7 +33,6 @@ void Logger::log(const char *fmt, va_list args) {
             listener(buffer, size);
         }
     }
-    // free(buffer);
 }
 
 void Logger::addListener(const LogCallback &callback) {

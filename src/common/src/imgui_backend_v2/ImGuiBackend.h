@@ -9,6 +9,7 @@ class ImGuiBackend {
     nvn::Device* m_device;
     nvn::Queue m_queue;
     nvn::CommandBuffer m_commandBuffer;
+    nvn::Program m_program;
     struct {
         nvn::MemoryPool m_pool;
         void* m_cmdPool;
