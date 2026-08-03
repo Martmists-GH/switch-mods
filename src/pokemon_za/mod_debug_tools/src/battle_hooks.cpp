@@ -1,5 +1,7 @@
 #include <hook_util.h>
 #include <hk/hook/Trampoline.h>
+
+#include "externals/ik/BasePokemonParam.h"
 #include "externals/pml/battle/Exp.h"
 #include "externals/pml/Capture.h"
 #include "externals/pml/pokepara/InitialSpec.h"
@@ -12,6 +14,7 @@ static bool isExpShareOn = true;
 static int expMultiplier = 1;
 static bool expMultiplierInvert = false;
 static bool alwaysMaxEnergy = false;
+static bool movesAlwaysActive = false;
 
 void setIsMustCapture(bool value) {
     isMustCapture = value;
@@ -31,6 +34,10 @@ void setExpMultiplierInvert(bool value) {
 
 void setAlwaysMaxEnergy(bool value) {
     alwaysMaxEnergy = value;
+}
+
+void setMovesAlwaysActive(bool value) {
+    movesAlwaysActive = value;
 }
 
 PokemonData s_dataForEncounter = {};
@@ -103,9 +110,16 @@ HkTrampoline<void, ik::TrainerComponent*, float> MegaEnergySetHook = hk::hook::t
     }
 });
 
+HkTrampoline<void, ik::FieldPokemonParam*, int, int> SetMoveTimeoutHook = hk::hook::trampoline([](ik::FieldPokemonParam* param, int waza, int type) {
+    if (!movesAlwaysActive) {
+        SetMoveTimeoutHook.orig(param, waza, type);
+    }
+});
+
 void battle_hooks() {
     CaptureHook.installAtPtr(pun<void*>(&pml::Capture::Judge));
     ExpCalcHook.installAtPtr(&pml::battle::Exp::CalcExp);
     ChangeEncounterHook.installAtPtr(pun<void*>(&pml::pokepara::InitialSpec::FixInitSpec));
     MegaEnergySetHook.installAtPtr(pun<void*>(&ik::TrainerComponent::SetMegaEnergy));
+    SetMoveTimeoutHook.installAtPtr(pun<void*>(&ik::FieldPokemonParam::SetWazaRecastTime));
 }

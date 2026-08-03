@@ -34,6 +34,7 @@ void setIsExpShareOn(bool value);
 void setExpMultiplier(int value);
 void setExpMultiplierInvert(bool value);
 void setAlwaysMaxEnergy(bool value);
+void setMovesAlwaysActive(bool value);
 
 namespace ik::ItemId {
     extern char* names[2635];
@@ -590,20 +591,20 @@ void setup_ui() {
             auto& mgr = ik::QuestManager::s_instance;
             if (ImGui::BeginCombo("Quest", (quest == nullptr) ? nullptr : questName)) {
                 ik::Quest* questContainer;
-                gfl::StringHolder filenameHolder{};
+                gfl::StringView filenameHolder{};
 
                 switch (type->selected) {
                     default:
                         questContainer = mgr.m_mainQuests;
-                        filenameHolder = gfl::StringHolder::Create("questlist_main");
+                        filenameHolder = gfl::StringView::Create("questlist_main");
                         break;
                     case 1:
                         questContainer = mgr.m_subQuests;
-                        filenameHolder = gfl::StringHolder::Create("questlist_sub");
+                        filenameHolder = gfl::StringView::Create("questlist_sub");
                         break;
                     case 2:
                         questContainer = mgr.m_labQuests;
-                        filenameHolder = gfl::StringHolder::Create("questlist_mj");
+                        filenameHolder = gfl::StringView::Create("questlist_mj");
                         break;
                 }
 
@@ -616,8 +617,8 @@ void setup_ui() {
 
                 std::ranges::sort(quests, [&filenameHolder](const ik::quest::Quest* a, const ik::quest::Quest* b) {
                     if (a == nullptr || b == nullptr) return false;
-                    auto labelA = gfl::StringHolder::Create(&a->m_label->m_start);
-                    auto labelB = gfl::StringHolder::Create(&b->m_label->m_start);
+                    auto labelA = gfl::StringView::Create(&a->m_label->m_start);
+                    auto labelB = gfl::StringView::Create(&b->m_label->m_start);
                     auto strA = pe::text::lua::Text::GetText(&filenameHolder, &labelA);
                     auto strB = pe::text::lua::Text::GetText(&filenameHolder, &labelB);
 
@@ -626,7 +627,7 @@ void setup_ui() {
                 });
 
                 for (auto entry : quests) {
-                    auto entryLabel = gfl::StringHolder::Create(&entry->m_label->m_start);
+                    auto entryLabel = gfl::StringView::Create(&entry->m_label->m_start);
                     auto entryNamePtr = pe::text::lua::Text::GetText(&filenameHolder, &entryLabel);
 
                     if (entryNamePtr.m_ptr != nullptr) {
@@ -699,7 +700,7 @@ void setup_ui() {
             _.FunctionElement([]() {
                 if (quest != nullptr) {
                     auto& mgr = ik::FlagWorkManager::s_instance;
-                    auto holder = gfl::StringHolder::Create(&quest->m_work->m_start);
+                    auto holder = gfl::StringView::Create(&quest->m_work->m_start);
                     auto value = mgr.GetWorkValue(&holder);
                     ImGui::Text("%d", value);
                 }
@@ -712,11 +713,11 @@ void setup_ui() {
             _.Button([](Button &_) {
                 _.label = "Complete";
                 _.onClick = []() {
-                    auto holder = gfl::StringHolder::Create(&quest->m_id->m_start);
+                    auto holder = gfl::StringView::Create(&quest->m_id->m_start);
                     auto& mgr = ik::QuestManager::s_instance;
                     mgr.QuestComplete(&holder, true);
                     mgr.SendQuestProgressUpdate(quest, 1);
-                    auto work = gfl::StringHolder::Create(&quest->m_work->m_start);
+                    auto work = gfl::StringView::Create(&quest->m_work->m_start);
                     ik::FlagWorkManager::s_instance.SetWorkValue(&work, 255);
                 };
             });
@@ -724,7 +725,7 @@ void setup_ui() {
             _.Button([](Button &_) {
                 _.label = "Reset progress";
                 _.onClick = []() {
-                    auto work = gfl::StringHolder::Create(&quest->m_work->m_start);
+                    auto work = gfl::StringView::Create(&quest->m_work->m_start);
                     ik::FlagWorkManager::s_instance.SetWorkValue(&work, 0);
                     auto& mgr = ik::QuestManager::s_instance;
                     mgr.SendQuestProgressUpdate(quest, 1);
@@ -760,7 +761,7 @@ void setup_ui() {
 
                             ImGui::BeginColumns("##actions", 3);
                             if (ImGui::Button("Set active")) {
-                                auto holder = gfl::StringHolder::Create(&quest->m_work->m_start);
+                                auto holder = gfl::StringView::Create(&quest->m_work->m_start);
                                 ik::FlagWorkManager::s_instance.SetWorkValue(&holder, item->m_id);
                                 auto& mgr = ik::QuestManager::s_instance;
                                 mgr.SendQuestProgressUpdate(quest, 1);
@@ -998,6 +999,9 @@ void setup_ui() {
             });
             _.Checkbox("Always Max Mega Energy", [](bool it){
                 setAlwaysMaxEnergy(it);
+            });
+            _.Checkbox("Disable move cooldowns", [](bool it) {
+                setMovesAlwaysActive(it);
             });
         });
 
@@ -1255,51 +1259,51 @@ void setup_ui() {
             });
             _.Row([](Row &_) {
                 _.Button("Sunny", []() {
-                    gfl::StringHolder holder = gfl::StringHolder::Create("sunny");
+                    gfl::StringView holder = gfl::StringView::Create("sunny");
                     gfa::EventContext ctx = gfa::EventContext::make(&holder);
                     ik::EventSystemCallFunctions::FixWeather(&ctx);
                 });
                 _.Button("Cloudy", []() {
-                    gfl::StringHolder holder = gfl::StringHolder::Create("cloudy");
+                    gfl::StringView holder = gfl::StringView::Create("cloudy");
                     gfa::EventContext ctx = gfa::EventContext::make(&holder);
                     ik::EventSystemCallFunctions::FixWeather(&ctx);
                 });
                 _.Button("Rain", []() {
-                    gfl::StringHolder holder = gfl::StringHolder::Create("rain");
+                    gfl::StringView holder = gfl::StringView::Create("rain");
                     gfa::EventContext ctx = gfa::EventContext::make(&holder);
                     ik::EventSystemCallFunctions::FixWeather(&ctx);
                 });
             });
             _.Row([](Row &_) {
                 _.Button("Storm", []() {
-                    gfl::StringHolder holder = gfl::StringHolder::Create("storm");
+                    gfl::StringView holder = gfl::StringView::Create("storm");
                     gfa::EventContext ctx = gfa::EventContext::make(&holder);
                     ik::EventSystemCallFunctions::FixWeather(&ctx);
                 });
                 _.Button("Snow", []() {
-                    gfl::StringHolder holder = gfl::StringHolder::Create("snow");
+                    gfl::StringView holder = gfl::StringView::Create("snow");
                     gfa::EventContext ctx = gfa::EventContext::make(&holder);
                     ik::EventSystemCallFunctions::FixWeather(&ctx);
                 });
                 _.Button("Snowstorm", []() {
-                    gfl::StringHolder holder = gfl::StringHolder::Create("snowstorm");
+                    gfl::StringView holder = gfl::StringView::Create("snowstorm");
                     gfa::EventContext ctx = gfa::EventContext::make(&holder);
                     ik::EventSystemCallFunctions::FixWeather(&ctx);
                 });
             });
             _.Row([](Row &_) {
                 _.Button("Diamonddust", []() {
-                    gfl::StringHolder holder = gfl::StringHolder::Create("diamonddust");
+                    gfl::StringView holder = gfl::StringView::Create("diamonddust");
                     gfa::EventContext ctx = gfa::EventContext::make(&holder);
                     ik::EventSystemCallFunctions::FixWeather(&ctx);
                 });
                 _.Button("Sandstorm", []() {
-                    gfl::StringHolder holder = gfl::StringHolder::Create("sandstorm");
+                    gfl::StringView holder = gfl::StringView::Create("sandstorm");
                     gfa::EventContext ctx = gfa::EventContext::make(&holder);
                     ik::EventSystemCallFunctions::FixWeather(&ctx);
                 });
                 _.Button("Mist", []() {
-                    gfl::StringHolder holder = gfl::StringHolder::Create("mist");
+                    gfl::StringView holder = gfl::StringView::Create("mist");
                     gfa::EventContext ctx = gfa::EventContext::make(&holder);
                     ik::EventSystemCallFunctions::FixWeather(&ctx);
                 });

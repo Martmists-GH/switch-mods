@@ -7,7 +7,7 @@
 namespace gfl {
     struct SizedHeap;
 
-    struct IRefCountObject : ExternalInterface<IRefCountObject> {
+    struct IReferenceObject : ExternalInterface<IReferenceObject> {
         struct vtable {
             void* unk1;  // Destructor?
             void* unk2;  // Destructor?
@@ -17,7 +17,7 @@ namespace gfl {
     };
 
     struct IObjectHandler : ExternalInterface<IObjectHandler> {
-        struct vtable : gfl::IRefCountObject::vtable {
+        struct vtable : gfl::IReferenceObject::vtable {
             void* GetHandle;
             void* GetWeakHandle;
             void* unk7;  // GetReflection?
@@ -29,9 +29,9 @@ namespace gfl {
         gfl::Reflection* m_parent;
     };
 
-    struct IObjectWithReflection : ExternalType<IObjectWithReflection> {
+    struct IReflectionObject : ExternalInterface<IReflectionObject> {
         struct vtable {
-            gfl::Reflection*(*GetReflection)(gfl::IObjectWithReflection*);
+            gfl::Reflection*(*GetReflection)(gfl::IReflectionObject*);
             void* unk2;
             void* unk3;
             void* unk4;
@@ -41,14 +41,12 @@ namespace gfl {
             void* unk8;
             void* unk9;
         };
-
-        struct fields { };
     };
 
     struct IndexedHandle {
         long m_id;
         gfl::Reflection* m_Reflection;
-        gfl::IObjectWithReflection::instance* m_IObjectWithReflection;
+        gfl::IReflectionObject::instance* m_IObjectWithReflection;
         short m_weakReferenceCount;
         short m_instanceCount;
         char unk[0x4];
@@ -56,7 +54,8 @@ namespace gfl {
 
     static_assert(sizeof(IndexedHandle) == 0x20);
 
-    struct AllocatedObject : ExternalType<AllocatedObject> {
+    template <bool large = false>
+    struct MemoryObject : ExternalType<MemoryObject<large>> {
         struct vtable {
             void* destructor;
             void* destructor2;
@@ -65,14 +64,14 @@ namespace gfl {
         struct fields {
             gfl::SizedHeap* m_resource;
             void* m_ptr;
-            short m_size;
-            short m_align;
+            std::conditional_t<large, int, short> m_size;
+            std::conditional_t<large, int, short> m_align;
             char _pad[0x4];
         };
 
         static_assert(sizeof(fields) == 0x18);
 
-        AllocatedObject::instance* copy();
+        MemoryObject::instance* copy();
     };
 
     struct SizedHeap : ExternalType<SizedHeap> {
@@ -155,25 +154,16 @@ namespace gfl {
         static uint32_t s_managerCount;
     };
 
-    template <typename T>
-    struct TypedHandle {
-        gfl::IndexedHandle* m_handle;
-        long m_id;
-
-
-        T* Get() {
-            auto ref = m_handle->m_IObjectWithReflection;
-            // Requires T to have `fields` with `m_IReflectionObject`
-            return static_cast<T*>(reinterpret_cast<ulong>(ref) - offsetof(T, fields.m_IReflectionObject));
-        }
-    };
-
-    static_assert(sizeof(TypedHandle<void>) == 0x10);
-
     typedef void (*editRefType)(void* thiz);
 
-    struct Object : ExternalType<Object> {
-        struct vtable : AllocatedObject::vtable {
+    template <typename T = IReflectionObject>
+    struct ObjectHandle {
+        long m_id;
+    };
+
+    template <bool large = false>
+    struct Object : ExternalType<Object<large>> {
+        struct vtable : MemoryObject<large>::vtable {
             void* GetReflection;
             void* GetHandle;
             void* GetWeakHandle;
@@ -189,37 +179,36 @@ namespace gfl {
 
         static_assert(sizeof(vtable) == 0x68);
 
-        struct fields : AllocatedObject::fields {
-            gfl::IObjectHandler::instance* m_IObjectHandler;
-            gfl::IObjectWithReflection::instance* m_IObjectWithReflection;
-            gfl::TypedHandle<gfl::IObjectWithReflection> m_handle;
+        struct fields : MemoryObject<large>::fields {
+            gfl::IObjectHandler::instance m_IObjectHandler;
+            gfl::IReflectionObject::instance m_IObjectWithReflection;
+            gfl::ObjectHandle<> m_handle;
+            gfl::IndexedHandle* m_referenceCount;
         };
 
-        static_assert(offsetof(fields, m_IObjectWithReflection) == 0x20);
         static_assert(sizeof(fields) == 0x38);
     };
 
-    static_assert(sizeof(Object::instance) == 0x40);
-
-    struct ReferenceObject : ExternalType<ReferenceObject> {
-        struct vtable : gfl::AllocatedObject::vtable {
+    template <bool large = false>
+    struct ReferenceObject : ExternalType<ReferenceObject<large>> {
+        struct vtable : gfl::MemoryObject<large>::vtable {
             editRefType OnZeroReference;
             editRefType IncrementReference;
             editRefType DecrementReference;
         };
 
-        struct fields : gfl::AllocatedObject::fields {
-            IRefCountObject::instance m_RefCountObject;
+        struct fields : gfl::MemoryObject<large>::fields {
+            IReferenceObject::instance m_RefCountObject;
             int m_referenceCount;
             // char _pad[0x4];
         };
     };
 
-    template <typename T = ReferenceObject>
-    struct RefPointer {
+    template <typename T>
+    struct IntrusivePtr {
         typename T::instance* m_ptr;
 
-        ~RefPointer() {
+        ~IntrusivePtr() {
             if (m_ptr != nullptr) {
                 m_ptr->vtable->DecrementReference(m_ptr);
             }

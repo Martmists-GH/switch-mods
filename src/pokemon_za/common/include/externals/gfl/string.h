@@ -4,33 +4,42 @@
 #include "externals/gfl/hash.h"
 
 namespace gfl {
-    struct StringContent {
+    struct StaticString {
         uint64_t m_hash;
         const char* m_string;
         size_t m_length;
     };
 
-    struct String : ExternalType<String> {
-        struct vtable : gfl::ReferenceObject::vtable {};
-        struct fields : gfl::ReferenceObject::fields {
-            gfl::StringContent m_content;
+    namespace impl {
+        struct String : ExternalType<String> {
+            struct vtable : gfl::ReferenceObject<>::vtable {};
+            struct fields : gfl::ReferenceObject<>::fields {
+                gfl::StaticString m_content;
+            };
         };
+
+        struct PooledString {
+
+        };
+    }
+
+    struct String {
+        gfl::impl::PooledString* m_string;
     };
-    static_assert(offsetof(String::instance, fields.m_content) == 0x30);
 
     // static_assert(offsetof(String::instance, fields.m_content) == 0x30);
     // static_assert(offsetof(String::instance, fields.m_content.m_string) == 0x38);
 
-    struct StringHolder {
-        gfl::StringContent m_content;
-        gfl::String* m_object;
+    struct StringView {
+        gfl::StaticString m_content;
+        gfl::String m_object;
 
-        static StringHolder Create(const char* content) {
-            auto holder = StringHolder { };
+        static StringView Create(const char* content) {
+            auto holder = StringView { };
             holder.m_content.m_hash = gfl::FnvHash64::hash(content);
             holder.m_content.m_string = content;
             holder.m_content.m_length = strlen(content);
-            holder.m_object = nullptr;
+            holder.m_object.m_string = nullptr;
             return holder;
         }
     };

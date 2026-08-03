@@ -9,7 +9,7 @@ namespace ik {
         ik::Quest* m_subQuests;
         ik::Quest* m_labQuests;
 
-        void QuestComplete(gfl::StringHolder* quest, bool unk);
+        void QuestComplete(gfl::StringView* quest, bool unk);
         void SendQuestProgressUpdate(ik::quest::Quest* quest, int type);
     };
 }

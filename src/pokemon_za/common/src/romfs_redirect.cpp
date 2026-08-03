@@ -15,8 +15,8 @@ namespace gfl::fs {
     };
 
     struct Path {
-        gfl::String::instance* m_string;
-        gfl::StringHolder m_stringHolder;
+        gfl::String m_string;
+        gfl::StringView m_stringHolder;
         uint8_t m_type;
     };
 

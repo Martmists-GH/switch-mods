@@ -90,7 +90,7 @@ void registerLuaUtils(lua_State *L) {
 }
 
 static int counter = 0;
-HkTrampoline<void, hxlua::State*, char*, uint64_t, gfl::StringHolder*> AfterMainHook = hk::hook::trampoline([](hxlua::State* state, char* buffer, uint64_t bufferSize, gfl::StringHolder* fileName){
+HkTrampoline<void, hxlua::State*, char*, uint64_t, gfl::StringView*> AfterMainHook = hk::hook::trampoline([](hxlua::State* state, char* buffer, uint64_t bufferSize, gfl::StringView* fileName){
     AfterMainHook.orig(state, buffer, bufferSize, fileName);
 
     auto L = state->L;
