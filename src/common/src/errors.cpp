@@ -87,16 +87,16 @@ static std::string disasm(uint32_t* insnPtr) {
     return ".unknown";
 #endif
 
-    auto [funcName, offset] = functionAt((uintptr_t)insnPtr);
-
     // BL
     if ((insn & 0xFC000000) == 0x94000000) {
         int32_t imm = sign_extend(insn & 0x03FFFFFF, 26) << 2;
-        if (funcName.has_value()) {
-            if (offset == 0) {
-                return std::format("bl {}", funcName.value());
+        auto [targetFuncName, targetOffset] = functionAt((uintptr_t)insnPtr);
+
+        if (targetFuncName.has_value()) {
+            if (targetOffset == 0) {
+                return std::format("bl {}", targetFuncName.value());
             } else {
-                return std::format("bl {}+{}", funcName.value(), offset);
+                return std::format("bl {}+{}", targetFuncName.value(), targetOffset);
             }
         }
         return std::format("bl {:+#x}", ((uintptr_t)insnPtr) + imm);

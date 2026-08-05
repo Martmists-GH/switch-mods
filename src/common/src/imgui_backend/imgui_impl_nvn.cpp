@@ -351,18 +351,7 @@ namespace ImguiNvnBackend {
     }
 
     void updateInput() {
-        if(!InputUtil::isInputToggled()) {
-            return;
-        }
-
         ImGuiIO &io = ImGui::GetIO();
-
-        for (auto [im_k, nx_k]: npad_mapping) {
-            if (InputUtil::isButtonPress(static_cast<nn::hid::NpadButton>(nx_k)))
-                io.AddKeyEvent(static_cast<ImGuiKey>(im_k), true);
-            else if (InputUtil::isButtonRelease(static_cast<nn::hid::NpadButton>(nx_k)))
-                io.AddKeyEvent(static_cast<ImGuiKey>(im_k), false);
-        }
 
         InputUtil::getMouseCoords(&io.MousePos.x, &io.MousePos.y);
 
@@ -394,6 +383,16 @@ namespace ImguiNvnBackend {
             }
         }
 
+        if(!InputUtil::isInputToggled()) {
+            return;
+        }
+
+        for (auto [im_k, nx_k]: npad_mapping) {
+            if (InputUtil::isButtonPress(static_cast<nn::hid::NpadButton>(nx_k)))
+                io.AddKeyEvent(static_cast<ImGuiKey>(im_k), true);
+            else if (InputUtil::isButtonRelease(static_cast<nn::hid::NpadButton>(nx_k)))
+                io.AddKeyEvent(static_cast<ImGuiKey>(im_k), false);
+        }
     }
 
     void newFrame() {

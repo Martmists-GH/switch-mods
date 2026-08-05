@@ -62,6 +62,7 @@ function(create_mod name folder)
     # Hakkun addons
     if (${MODULE_ARGS_WITH_IMGUI})
         list(APPEND ALL_INCLUDE
+            ${PROJECT_SOURCE_DIR}/lib/inja/single_include
             ${PROJECT_SOURCE_DIR}/lib/imgui
         )
         list(APPEND ALL_SOURCE
@@ -315,6 +316,7 @@ function(create_mod_variant module variant title_id game)
 
         nnsdk
         nlohmann_json
+        pugixml-static
         MbedTLS::mbedtls
 
         -nodefaultlibs

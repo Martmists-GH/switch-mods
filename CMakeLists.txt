@@ -17,6 +17,7 @@ endif ()
 include(${CMAKE_CURRENT_SOURCE_DIR}/config.cmake)
 
 add_subdirectory(lib/json)
+add_subdirectory(lib/pugixml)
 add_subdirectory(lib/mbedtls)
 add_subdirectory(lib/nnsdk)
 

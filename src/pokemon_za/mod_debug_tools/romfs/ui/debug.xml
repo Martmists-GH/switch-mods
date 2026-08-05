@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Root xmlns="https://schema.yourdomain.com/ui"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="../../../../common/src/newui/newui.xsd">
+  <MainMenuBar>
+    <Menu label="Windows">
+      <MenuItem key="show_optional_window" label="Optional Window" />
+    </Menu>
+  </MainMenuBar>
+
+  <Window label="NewUI" position="50,50" size="600,400">
+    <Row>
+      <Column weight="2">
+        <Text content="a" />
+        <CollapsingHeader label="Pages">
+          {% for item in ["Home", "Settings"] %}
+            <Spacing />
+            <Selectable key="page" label="{{ item }}" value="{{ lower(item) }}" />
+          {% endfor %}
+        </CollapsingHeader>
+      </Column>
+      <Column weight="7">
+        {% set currentPage = default(page, "home") %}
+        <Include source="{{ ROM_MOUNT }}:/ui/{{ currentPage }}.xml" />
+        <Button label="Test Button" onclick="debug.reload" />
+      </Column>
+    </Row>
+  </Window>
+
+  <Window label="Optional Window" open="show_optional_window">
+    <Text content="Page: {{ currentPage }}" />
+  </Window>
+</Root>

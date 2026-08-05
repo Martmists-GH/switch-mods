@@ -22,3 +22,9 @@
 [submodule "lib/uam-nvn"]
 	path = lib/uam-nvn
 	url = https://github.com/nvnprogram/uam-nvn
+[submodule "lib/inja"]
+	path = lib/inja
+	url = https://github.com/pantor/inja
+[submodule "lib/pugixml"]
+	path = lib/pugixml
+	url = https://github.com/zeux/pugixml
