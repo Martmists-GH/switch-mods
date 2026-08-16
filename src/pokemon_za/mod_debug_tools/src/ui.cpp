@@ -27,15 +27,18 @@
 #include "externals/pml/personal/PersonalSystem.h"
 #include "imgui_ext.h"
 #include "flag_work.h"
+#include "lua_ext/directory_loader.h"
 
 using namespace ui;
 
-void setIsMustCapture(bool value);
-void setIsExpShareOn(bool value);
-void setExpMultiplier(int value);
-void setExpMultiplierInvert(bool value);
-void setAlwaysMaxEnergy(bool value);
-void setMovesAlwaysActive(bool value);
+extern "C" {
+void hook_setIsMustCapture(bool value);
+void hook_setIsExpShareOn(bool value);
+void hook_setExpMultiplier(int value);
+void hook_setExpMultiplierInvert(bool value);
+void hook_setAlwaysMaxEnergy(bool value);
+void hook_setMovesAlwaysActive(bool value);
+}
 
 namespace ik::ItemId {
     extern char* names[2635];
@@ -350,97 +353,45 @@ static bool ImguiHeapData(gfl::SizedHeap::instance* heap, HeapMeta &meta) {
     return true;
 }
 
+static nlohmann::json GetMessage(const char* file, const char* msg) {
+    auto filev = gfl::StringView::Create(file);
+    auto msgv = gfl::StringView::Create(msg);
+    auto res = pe::text::lua::Text::GetText(&filev, &msgv);
+
+    if (res.m_ptr == nullptr) {
+        return nullptr;
+    }
+    auto asJson = nlohmann::json(res.m_ptr->asString());
+
+    return asJson;
+}
+
+static int lua_GetMessage(lua_State* L) {
+    auto file = lua_tostring(L, 1);
+    auto msg = lua_tostring(L, 2);
+    lua_pop(L, 2);
+
+    auto res = GetMessage(file, msg);
+    if (res.is_null()) {
+        lua_pushnil(L);
+    } else {
+        lua_pushstring(L, res.get_ref<std::string&>().c_str());
+    }
+
+    return 1;
+}
+
 void setup_ui() {
-    // static auto perfWindow = ROOT.Window([](Window &_) {
-    //     _.title = "Performance";
-    //     _.sticky = true;
-    //     _.open = false;
-    //     _.toggleable = true;
-    //     _.initialPos = ImVec2(800, 50);
-    //     _.initialSize = ImVec2(450, 280);
-    //
-    //     _.TextSeparator("FPS");
-    //
-    //     static nn::TimeSpan lastTick = nn::os::ConvertToTimeSpan(nn::os::GetSystemTick());
-    //     static std::array<float, 120> counts = {0};
-    //     _.FunctionElement([]() {
-    //         nn::TimeSpan curTick = nn::os::ConvertToTimeSpan(nn::os::GetSystemTick());
-    //         float deltaTime = (curTick.nanoseconds - lastTick.nanoseconds) / 1e9f;
-    //         lastTick = curTick;
-    //
-    //         for (size_t i = 0; i < counts.size() - 1; ++i) {
-    //             counts[i] = counts[i + 1];
-    //         }
-    //         counts.back() = deltaTime;
-    //
-    //         float sum = 0.0f, minFT = FLT_MAX, maxFT = 0.0f;
-    //         for (float t : counts) {
-    //             sum += t;
-    //             minFT = std::min(minFT, t);
-    //             maxFT = std::max(maxFT, t);
-    //         }
-    //
-    //         float avgFT = sum / counts.size();
-    //         float fps = 1.0f / avgFT;
-    //
-    //         std::array<float, 120> sorted = counts;
-    //         std::sort(sorted.begin(), sorted.end());
-    //         auto pct = [&](float p) {
-    //             float idx = p * (sorted.size() - 1);
-    //             size_t i0 = idx;
-    //             size_t i1 = std::min(i0 + 1, sorted.size() - 1);
-    //             float t = idx - i0;
-    //             return std::lerp(sorted[i0], sorted[i1], t);
-    //         };
-    //
-    //         float p50 = pct(0.50f);
-    //         float p90 = pct(0.90f);
-    //         float p99 = pct(0.99f);
-    //
-    //         const size_t shortWindow = 30;
-    //         float shortSum = 0.0f;
-    //         for (size_t i = counts.size() - shortWindow; i < counts.size(); ++i) {
-    //             shortSum += counts[i];
-    //         }
-    //         float shortAvg = shortSum / shortWindow;
-    //         float shortFPS = 1.0f / shortAvg;
-    //
-    //         ImGui::Text("FPS (120-frame avg): %.2f", fps);
-    //         ImGui::Text("FPS (last 30): %.2f", shortFPS);
-    //         ImGui::Text("Frame Time:\n avg %.3f ms\n min %.3f\n max %.3f", avgFT * 1000.0f, minFT * 1000.0f, maxFT * 1000.0f);
-    //         ImGui::Text("Percentiles:\n P50 %.3f ms\n P90 %.3f ms\n P99 %.3f ms", p50 * 1000.0f, p90 * 1000.0f, p99 * 1000.0f);
-    //
-    //         ImGui::PlotLines("Frame Times (ms)", counts.data(), counts.size(), 0,
-    //                          nullptr, 0.0f, 0.2f);
-    //     });
-    //
-    //     _.TextSeparator("Memory");
-    //
-    //     constexpr size_t HEAPMETA_MAX = 550;
-    //     static std::array<HeapMeta, HEAPMETA_MAX> heapInfo = {};
-    //     _.FunctionElement([]() {
-    //         ImGui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoBorder);
-    //         uint32_t j = 0;
-    //         if (ImguiHeapData(gfl::SizedHeap::s_globalHeap, heapInfo[j++])) ImGui::NextColumn();
-    //         for (uint32_t i = 0; i < gfl::HeapManager::s_managerCount; i++) {
-    //             auto manager = (&gfl::HeapManager::s_managerList)[i];
-    //             for (int k = 0; k < manager->GetCount(); k++) {
-    //                 auto heap = manager->GetHeap(k);
-    //                 if (j + 1 >= HEAPMETA_MAX) {
-    //                     j++;
-    //                 } else {
-    //                     if (ImguiHeapData(heap, heapInfo[j++])) ImGui::NextColumn();
-    //                 }
-    //             }
-    //         }
-    //         ImGui::EndColumns();
-    //
-    //         ImGui::Separator();
-    //         auto stats = GetGlobalHeapState();
-    //         ImGui::Text("GlobalHeap Wrapper: Allocated %d/%d objects", stats.first, stats.second);
-    //         ImGui::Text("HeapMeta: Using %d/%d heaps", j, HEAPMETA_MAX);
-    //     });
-    // });
+    static auto perfWindow = ROOT.Window([](Window &_) {
+        _.title = "Performance";
+        _.sticky = true;
+        _.open = false;
+        _.toggleable = true;
+        _.initialPos = ImVec2(800, 50);
+        _.initialSize = ImVec2(450, 280);
+
+
+    });
     //
     // static auto partyWindow = ROOT.Window([](Window &_) {
     //     _.title = "Party Inspector";
@@ -1318,11 +1269,124 @@ void setup_ui() {
     Logger::log("Initializing renderer with XML\n");
     renderer.init(ROM_MOUNT ":/ui/debug.xml");
 
-    renderer.registerCallback<void>("debug.reload", [](nlohmann::json&) {
-        renderer.init(ROM_MOUNT ":/ui/debug.xml");
+    static bool didLoadMsg = false;
+    ROOT.callbacks.emplace_back([]() {
+        if (!didLoadMsg) {
+            didLoadMsg = true;
+            pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/pokedex.dat");
+            pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/seikaku.dat");
+            pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/level_up.dat");
+        }
     });
 
-    ROOT.callbacks.emplace_back([]() {
+    renderer.registerLua([](lua_State* L) {
+        lua_pushcfunction(L, lua_GetMessage);
+        lua_setglobal(L, "GetMessage");
+    });
+
+    renderer.registerRenderer("PerformanceFPS", [](newui::Renderer& renderer, const pugi::xml_node& node, const nlohmann::json& props, nlohmann::json& context) {
+        static std::map<std::string, nn::TimeSpan> allTicks;
+        static std::map<std::string, std::array<float, 120>> allCounts;
+
+        auto key = std::string(jsonutil::getString(props, "key", ""));
+        if (key.empty()) {
+            ImGui::TextUnformatted("<% ERROR: Missing attribute 'key' %>");
+            return;
+        }
+
+        if (!allTicks.contains(key)) {
+            allTicks[key] = nn::os::ConvertToTimeSpan(nn::os::GetSystemTick());
+            allCounts[key] = {0};
+        }
+
+        auto& lastTick = allTicks[key];
+        auto& counts = allCounts[key];
+
+        nn::TimeSpan curTick = nn::os::ConvertToTimeSpan(nn::os::GetSystemTick());
+        float deltaTime = (curTick.nanoseconds - lastTick.nanoseconds) / 1e9f;
+        allTicks[key] = curTick;
+
+        for (size_t i = 0; i < counts.size() - 1; ++i) {
+            counts[i] = counts[i + 1];
+        }
+        counts.back() = deltaTime;
+
+        float sum = 0.0f, minFT = FLT_MAX, maxFT = 0.0f;
+        for (float t : counts) {
+            sum += t;
+            minFT = std::min(minFT, t);
+            maxFT = std::max(maxFT, t);
+        }
+
+        float avgFT = sum / counts.size();
+        float fps = 1.0f / avgFT;
+
+        std::array<float, 120> sorted = counts;
+        std::sort(sorted.begin(), sorted.end());
+        auto pct = [&](float p) {
+            float idx = p * (sorted.size() - 1);
+            size_t i0 = idx;
+            size_t i1 = std::min(i0 + 1, sorted.size() - 1);
+            float t = idx - i0;
+            return std::lerp(sorted[i0], sorted[i1], t);
+        };
+
+        float p50 = pct(0.50f);
+        float p90 = pct(0.90f);
+        float p99 = pct(0.99f);
+
+        const size_t shortWindow = 30;
+        float shortSum = 0.0f;
+        for (size_t i = counts.size() - shortWindow; i < counts.size(); ++i) {
+            shortSum += counts[i];
+        }
+        float shortAvg = shortSum / shortWindow;
+        float shortFPS = 1.0f / shortAvg;
+
+        ImGui::Text("FPS (120-frame avg): %.2f", fps);
+        ImGui::Text("FPS (last 30): %.2f", shortFPS);
+        ImGui::Text("Frame Time:\n avg %.3f ms\n min %.3f\n max %.3f", avgFT * 1000.0f, minFT * 1000.0f, maxFT * 1000.0f);
+        ImGui::Text("Percentiles:\n P50 %.3f ms\n P90 %.3f ms\n P99 %.3f ms", p50 * 1000.0f, p90 * 1000.0f, p99 * 1000.0f);
+
+        ImGui::PlotLines("Frame Times (ms)", counts.data(), counts.size(), 0,
+                         nullptr, 0.0f, 0.2f);
+    });
+
+    renderer.registerRenderer("PerformanceMemory", [](newui::Renderer& renderer, const pugi::xml_node& node, const nlohmann::json& props, nlohmann::json& context) {
+        constexpr size_t HEAPMETA_MAX = 550;
+        static std::array<HeapMeta, HEAPMETA_MAX> heapInfo = {};
+
+        auto cols = jsonutil::getInt(props, "columns", 2);
+
+        ImGui::BeginColumns(nullptr, cols, ImGuiOldColumnFlags_NoBorder);
+        uint32_t j = 0;
+        if (ImguiHeapData(gfl::SizedHeap::s_globalHeap, heapInfo[j++])) ImGui::NextColumn();
+        for (uint32_t i = 0; i < gfl::HeapManager::s_managerCount; i++) {
+            auto manager = (&gfl::HeapManager::s_managerList)[i];
+            for (int k = 0; k < manager->GetCount(); k++) {
+                auto heap = manager->GetHeap(k);
+                if (j + 1 >= HEAPMETA_MAX) {
+                    j++;
+                } else {
+                    if (ImguiHeapData(heap, heapInfo[j++])) ImGui::NextColumn();
+                }
+            }
+        }
+        ImGui::EndColumns();
+
+        ImGui::Separator();
+        auto stats = GetGlobalHeapState();
+        ImGui::Text("GlobalHeap Wrapper: Allocated %d/%d objects", stats.first, stats.second);
+        ImGui::Text("HeapMeta: Using %d/%d heaps", j, HEAPMETA_MAX);
+    });
+
+    renderer.registerCallback<void>("reload", [](nlohmann::json&) {
+        executeScriptsInDirectory(newui::obtainLuaState(), ROM_MOUNT ":/ui/script");
+        renderer.init(ROM_MOUNT ":/ui/debug.xml");
+        renderer.includeCache.clear();
+    });
+
+    ROOT.callbacks.emplace_back([] {
         renderer.render();
     });
 }

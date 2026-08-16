@@ -1,0 +1,583 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:ui="https://schema.yourdomain.com/ui"
+  targetNamespace="https://schema.yourdomain.com/ui"
+  elementFormDefault="qualified"
+>
+  <!-- Types -->
+  <xs:simpleType name="Color">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})" />
+      <xs:pattern value="rgb\(\s*(0(\.\d+)?|1(\.0+)?)\s*,\s*(0(\.\d+)?|1(\.0+)?)\s*,\s*(0(\.\d+)?|1(\.0+)?)\s*\)"/>
+      <xs:pattern value="rgba\(\s*(0(\.\d+)?|1(\.0+)?)\s*,\s*(0(\.\d+)?|1(\.0+)?)\s*,\s*(0(\.\d+)?|1(\.0+)?)\s*,\s*(0(\.\d+)?|1(\.0+)?)\s*\)"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Vec2">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="\d+(\.\d+)?\s*,\s*\d+(\.\d+)?" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Callback">
+    <xs:restriction base="xs:string">
+      <xs:pattern value=".+" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Json">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="(\{.*\}|\[.*\])"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Layout -->
+  <xs:element name="Root" type="ui:RootType" />
+  <xs:element name="Include" type="ui:IncludeType" />
+  <xs:element name="Child" type="ui:ChildType" />
+  <xs:element name="Row" type="ui:RowType" />
+  <xs:element name="Column" type="ui:ColumnType" />
+  <xs:element name="Columns" type="ui:ColumnsType" />
+
+  <xs:complexType name="RootType" mixed="true">
+    <xs:choice maxOccurs="unbounded">
+      <xs:element name="MainMenuBar" type="ui:MainMenuBarType" />
+      <xs:element name="Window" type="ui:WindowType" />
+      <xs:element name="Include" type="ui:IncludeType" />
+      <xs:element name="Style" type="ui:RootStyleType" />
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:complexType name="BaseContainerType" abstract="true" mixed="true">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="ui:BaseContainerGroup" />
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:group name="BaseContainerGroup">
+    <xs:choice>
+      <xs:element name="Columns" type="ui:ColumnsType" />
+      <xs:element name="Row" type="ui:RowType" />
+      <xs:element name="Column" type="ui:ColumnType" />
+      <xs:element name="Child" type="ui:ChildType" />
+      <xs:element name="CollapsingHeader" type="ui:CollapsingHeaderType" />
+      <xs:element name="Group" type="ui:GroupType" />
+
+      <xs:element name="Include" type="ui:IncludeType" />
+      <xs:element name="Text" type="ui:TextType" />
+      <xs:element name="TextDisabled" type="ui:TextDisabledType" />
+      <xs:element name="Separator" type="ui:SeparatorType" />
+      <xs:element name="SeparatorText" type="ui:SeparatorTextType" />
+      <xs:element name="Spacing" type="ui:SeparatorType" />
+      <xs:element name="Callback" type="ui:CallbackType" />
+
+      <xs:element name="Button" type="ui:ButtonType" />
+      <xs:element name="Combo" type="ui:ComboType" />
+      <xs:element name="Selectable" type="ui:SelectableType" />
+      <xs:element name="Checkbox" type="ui:CheckboxType" />
+      <xs:element name="InputInt" type="ui:InputIntType" />
+      <xs:element name="SliderInt" type="ui:SliderIntType" />
+      <xs:element name="InputFloat" type="ui:InputFloatType" />
+      <xs:element name="SliderFloat" type="ui:SliderFloatType" />
+
+      <xs:element name="Style" type="ui:ChildStyleType" />
+
+      <xs:any namespace="##other" />
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="WindowType" mixed="true">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="MenuBar" type="ui:MenuBarType" />
+      <xs:group ref="ui:BaseContainerGroup" />
+    </xs:choice>
+
+    <xs:attribute name="label" type="xs:string" use="required" />
+    <!--
+    Flags:
+         1 - ImGuiWindowFlags_NoTitleBar
+         2 - ImGuiWindowFlags_NoResize
+         4 - ImGuiWindowFlags_NoMove
+         8 - ImGuiWindowFlags_NoScrollbar
+        16 - ImGuiWindowFlags_NoScrollWithMouse
+        32 - ImGuiWindowFlags_NoCollapse
+        64 - ImGuiWindowFlags_AlwaysAutoResize
+       128 - ImGuiWindowFlags_NoBackground
+       256 - ImGuiWindowFlags_NoSavedSettings
+       512 - ImGuiWindowFlags_NoMouseInputs
+      1024 - ImGuiWindowFlags_MenuBar
+      2048 - ImGuiWindowFlags_HorizontalScrollbar
+      4096 - ImGuiWindowFlags_NoFocusOnAppearing
+      8192 - ImGuiWindowFlags_NoBringToFrontOnFocus
+     16384 - ImGuiWindowFlags_AlwaysVerticalScrollbar
+     32768 - ImGuiWindowFlags_AlwaysHorizontalScrollbar
+     65536 - ImGuiWindowFlags_NoNavInputs
+    131072 - ImGuiWindowFlags_NoNavFocus
+    262144 - ImGuiWindowFlags_UnsavedDocument
+    -->
+    <xs:attribute name="flags" type="xs:int" default="32" />
+    <xs:attribute name="size" type="ui:Vec2" default="0,0" />
+    <xs:attribute name="position" type="ui:Vec2" default="0,0" />
+    <xs:attribute name="open" type="xs:string" default="" />
+    <xs:attribute name="sticky" type="xs:boolean" default="false" />
+  </xs:complexType>
+
+  <xs:complexType name="ColumnsType" mixed="true">
+    <xs:complexContent>
+      <xs:extension base="ui:BaseContainerType">
+        <xs:attribute name="columns" type="xs:int" default="2" />
+        <!--
+         1 - ImGuiOldColumnFlags_NoBorder
+         2 - ImGuiOldColumnFlags_NoResize
+         4 - ImGuiOldColumnFlags_NoPreserveWidths
+         8 - ImGuiOldColumnFlags_NoForceWithinWindow
+        16 - ImGuiOldColumnFlags_GrowParentContentsSize
+        -->
+        <xs:attribute name="flags" type="xs:int" default="0" />
+      </xs:extension>
+     </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="RowType" mixed="true">
+    <xs:complexContent>
+      <xs:extension base="ui:BaseContainerType">
+        <xs:attribute name="offset" type="xs:float" default="0" />
+        <xs:attribute name="spacing" type="xs:float" default="-1" />
+        <xs:attribute name="weight" type="xs:float" default="0" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="ColumnType" mixed="true">
+    <xs:complexContent>
+      <xs:extension base="ui:BaseContainerType">
+        <xs:attribute name="offset" type="xs:float" default="0" />
+        <xs:attribute name="spacing" type="xs:float" default="-1" />
+        <xs:attribute name="weight" type="xs:float" default="0" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="ChildType" mixed="true">
+    <xs:complexContent>
+      <xs:extension base="ui:BaseContainerType">
+        <!-- id has an autogenerated default, only set if you know what you're doing -->
+        <xs:attribute name="id" type="xs:string" />
+        <xs:attribute name="size" type="ui:Vec2" default="0,0" />
+        <!--
+        Flags:
+          1 - ImGuiChildFlags_Borders
+          2 - ImGuiChildFlags_AlwaysUseWindowPadding
+          4 - ImGuiChildFlags_ResizeX
+          8 - ImGuiChildFlags_ResizeY
+         16 - ImGuiChildFlags_AutoResizeX
+         32 - ImGuiChildFlags_AutoResizeY
+         64 - ImGuiChildFlags_AlwaysAutoResize
+        128 - ImGuiChildFlags_FrameStyle
+        256 - ImGuiChildFlags_NavFlattened
+        -->
+        <xs:attribute name="flags" type="xs:int" default="256" />
+        <!-- Flags are the same as WindowType -->
+        <xs:attribute name="windowflags" type="xs:int" default="171" />
+        <xs:attribute name="weight" type="xs:float" default="0" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="CollapsingHeaderType" mixed="true">
+    <xs:complexContent>
+      <xs:extension base="ui:BaseContainerType">
+        <xs:attribute name="label" type="xs:string" use="required" />
+        <!--
+        Flags:
+             1 - ImGuiTreeNodeFlags_Selected
+             2 - ImGuiTreeNodeFlags_Framed
+             4 - ImGuiTreeNodeFlags_AllowOverlap
+             8 - ImGuiTreeNodeFlags_NoTreePushOnOpen
+            16 - ImGuiTreeNodeFlags_NoAutoOpenOnLog
+            32 - ImGuiTreeNodeFlags_DefaultOpen
+            64 - ImGuiTreeNodeFlags_OpenOnDoubleClick
+           128 - ImGuiTreeNodeFlags_OpenOnArrow
+           256 - ImGuiTreeNodeFlags_Leaf
+           512 - ImGuiTreeNodeFlags_Bullet
+          1024 - ImGuiTreeNodeFlags_FramePadding
+          2048 - ImGuiTreeNodeFlags_SpanAvailWidth
+          4096 - ImGuiTreeNodeFlags_SpanFullWidth
+          8192 - ImGuiTreeNodeFlags_SpanLabelWidth
+         16384 - ImGuiTreeNodeFlags_SpanAllColumns
+         32768 - ImGuiTreeNodeFlags_LabelSpanAllColumns
+         65536 - ImGuiTreeNodeFlags_NoScrollOnOpen
+        131072 - ImGuiTreeNodeFlags_NavLeftJumpsToParent
+        -->
+        <xs:attribute name="flags" type="xs:int" default="0" />
+        <xs:attribute name="weight" type="xs:float" default="0" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="GroupType" mixed="true">
+    <xs:complexContent>
+      <xs:extension base="ui:BaseContainerType">
+        <xs:attribute name="weight" type="xs:float" default="0" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <!-- Content -->
+  <xs:complexType name="IncludeType">
+    <xs:attribute name="source" type="xs:string" use="required" />
+    <xs:attribute name="context" type="xs:string" default='{}' />
+    <xs:attribute name="weight" type="xs:float" default="0" />
+  </xs:complexType>
+
+  <xs:complexType name="TextType">
+    <xs:attribute name="content" type="xs:string" />
+    <xs:attribute name="contentscript" type="xs:string" />
+    <xs:attribute name="weight" type="xs:float" default="0" />
+
+    <xs:assert test="@content != '' or @contentscript != ''" />
+  </xs:complexType>
+
+  <xs:complexType name="TextDisabledType">
+    <xs:attribute name="content" type="xs:string" use="required" />
+    <xs:attribute name="weight" type="xs:float" default="0" />
+  </xs:complexType>
+
+  <xs:complexType name="SeparatorType" />
+
+  <xs:complexType name="SeparatorTextType">
+    <xs:attribute name="content" type="xs:string" use="required" />
+    <xs:attribute name="weight" type="xs:float" default="0" />
+  </xs:complexType>
+
+  <xs:complexType name="SpacerType" />
+
+  <xs:complexType name="CallbackType">
+    <xs:attribute name="onframe" type="ui:Callback" use="required" />
+  </xs:complexType>
+
+  <!-- Controls -->
+  <xs:complexType name="ButtonType">
+    <xs:attribute name="label" type="xs:string" use="required" />
+    <xs:attribute name="size" type="ui:Vec2" default="0,0" />
+    <xs:attribute name="flags" type="xs:int" default="0">
+      <xs:annotation>
+        <xs:documentation>
+          Flags:
+          1 - ImGuiButtonFlags_MouseButtonLeft
+          2 - ImGuiButtonFlags_MouseButtonRight
+          4 - ImGuiButtonFlags_MouseButtonMiddle
+          8 - ImGuiButtonFlags_EnableNav
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="enabled" type="xs:boolean" default="true" />
+    <xs:attribute name="onclick" type="ui:Callback" default="" />
+    <xs:attribute name="weight" type="xs:float" default="0" />
+  </xs:complexType>
+
+  <xs:complexType name="ComboType">
+    <xs:choice maxOccurs="unbounded">
+      <xs:element name="Selectable" type="ui:SelectableType" />
+    </xs:choice>
+
+    <xs:attribute name="label" type="xs:string" use="required" />
+    <xs:attribute name="key" type="xs:string" default="" />
+    <xs:attribute name="preview" type="xs:string" default="" />
+    <!--
+    Flags:
+      1 - ImGuiComboFlags_PopupAlignLeft
+      2 - ImGuiComboFlags_HeightSmall
+      4 - ImGuiComboFlags_HeightRegular
+      8 - ImGuiComboFlags_HeightLarge
+     16 - ImGuiComboFlags_HeightLargest
+     32 - ImGuiComboFlags_NoArrowButton
+     64 - ImGuiComboFlags_NoPreview
+    128 - ImGuiComboFlags_WidthFitPreview
+    -->
+    <xs:attribute name="flags" type="xs:int" default="0" />
+    <xs:attribute name="weight" type="xs:float" default="0" />
+    <xs:assert test="@key != '' or @preview != ''" />
+  </xs:complexType>
+
+  <xs:complexType name="SelectableType">
+    <xs:attribute name="label" type="xs:string" use="required" />
+    <xs:attribute name="key" type="xs:string" use="required" />
+    <xs:attribute name="value" type="xs:string" default="$label" />
+    <xs:attribute name="size" type="ui:Vec2" default="0,0" />
+    <!--
+    Flags:
+     1 - ImGuiSelectableFlags_NoAutoClosePopups
+     2 - ImGuiSelectableFlags_SpanAllColumns
+     4 - ImGuiSelectableFlags_AllowDoubleClick
+     8 - ImGuiSelectableFlags_Disabled
+    16 - ImGuiSelectableFlags_AllowOverlap
+    32 - ImGuiSelectableFlags_Highlight
+    64 - ImGuiSelectableFlags_SelectOnNav
+    -->
+    <xs:attribute name="flags" type="xs:int" default="0" />
+    <xs:attribute name="enabled" type="xs:boolean" default="true" />
+    <xs:attribute name="onclick" type="ui:Callback" default="" />
+    <xs:attribute name="weight" type="xs:float" default="0" />
+  </xs:complexType>
+
+  <xs:complexType name="CheckboxType">
+    <xs:attribute name="label" type="xs:string" use="required" />
+    <xs:attribute name="key" type="xs:string" use="required" />
+    <xs:attribute name="default" type="xs:boolean" default="false" />
+    <xs:attribute name="enabled" type="xs:boolean" default="true" />
+    <xs:attribute name="onchange" type="ui:Callback" default="" />
+    <xs:attribute name="weight" type="xs:float" default="0" />
+  </xs:complexType>
+
+  <xs:complexType name="InputIntType">
+    <xs:attribute name="label" type="xs:string" use="required" />
+    <xs:attribute name="key" type="xs:string" use="required" />
+    <xs:attribute name="default" type="xs:int" default="0" />
+    <xs:attribute name="min" type="xs:int" default="0" />
+    <xs:attribute name="max" type="xs:int" default="100" />
+    <xs:attribute name="step" type="xs:int" default="1" />
+    <xs:attribute name="stepfast" type="xs:int" default="10" />
+    <xs:attribute name="enabled" type="xs:boolean" default="true" />
+    <xs:attribute name="onchange" type="ui:Callback" default="" />
+    <xs:attribute name="weight" type="xs:float" default="0" />
+
+    <xs:assert test="xs:decimal(@step) &lt;= xs:decimal(@stepfast)" />
+    <xs:assert test="xs:decimal(@min) &lt;= xs:decimal(@default) and xs:decimal(@default) &lt;= xs:decimal(@max)" />
+  </xs:complexType>
+
+  <xs:complexType name="SliderIntType">
+    <xs:attribute name="label" type="xs:string" use="required" />
+    <xs:attribute name="key" type="xs:string" use="required" />
+    <xs:attribute name="default" type="xs:int" default="0" />
+    <xs:attribute name="min" type="xs:int" default="0" />
+    <xs:attribute name="max" type="xs:int" default="100" />
+    <!--
+    Flags:
+           1 - ImGuiInputTextFlags_CharsDecimal
+           2 - ImGuiInputTextFlags_CharsHexadecimal
+           4 - ImGuiInputTextFlags_CharsScientific
+           8 - ImGuiInputTextFlags_CharsUppercase
+          16 - ImGuiInputTextFlags_CharsNoBlank
+          32 - ImGuiInputTextFlags_AllowTabInput
+          64 - ImGuiInputTextFlags_EnterReturnsTrue
+         128 - ImGuiInputTextFlags_EscapeClearsAll
+         256 - ImGuiInputTextFlags_CtrlEnterForNewLine
+         512 - ImGuiInputTextFlags_ReadOnly
+        1024 - ImGuiInputTextFlags_Password
+        2048 - ImGuiInputTextFlags_AlwaysOverwrite
+        4096 - ImGuiInputTextFlags_AutoSelectAll
+        8192 - ImGuiInputTextFlags_ParseEmptyRefVal
+       16384 - ImGuiInputTextFlags_DisplayEmptyRefVal
+       32768 - ImGuiInputTextFlags_NoHorizontalScroll
+       65536 - ImGuiInputTextFlags_NoUndoRedo
+      131072 - ImGuiInputTextFlags_ElideLeft
+      262144 - ImGuiInputTextFlags_CallbackCompletion
+      524288 - ImGuiInputTextFlags_CallbackHistory
+     1048576 - ImGuiInputTextFlags_CallbackAlways
+     2097152 - ImGuiInputTextFlags_CallbackCharFilter
+     4194304 - ImGuiInputTextFlags_CallbackResize
+     8388608 - ImGuiInputTextFlags_CallbackEdit
+    16777216 - ImGuiInputTextFlags_WordWrap
+    -->
+    <xs:attribute name="flags" type="xs:int" default="0" />
+    <xs:attribute name="enabled" type="xs:boolean" default="true" />
+    <xs:attribute name="onchange" type="ui:Callback" default="" />
+    <xs:attribute name="weight" type="xs:float" default="0" />
+
+    <xs:assert test="xs:decimal(@min) &lt;= xs:decimal(@default) and xs:decimal(@default) &lt;= xs:decimal(@max)" />
+  </xs:complexType>
+
+  <xs:complexType name="InputFloatType">
+    <xs:attribute name="label" type="xs:string" use="required" />
+    <xs:attribute name="key" type="xs:string" use="required" />
+    <xs:attribute name="default" type="xs:float" default="0" />
+    <xs:attribute name="min" type="xs:float" default="0" />
+    <xs:attribute name="max" type="xs:float" default="100" />
+    <xs:attribute name="step" type="xs:float" default="1" />
+    <xs:attribute name="stepfast" type="xs:float" default="10" />
+    <xs:attribute name="format" type="xs:string" default="%.3f" />
+    <xs:attribute name="enabled" type="xs:boolean" default="true" />
+    <xs:attribute name="onchange" type="ui:Callback" default="" />
+    <xs:attribute name="weight" type="xs:float" default="0" />
+
+    <xs:assert test="xs:float(@step) &lt;= xs:float(@stepfast)" />
+    <xs:assert test="xs:float(@min) &lt;= xs:float(@default) and xs:float(@default) &lt;= xs:float(@max)" />
+  </xs:complexType>
+
+  <xs:complexType name="SliderFloatType">
+    <xs:attribute name="label" type="xs:string" use="required" />
+    <xs:attribute name="key" type="xs:string" use="required" />
+    <xs:attribute name="default" type="xs:float" default="0" />
+    <xs:attribute name="min" type="xs:float" default="0" />
+    <xs:attribute name="max" type="xs:float" default="100" />
+    <xs:attribute name="format" type="xs:string" default="%.3f" />
+    <!-- Flags are the same as SliderIntType -->
+    <xs:attribute name="flags" type="xs:float" default="0" />
+    <xs:attribute name="enabled" type="xs:boolean" default="true" />
+    <xs:attribute name="onchange" type="ui:Callback" default="" />
+    <xs:attribute name="weight" type="xs:float" default="0" />
+
+    <xs:assert test="xs:float(@min) &lt;= xs:float(@default) and xs:float(@default) &lt;= xs:float(@max)" />
+  </xs:complexType>
+
+  <!-- Menu -->
+  <xs:complexType name="MainMenuBarType" mixed="true">
+    <xs:sequence>
+      <xs:element name="Menu" type="ui:MenuType" maxOccurs="unbounded" />
+    </xs:sequence>
+
+    <xs:attribute name="sticky" type="xs:boolean" default="false" />
+  </xs:complexType>
+
+  <xs:complexType name="MenuBarType" mixed="true">
+    <xs:sequence>
+      <xs:element name="Menu" type="ui:MenuType" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="MenuType" mixed="true">
+    <xs:sequence>
+      <xs:element name="MenuItem" type="ui:MenuItemType" maxOccurs="unbounded" />
+    </xs:sequence>
+
+    <xs:attribute name="label" type="xs:string" use="required" />
+    <xs:attribute name="enabled" type="xs:boolean" default="true" />
+  </xs:complexType>
+
+  <xs:complexType name="MenuItemType">
+    <xs:attribute name="label" type="xs:string" use="required" />
+    <xs:attribute name="key" type="xs:string" use="required" />
+    <xs:attribute name="icon" type="xs:string" default="" />
+    <xs:attribute name="default" type="xs:boolean" default="false" />
+    <xs:attribute name="enabled" type="xs:boolean" default="true" />
+    <xs:attribute name="onchange" type="ui:Callback" default="" />
+  </xs:complexType>
+
+  <!-- Style -->
+  <xs:complexType name="BaseStyleType" abstract="true">
+    <xs:attribute name="text" type="ui:Color" />
+    <xs:attribute name="textdisabled" type="ui:Color" />
+    <xs:attribute name="windowbg" type="ui:Color" />
+    <xs:attribute name="childbg" type="ui:Color" />
+    <xs:attribute name="popupbg" type="ui:Color" />
+    <xs:attribute name="border" type="ui:Color" />
+    <xs:attribute name="bordershadow" type="ui:Color" />
+    <xs:attribute name="framebg" type="ui:Color" />
+    <xs:attribute name="framebghovered" type="ui:Color" />
+    <xs:attribute name="framebgactive" type="ui:Color" />
+    <xs:attribute name="titlebg" type="ui:Color" />
+    <xs:attribute name="titlebgactive" type="ui:Color" />
+    <xs:attribute name="titlebgcollapsed" type="ui:Color" />
+    <xs:attribute name="menubarbg" type="ui:Color" />
+    <xs:attribute name="scrollbarbg" type="ui:Color" />
+    <xs:attribute name="scrollbargrab" type="ui:Color" />
+    <xs:attribute name="scrollbargrabhovered" type="ui:Color" />
+    <xs:attribute name="scrollbargrabactive" type="ui:Color" />
+    <xs:attribute name="checkmark" type="ui:Color" />
+    <xs:attribute name="slidergrab" type="ui:Color" />
+    <xs:attribute name="slidergrabactive" type="ui:Color" />
+    <xs:attribute name="button" type="ui:Color" />
+    <xs:attribute name="buttonhovered" type="ui:Color" />
+    <xs:attribute name="buttonactive" type="ui:Color" />
+    <xs:attribute name="header" type="ui:Color" />
+    <xs:attribute name="headerhovered" type="ui:Color" />
+    <xs:attribute name="headeractive" type="ui:Color" />
+    <xs:attribute name="separator" type="ui:Color" />
+    <xs:attribute name="separatorhovered" type="ui:Color" />
+    <xs:attribute name="separatoractive" type="ui:Color" />
+    <xs:attribute name="resizegrip" type="ui:Color" />
+    <xs:attribute name="resizegriphovered" type="ui:Color" />
+    <xs:attribute name="resizegripactive" type="ui:Color" />
+    <xs:attribute name="inputtextcursor" type="ui:Color" />
+    <xs:attribute name="tabhovered" type="ui:Color" />
+    <xs:attribute name="tab" type="ui:Color" />
+    <xs:attribute name="tabselected" type="ui:Color" />
+    <xs:attribute name="tabselectedoverline" type="ui:Color" />
+    <xs:attribute name="tabdimmed" type="ui:Color" />
+    <xs:attribute name="tabdimmedselected" type="ui:Color" />
+    <xs:attribute name="tabdimmedselectedoverline" type="ui:Color" />
+    <xs:attribute name="plotlines" type="ui:Color" />
+    <xs:attribute name="plotlineshovered" type="ui:Color" />
+    <xs:attribute name="plothistogram" type="ui:Color" />
+    <xs:attribute name="plothistogramhovered" type="ui:Color" />
+    <xs:attribute name="tableheaderbg" type="ui:Color" />
+    <xs:attribute name="tableborderstrong" type="ui:Color" />
+    <xs:attribute name="tableborderlight" type="ui:Color" />
+    <xs:attribute name="tablerowbg" type="ui:Color" />
+    <xs:attribute name="tablerowbgalt" type="ui:Color" />
+    <xs:attribute name="textlink" type="ui:Color" />
+    <xs:attribute name="textselectedbg" type="ui:Color" />
+    <xs:attribute name="treelines" type="ui:Color" />
+    <xs:attribute name="dragdroptarget" type="ui:Color" />
+    <xs:attribute name="dragdroptargetbg" type="ui:Color" />
+    <xs:attribute name="unsavedmarker" type="ui:Color" />
+    <xs:attribute name="navcursor" type="ui:Color" />
+    <xs:attribute name="navwindowinghighlight" type="ui:Color" />
+    <xs:attribute name="navwindowingdimbg" type="ui:Color" />
+    <xs:attribute name="modalwindowdimbg" type="ui:Color" />
+
+    <xs:attribute name="alpha" type="xs:float" />
+    <xs:attribute name="disabledalpha" type="xs:float" />
+    <xs:attribute name="windowpadding" type="ui:Vec2" />
+    <xs:attribute name="windowrounding" type="xs:float" />
+    <xs:attribute name="windowbordersize" type="xs:float" />
+    <xs:attribute name="windowminsize" type="ui:Vec2" />
+    <xs:attribute name="windowtitlealign" type="ui:Vec2" />
+    <xs:attribute name="childrounding" type="xs:float" />
+    <xs:attribute name="childbordersize" type="xs:float" />
+    <xs:attribute name="popuprounding" type="xs:float" />
+    <xs:attribute name="popupbordersize" type="xs:float" />
+    <xs:attribute name="framepadding" type="ui:Vec2" />
+    <xs:attribute name="framerounding" type="xs:float" />
+    <xs:attribute name="framebordersize" type="xs:float" />
+    <xs:attribute name="itemspacing" type="ui:Vec2" />
+    <xs:attribute name="iteminnerspacing" type="ui:Vec2" />
+    <xs:attribute name="indentspacing" type="xs:float" />
+    <xs:attribute name="cellpadding" type="ui:Vec2" />
+    <xs:attribute name="scrollbarsize" type="xs:float" />
+    <xs:attribute name="scrollbarrounding" type="xs:float" />
+    <xs:attribute name="scrollbarpadding" type="xs:float" />
+    <xs:attribute name="grabminsize" type="xs:float" />
+    <xs:attribute name="grabrounding" type="xs:float" />
+    <xs:attribute name="imagebordersize" type="xs:float" />
+    <xs:attribute name="tabrounding" type="xs:float" />
+    <xs:attribute name="tabbordersize" type="xs:float" />
+    <xs:attribute name="tabminwidthbase" type="xs:float" />
+    <xs:attribute name="tabminwidthshrink" type="xs:float" />
+    <xs:attribute name="tabbarbordersize" type="xs:float" />
+    <xs:attribute name="tabbaroverlinesize" type="xs:float" />
+    <xs:attribute name="tableangledheadersangle" type="xs:float" />
+    <xs:attribute name="tableangledheaderstextalign" type="ui:Vec2" />
+    <xs:attribute name="treelinessize" type="xs:float" />
+    <xs:attribute name="treelinesrounding" type="xs:float" />
+    <xs:attribute name="buttontextalign" type="ui:Vec2" />
+    <xs:attribute name="selectabletextalign" type="ui:Vec2" />
+    <xs:attribute name="separatortextbordersize" type="xs:float" />
+    <xs:attribute name="separatortextalign" type="ui:Vec2" />
+    <xs:attribute name="separatortextpadding" type="ui:Vec2" />
+  </xs:complexType>
+
+  <xs:complexType name="RootStyleType">
+    <xs:complexContent>
+      <xs:extension base="ui:BaseStyleType">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="MainMenuBar" type="ui:MainMenuBarType" />
+          <xs:element name="Window" type="ui:WindowType" />
+          <xs:element name="Child" type="ui:ChildType" />
+        </xs:choice>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="ChildStyleType">
+    <xs:complexContent>
+      <xs:extension base="ui:BaseStyleType">
+        <xs:choice maxOccurs="unbounded">
+          <xs:group ref="ui:BaseContainerGroup" />
+        </xs:choice>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:schema>

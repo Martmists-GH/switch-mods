@@ -250,6 +250,8 @@ static struct { uint32_t code; const char* msg; } errorMessages[] = {
 static void reportException(nn::os::UserExceptionInfo const* info, const char* funcLog, const char* fileLog, int code, const char* reasonLog, int resCode) {
     onExceptionHandler();
 
+    Logger::log("HANDLING EXCEPTION");
+
     FixedBuffer<0x2000> exceptionBuffer;
     char tmp[0x2000];
     std::ostream os(&exceptionBuffer);
@@ -281,7 +283,7 @@ static void reportException(nn::os::UserExceptionInfo const* info, const char* f
             if (info->ErrorDescription == e) {
                 REPORT_APPEND("Error description: %s\n", m);
                 if (e == 0x0301) {
-                    REPORT_APPEND("System call: %d", info->ESR & 0x1ffffff);
+                    REPORT_APPEND("System call: %d\n", info->ESR & 0x1ffffff);
                 }
 
                 break;
@@ -372,8 +374,8 @@ static void reportException(nn::os::UserExceptionInfo const* info, const char* f
         for (int i = 0; i < 29; ++i) {
             auto reg = info->CpuRegisters[i].x;
             auto found = false;
-            for (int i = 0; i < hk::ro::getNumModules() && !found; ++i) {
-                auto mod = hk::ro::getModuleByIndex(i);
+            for (int m = 0; m < hk::ro::getNumModules() && !found; ++m) {
+                auto mod = hk::ro::getModuleByIndex(m);
                 if (mod->range().start() <= reg && reg < mod->range().end()) {
                     // Check ptr for:
                     // - Functions
@@ -426,10 +428,10 @@ static void reportException(nn::os::UserExceptionInfo const* info, const char* f
             REPORT_APPEND(" PC  0x%016lx %ld\n", info->PC.x, info->PC.x);
         }
 
-        REPORT_APPEND(" PC  0x%016lx %ld\n", info->PC.x, info->PC.x);
         if (info->PC.x != 0) {
             REPORT_APPEND("  %s\n", disasm(reinterpret_cast<uint32_t*>(info->PC.x - 4)).c_str());
         }
+
         REPORT_APPEND(" FAR 0x%016lx %ld\n", info->FAR.x, info->FAR.x);
     } else {
         os << "Registers: [unknown]\n";
@@ -461,23 +463,28 @@ HkTrampoline<void, char const*, char const*, char const*, int, nn::Result const*
     const char* funcLog;
     const char* fileLog;
     const char* reasonLog;
-    if (strlen(func) == 0) {
+    if (func == nullptr || strlen(func) == 0) {
         funcLog = "[unknown function]";  // TODO: Print offset from module?
     } else {
         funcLog = func;
     }
-    if (strlen(file) == 0) {
+    if (file == nullptr || strlen(file) == 0) {
         fileLog = "[unknown file]";
     } else {
         fileLog = file;
     }
-    if (strlen(cond) == 0) {
+    if (cond == nullptr || strlen(cond) == 0) {
         reasonLog = "[unknown reason]";
     } else {
         reasonLog = cond;
     }
 
-    reportException(info, funcLog, fileLog, code, reasonLog, res->GetInnerValueForDebug());
+    auto errCode = res->GetInnerValueForDebug();
+    if (errCode == -1) {
+        errCode = -2;
+    }
+
+    reportException(info, funcLog, fileLog, code, reasonLog, errCode);
 
 #ifdef __RTLD_PAST_13XX__
     AbortHook.orig(cond, func, file, code, res, info, fmt, args);

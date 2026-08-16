@@ -4,65 +4,118 @@
 #include "imgui.h"
 #include "newui.h"
 #include "hk/types.h"
+#include "hk/ro/RoUtil.h"
 #include "logger/logger.h"
+#include "lua_ext/ffi.h"
 #include "util/FileUtil.h"
+
+static inline char* substringAfter(char* s, char c) {
+    auto ptr = strchr(s, c);
+    if (ptr != nullptr) {
+        return ptr + 1;
+    }
+    return s;
+}
 
 namespace newui {
     NEWUI_ELEMENT(Root);
     NEWUI_ELEMENT(Window);
+    NEWUI_ELEMENT(Columns);
     NEWUI_ELEMENT(Row);
     NEWUI_ELEMENT(Column);
     NEWUI_ELEMENT(Child);
     NEWUI_ELEMENT(CollapsingHeader);
+    NEWUI_ELEMENT(Group);
 
     NEWUI_ELEMENT(Include);
     NEWUI_ELEMENT(Text);
+    NEWUI_ELEMENT(TextDisabled);
+    NEWUI_ELEMENT(Separator);
     NEWUI_ELEMENT(SeparatorText);
     NEWUI_ELEMENT(Spacing);
+    NEWUI_ELEMENT(Callback);
 
     NEWUI_ELEMENT(Button);
+    NEWUI_ELEMENT(Combo);
     NEWUI_ELEMENT(Selectable);
     NEWUI_ELEMENT(Checkbox);
     NEWUI_ELEMENT(InputInt);
+    NEWUI_ELEMENT(SliderInt);
     NEWUI_ELEMENT(InputFloat);
+    NEWUI_ELEMENT(SliderFloat);
 
     NEWUI_ELEMENT(MainMenuBar);
     NEWUI_ELEMENT(MenuBar);
     NEWUI_ELEMENT(Menu);
     NEWUI_ELEMENT(MenuItem);
 
+    NEWUI_ELEMENT(Style);
+
     void Renderer::initContext() {
         context["ROM_MOUNT"] = ROM_MOUNT;
         context["MODULE_NAME"] = STR(MODULE_NAME_SPACES);
+
+        env.add_callback("string", 1, [](const inja::Arguments& args) {
+            return nlohmann::to_string(*args[0]);
+        });
+
+        env.add_callback("lua", 1, [](const inja::Arguments& args) {
+            auto line = args[0]->get_ref<const std::string&>();
+
+            char buffer[line.size() + 8];
+            memset(buffer, 0, line.size() + 8);
+
+            sprintf(buffer, "return %s", line.c_str());
+            auto L = obtainLuaState();
+            luaL_dostring(L, buffer);
+            auto res = lua_table_to_json(L, 1);
+            lua_pop(L, 1);
+            return res;
+        });
     }
 
     void Renderer::initTypes() {
+#define _(Name) registerRenderer(STR(Name), Name)
+
         // Layout
-        registerRenderer("Root", Root);
-        registerRenderer("Window", Window);
-        registerRenderer("Row", Row);
-        registerRenderer("Column", Column);
-        registerRenderer("Child", Child);
-        registerRenderer("CollapsingHeader", CollapsingHeader);
+        _(Root);
+        _(Window);
+        _(Columns);
+        _(Row);
+        _(Column);
+        _(Child);
+        _(CollapsingHeader);
+        _(Group);
 
         // Content
-        registerRenderer("Include", Include);
-        registerRenderer("Text", Text);
-        registerRenderer("SeparatorText", SeparatorText);
-        registerRenderer("Spacing", Spacing);
+        _(Include);
+        _(Text);
+        _(TextDisabled);
+        _(Separator);
+        _(SeparatorText);
+        _(Spacing);
+        _(Callback);
 
         // Controls
-        registerRenderer("Button", Button);
-        registerRenderer("Selectable", Selectable);
-        registerRenderer("Checkbox", Checkbox);
-        registerRenderer("InputInt", InputInt);
-        registerRenderer("InputFloat", InputFloat);
+        _(Button);
+        _(Combo);
+        _(Selectable);
+        _(Checkbox);
+        _(InputInt);
+        _(SliderInt);
+        _(InputFloat);
+        _(SliderFloat);
 
         // Menu
-        registerRenderer("MainMenuBar", MainMenuBar);
-        registerRenderer("MenuBar", MenuBar);
-        registerRenderer("Menu", Menu);
-        registerRenderer("MenuItem", MenuItem);
+        _(MainMenuBar);
+        _(MenuBar);
+        _(Menu);
+        _(MenuItem);
+
+        // Style
+        _(Style);
+
+#undef _
     }
 
     void Renderer::initCallbacks() {
@@ -89,6 +142,14 @@ namespace newui {
 
     void Renderer::registerRenderer(const std::string& type, RendererCallback callback) {
         root().renderers[type] = std::move(callback);
+    }
+
+    void Renderer::registerEnv(const std::function<void(inja::Environment&)>& callback) {
+        callback(env);
+    }
+
+    void Renderer::registerLua(const std::function<void(lua_State*)>& callback) {
+        callback(obtainLuaState());
     }
 
     void Renderer::init(const char* path) {
@@ -122,11 +183,14 @@ namespace newui {
 
     void Renderer::render(nlohmann::json& ctx) {
         if (needsUpdate()) {
-            auto templated = inja::render(uiTemplate, ctx);
+            Logger::log("Updating Renderer[%p]!", this);
+            auto templated = env.render(uiTemplate, ctx);
+
             auto result = doc.load_string(templated.c_str());
             if (result.status != pugi::status_ok) {
-                Logger::log("XML Parse Error: %s\n", result.description());
-                uiTemplate = std::format("<Text content=\"XML Parse Error: {}\" />", result.description());
+                Logger::log("XML: %s", templated.c_str());
+                Logger::log("XML Parse Error at offset %d: %s\n", result.offset, result.description());
+                uiTemplate = std::format("<TextDisabled content=\"XML Parse Error at offset {}: {}\" />", result.offset, result.description());
                 return;
             }
             m_needsUpdate = false;
@@ -140,17 +204,18 @@ namespace newui {
     void Renderer::render(const pugi::xml_node& node, nlohmann::json& ctx) {
         if (node.type() == pugi::node_element) {
             auto& rootRenderer = root();
+            auto type = substringAfter(const_cast<char*>(node.name()), ':');
 
-            if (rootRenderer.renderers.contains(node.name())) {
+            if (rootRenderer.renderers.contains(type)) {
                 ImGui::PushID(node.name());
 
-                auto& renderer = rootRenderer.renderers[node.name()];
+                auto& renderer = rootRenderer.renderers[type];
                 auto props = parseAttrs(node);
-                renderer(root(), node, props, ctx);
+                renderer(rootRenderer, node, props, ctx);
 
                 ImGui::PopID();
             } else {
-                ImGui::Text("<%% ERROR: Unknown node type '%s' at %s %%>", node.name(), node.path().c_str());
+                ImGui::Text("<%% ERROR: Unknown node type '%s' at %s %%>", type, node.path().c_str());
             }
         }
     }

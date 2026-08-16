@@ -1,4 +1,5 @@
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "logger/logger.h"
 #include "newui/newui.h"
 #include "util/InputUtil.h"
@@ -40,7 +41,6 @@ namespace newui {
             ImGui::End();
 
         } else {
-            // Logger::log("Getting %s from %s: %d", open.c_str(), to_string(context).c_str(), jsonutil::getBool(context, open, false));
             auto current = jsonutil::getBool(context, open, false);
             auto value = current;
 
@@ -59,6 +59,20 @@ namespace newui {
             }
         }
 
+    }
+
+    NEWUI_ELEMENT(Columns) {
+        auto cols = jsonutil::getInt(props, "columns", 2);
+        auto flags = jsonutil::getInt(props, "flags", 0);
+
+        ImGui::PushID(&node);
+        ImGui::BeginColumns("", cols, flags);
+        for (const auto& child : node.children()) {
+            renderer.render(child, context);
+            ImGui::NextColumn();
+        }
+        ImGui::EndColumns();
+        ImGui::PopID();
     }
 
     NEWUI_ELEMENT(Row) {
@@ -82,12 +96,16 @@ namespace newui {
 
         if (totalWeight == 0.0f) {
             auto i = 0;
+            ImGui::PushID(&node);
+            ImGui::BeginGroup();
             for (auto child : children) {
                 ImGui::PushID(i);
                 if (i++ != 0) ImGui::SameLine(offset, spacing);
                 renderer.render(child, context);
                 ImGui::PopID();
             }
+            ImGui::EndGroup();
+            ImGui::PopID();
             return;
         }
 
@@ -96,11 +114,12 @@ namespace newui {
         }
 
         float availWidth = ImGui::GetContentRegionAvail().x;
-        float availHeight = ImGui::GetContentRegionAvail().y;
         float totalSpacing = itemSpacing * static_cast<float>(children.size() - 1);
-        float usableWidth = std::max(0.0f, availWidth - totalSpacing);
+        float usableWidth = std::max(0.0f, availWidth - totalSpacing - 0.0001f);
 
         auto i = 0;
+        ImGui::PushID(&node);
+        ImGui::BeginGroup();
         for (auto child : children) {
             float childWeight = jsonutil::getFloat(parseAttrs(child), "weight", 0.0f);
             float allocatedWidth = (totalWeight > 0.0f) ? (usableWidth * (childWeight / totalWeight)) : 0.0f;
@@ -108,13 +127,15 @@ namespace newui {
             ImGui::PushID(i);
             if (i != 0) ImGui::SameLine(offset, itemSpacing);
             std::string childId = std::format("##row_slot_{}", i++);
-           if (ImGui::BeginChild(childId.c_str(), ImVec2(allocatedWidth, availHeight), 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground)) {
+            if (ImGui::BeginChild(childId.c_str(), ImVec2(allocatedWidth, 0.0f), ImGuiChildFlags_NavFlattened | ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground)) {
                renderer.render(child, context);
-           }
-           ImGui::EndChild();
+            }
+            ImGui::EndChild();
 
-           ImGui::PopID();
+            ImGui::PopID();
         }
+        ImGui::EndGroup();
+        ImGui::PopID();
     }
 
     NEWUI_ELEMENT(Column) {
@@ -157,7 +178,7 @@ namespace newui {
 
             ImGui::PushID(i);
             std::string childId = std::format("##col_slot_{}", i);
-            if (ImGui::BeginChild(childId.c_str(), ImVec2(ImGui::GetContentRegionAvail().x, allocatedHeight), 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground)) {
+            if (ImGui::BeginChild(childId.c_str(), ImVec2(0, allocatedHeight), ImGuiChildFlags_NavFlattened | ImGuiChildFlags_AutoResizeX, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground)) {
                 renderer.render(child, context);
             }
             ImGui::EndChild();
@@ -172,9 +193,8 @@ namespace newui {
     NEWUI_ELEMENT(Child) {
         auto id = props.value("id", node.path());
         auto size = jsonutil::getImVec2(props, "size", ImVec2(0, 0));
-        auto flags = jsonutil::getInt(props, "flags", 0);
-        auto windowFlags = jsonutil::getInt(props, "windowflags", 0);
-
+        auto flags = jsonutil::getInt(props, "flags", ImGuiChildFlags_NavFlattened);
+        auto windowFlags = jsonutil::getInt(props, "windowflags", ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground);
         if (ImGui::BeginChild(id.c_str(), size, flags, windowFlags)) {
             auto i = 0;
             for (const auto& child : node.children()) {
@@ -191,9 +211,20 @@ namespace newui {
         auto flags = jsonutil::getInt(props, "flags", 0);
 
         if (ImGui::CollapsingHeader(label.c_str(), flags)) {
+            auto i = 0;
             for (const auto& child : node.children()) {
+                ImGui::PushID(i++);
                 renderer.render(child, context);
+                ImGui::PopID();
             }
         }
+    }
+
+    NEWUI_ELEMENT(Group) {
+        ImGui::BeginGroup();
+        for (const auto& child : node.children()) {
+            renderer.render(child, context);
+        }
+        ImGui::EndGroup();
     }
 }

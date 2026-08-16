@@ -58,6 +58,8 @@ function(create_mod name folder)
         "${HAKKUN_LIB_DIR}/src/hk/diag/ipclogger.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/init/module.cpp"
     )
+    list(APPEND ALL_DEFINES INJA_NOEXCEPTION JSON_NO_IO PUGIXML_NO_EXCEPTIONS)
+    list(APPEND MODULE_ARGS_SOURCE_SHALLOW "${CMAKE_SOURCE_DIR}/lib/lua")
 
     # Hakkun addons
     if (${MODULE_ARGS_WITH_IMGUI})

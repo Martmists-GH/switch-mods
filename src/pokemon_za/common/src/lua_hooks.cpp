@@ -10,6 +10,7 @@
 
 #include "lua_utils.h"
 #include "game_constants.h"
+#include "lua_ext/directory_loader.h"
 
 static lua_State* gLuaState = nullptr;
 lua_State* get_lua_state() {
@@ -102,42 +103,7 @@ HkTrampoline<void, hxlua::State*, char*, uint64_t, gfl::StringView*> AfterMainHo
         registerLuaUtils(L);
         lua_mod_code(L);
 
-        nn::fs::DirectoryHandle handle{};
-        nn::fs::OpenDirectory(&handle, ROM_MOUNT ":/script/lua/boot", nn::fs::OpenDirectoryMode_File);
-        s64 entryCount;
-        nn::fs::GetDirectoryEntryCount(&entryCount, handle);
-        if (entryCount > 0) {
-            auto entries = new nn::fs::DirectoryEntry[entryCount];
-            nn::fs::ReadDirectory(&entryCount, entries, handle, entryCount);
-            nn::fs::CloseDirectory(handle);
-
-            std::vector<nn::fs::DirectoryEntry *> sortedFiles;
-            for (int i = 0; i < entryCount; i++) {
-                sortedFiles.push_back(&entries[i]);
-            }
-            std::ranges::sort(sortedFiles,
-                              [](nn::fs::DirectoryEntry *a, nn::fs::DirectoryEntry *b) {
-                                  return std::strcmp(a->mName, b->mName) <= 0;
-                              });
-
-            char buffer[0x320];
-            for (auto item: sortedFiles) {
-                Logger::log("Executing: %s\n", item->mName);
-                snprintf(buffer, sizeof(buffer), ROM_MOUNT ":/script/lua/boot/%s", item->mName);
-                nn::fs::FileHandle fileHandle{};
-                nn::fs::OpenFile(&fileHandle, buffer, nn::fs::OpenMode_Read);
-                auto strBuf = new char[item->mFileSize + 1];
-                nn::fs::ReadFile(fileHandle, 0, strBuf, item->mFileSize);
-                nn::fs::CloseFile(fileHandle);
-                strBuf[item->mFileSize] = '\0';
-                if (luaL_dostringfile(L, strBuf, item->mName) != LUA_OK) {
-                    Logger::log("An error occurred in %s: %s\n", item->mName, lua_tostring(L, -1));
-                }
-                delete[] strBuf;
-            }
-
-            delete[] entries;
-        }
+        executeScriptsInDirectory(L, ROM_MOUNT ":/script/lua/boot");
     }
 });
 

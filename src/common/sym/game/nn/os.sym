@@ -7,6 +7,7 @@ _ZN2nn2os17ConvertToTimeSpanENS0_4TickE
 
 // nn::os::GetSystemTick()
 _ZN2nn2os13GetSystemTickEv
+nnosGetSystemTick
 
 // nn::os::CreateThread(nn::os::ThreadType*, void (*)(void*), void*, void*, unsigned long, int, int)
 _ZN2nn2os12CreateThreadEPNS0_10ThreadTypeEPFvPvES3_S3_mii

@@ -4,53 +4,79 @@
 
 namespace newui {
     NEWUI_ELEMENT(Button) {
-        auto label = props.value("label", "<% ERROR: Missing attribute 'label' %>");
+        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
         auto size = jsonutil::getImVec2(props, "size", ImVec2(0, 0));
         auto flags = jsonutil::getInt(props, "flags", 0);
         auto enabled = jsonutil::getBool(props, "enabled", true);
+        auto onClick = jsonutil::getString(props, "onclick", Renderer::PLACEHOLDER);
 
-        auto onClick = props.value("onclick", Renderer::PLACEHOLDER);
-
-        if (!renderer.hasCallback<void>(onClick)) {
-            ImGui::BeginDisabled();
-            auto content = std::format("<% ERROR: Unknown 'onclick' callback '{}' %>", onClick);
-            ImGui::ButtonEx(content.c_str(), size, flags);
-            ImGui::EndDisabled();
-        } else {
-            ImGui::BeginDisabled(!enabled);
-            if (ImGui::ButtonEx(label.c_str(), size, flags)) {
-                renderer.invokeCallback(onClick, context);
-            }
-            ImGui::EndDisabled();
+        ImGui::BeginDisabled(!enabled);
+        if (ImGui::ButtonEx(label.data(), size, flags)) {
+            renderer.invokeCallback(onClick, "onclick", context);
         }
+        ImGui::EndDisabled();
+    }
+
+    NEWUI_ELEMENT(Combo) {
+        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
+        auto key = jsonutil::getString(props, "key", "");
+        auto preview = jsonutil::getString(props, "preview", "");
+        auto flags = jsonutil::getInt(props, "flags", 0);
+
+        if (preview.empty()) {
+            if (!key.empty()) {
+                auto value = context.value(key, "");
+
+                if (!value.empty()) {
+                    for (auto child : node.children()) {
+                        if (child.type() == pugi::node_element && strcasecmp(child.name(), "Selectable") == 0) {
+                            auto val = child.attribute("value");
+                            if (val.empty()) {
+                                val = child.attribute("label");
+                            }
+                            if (val.empty()) continue;
+
+                            if (value == val.value()) {
+                                preview = child.attribute("label").value();
+                                break;
+                            }
+                        }
+                    }
+                }
+            } else {
+                preview = "<% ERROR: Missing attribute 'preview' %>";
+            }
+        }
+
+        if (ImGui::BeginCombo(label.data(), preview.data(), flags)) {
+            for (const auto& child : node.children()) {
+                renderer.render(child, context);
+            }
+
+            ImGui::EndCombo();
+        }
+
     }
 
     NEWUI_ELEMENT(Selectable) {
-        auto key = props.value("key", "");
-        auto label = props.value("label", "<% ERROR: Missing attribute 'label' %>");
-        auto value = props.value("value", label);
+        auto key = jsonutil::getString(props, "key", "");
+        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
+        auto value = jsonutil::getString(props, "value", label);
         auto size = jsonutil::getImVec2(props, "size", ImVec2(0, 0));
         auto flags = jsonutil::getInt(props, "flags", 0);
         auto enabled = jsonutil::getBool(props, "enabled", true);
-        auto onClick = props.value("onclick", Renderer::PLACEHOLDER);
-
-        if (!renderer.hasCallback<std::string&>(onClick)) {
-            ImGui::BeginDisabled();
-            auto content = std::format("<% ERROR: Unknown 'onclick' callback '{}' %>", onClick);
-            ImGui::Selectable(content.c_str());
-            ImGui::EndDisabled();
-        }
+        auto onClick = jsonutil::getString(props, "onclick", Renderer::PLACEHOLDER);
 
         if (key.empty()) {
             ImGui::BeginDisabled();
-            ImGui::Selectable("<% ERROR: Missing attribute 'key' %>");
+            ImGui::Selectable("<% ERROR: Missing attribute 'key' %>", false, flags, size);
             ImGui::EndDisabled();
         } else {
             ImGui::BeginDisabled(!enabled);
-            auto current = context.value(key, "");
-            if (ImGui::Selectable(label.c_str(), current == value, flags, size)) {
-                renderer.invokeCallback<std::string&>(onClick, context, current, value);
-                context[key] = value;
+            auto current = jsonutil::getString(context, key, "");
+            if (ImGui::Selectable(label.data(), current == value, flags, size)) {
+                renderer.invokeCallback(onClick, "onclick", context, current, value);
+                jsonutil::assignPath(context, key, value);
                 renderer.markNeedsUpdate();
             }
             ImGui::EndDisabled();
@@ -58,18 +84,11 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(Checkbox) {
-        auto label = props.value("label", "<% ERROR: Missing attribute 'label' %>");
-        auto key = props.value("key", "");
+        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
+        auto key = jsonutil::getString(props, "key", "");
         auto defaultValue = jsonutil::getBool(props, "default", false);
-        auto onChange = props.value("onChange", Renderer::PLACEHOLDER);
+        auto onChange = jsonutil::getString(props, "onchange", Renderer::PLACEHOLDER);
         auto enabled = jsonutil::getBool(props, "enabled", true);
-
-        if (!renderer.hasCallback<bool>(onChange)) {
-            ImGui::BeginDisabled();
-            auto content = std::format("<% ERROR: Unknown 'onchange' callback '{}' %>", onChange);
-            ImGui::Selectable(content.c_str());
-            ImGui::EndDisabled();
-        }
 
         if (key.empty()) {
             ImGui::BeginDisabled();
@@ -78,10 +97,11 @@ namespace newui {
         } else {
             auto current = jsonutil::getBool(context, key, defaultValue);
             auto value = current;
+
             ImGui::BeginDisabled(!enabled);
-            if (ImGui::Checkbox(label.c_str(), &value)) {
-                renderer.invokeCallback(onChange, context, current, value);
-                context[key] = value;
+            if (ImGui::Checkbox(label.data(), &value)) {
+                renderer.invokeCallback(onChange, "onchange", context, current, value);
+                jsonutil::assignPath(context, key, value);
                 renderer.markNeedsUpdate();
             }
             ImGui::EndDisabled();
@@ -89,34 +109,27 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(InputInt) {
-        auto label = props.value("label", "<% ERROR: Missing attribute 'label' %>");
-        auto key = props.value("key", "");
+        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
+        auto key = jsonutil::getString(props, "key", "");
         auto defaultValue = jsonutil::getInt(props, "default", 0);
         auto min = jsonutil::getInt(props, "min", 0);
         auto max = jsonutil::getInt(props, "max", 100);
         auto step = jsonutil::getInt(props, "step", 1);
-        auto stepFast = jsonutil::getInt(props, "stepfast", 100);
+        auto stepFast = jsonutil::getInt(props, "stepfast", 10);
         auto flags = jsonutil::getInt(props, "flags", 0);
-        auto onChange = props.value("onChange", Renderer::PLACEHOLDER);
+        auto onChange = jsonutil::getString(props, "onchange", Renderer::PLACEHOLDER);
         auto enabled = jsonutil::getBool(props, "enabled", true);
-
-        if (!renderer.hasCallback<int>(onChange)) {
-            ImGui::BeginDisabled();
-            auto content = std::format("<% ERROR: Unknown 'onchange' callback '{}' %>", onChange);
-            ImGui::Selectable(content.c_str());
-            ImGui::EndDisabled();
-        }
 
         if (key.empty()) {
             ImGui::BeginDisabled();
-            ImGui::InputInt("<% ERROR: Missing attribute 'key' %>", &defaultValue);
+            ImGui::InputInt("<% ERROR: Missing attribute 'key' %>", &defaultValue, step, stepFast, flags);
             ImGui::EndDisabled();
         } else {
             auto current = jsonutil::getInt(context, key, defaultValue);
             auto value = current;
 
             ImGui::BeginDisabled(!enabled);
-            if (ImGui::InputInt(label.c_str(), &value, step, stepFast, flags)) {
+            if (ImGui::InputInt(label.data(), &value, step, stepFast, flags)) {
                 if (value < min) {
                     value = min;
                 } else if (value > max) {
@@ -124,8 +137,38 @@ namespace newui {
                 }
 
                 if (value != current) {
-                    renderer.invokeCallback(onChange, context, current, value);
-                    context[key] = value;
+                    renderer.invokeCallback(onChange, "onchange", context, current, value);
+                    jsonutil::assignPath(context, key, value);
+                    renderer.markNeedsUpdate();
+                }
+            }
+            ImGui::EndDisabled();
+        }
+    }
+
+    NEWUI_ELEMENT(SliderInt) {
+        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
+        auto key = jsonutil::getString(props, "key", "");
+        auto defaultValue = jsonutil::getInt(props, "default", 0);
+        auto min = jsonutil::getInt(props, "min", 0);
+        auto max = jsonutil::getInt(props, "max", 100);
+        auto flags = jsonutil::getInt(props, "flags", 0);
+        auto onChange = jsonutil::getString(props, "onchange", Renderer::PLACEHOLDER);
+        auto enabled = jsonutil::getBool(props, "enabled", true);
+
+        if (key.empty()) {
+            ImGui::BeginDisabled();
+            ImGui::SliderInt("<% ERROR: Missing attribute 'key' %>", &defaultValue, min, max, "%d", flags);
+            ImGui::EndDisabled();
+        } else {
+            auto current = jsonutil::getInt(context, key, defaultValue);
+            auto value = current;
+
+            ImGui::BeginDisabled(!enabled);
+            if (ImGui::SliderInt(label.data(), &value, min, max, "%d", flags)) {
+                if (value != current) {
+                    renderer.invokeCallback(onChange, "onchange", context, current, value);
+                    jsonutil::assignPath(context, key, value);
                     renderer.markNeedsUpdate();
                 }
             }
@@ -134,35 +177,28 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(InputFloat) {
-        auto label = props.value("label", "<% ERROR: Missing attribute 'label' %>");
-        auto key = props.value("key", "");
+        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
+        auto key = jsonutil::getString(props, "key", "");
         auto defaultValue = jsonutil::getFloat(props, "default", 0);
         auto min = jsonutil::getFloat(props, "min", 0);
         auto max = jsonutil::getFloat(props, "max", 100);
         auto step = jsonutil::getFloat(props, "step", 1);
-        auto stepFast = jsonutil::getFloat(props, "stepfast", 100);
-        auto format = props.value("format", "%.3f");
+        auto stepFast = jsonutil::getFloat(props, "stepfast", 10);
+        auto format = jsonutil::getString(props, "format", "%.3f");
         auto flags = jsonutil::getInt(props, "flags", 0);
-        auto onChange = props.value("onChange", Renderer::PLACEHOLDER);
+        auto onChange = jsonutil::getString(props, "onchange", Renderer::PLACEHOLDER);
         auto enabled = jsonutil::getBool(props, "enabled", true);
-
-        if (!renderer.hasCallback<float>(onChange)) {
-            ImGui::BeginDisabled();
-            auto content = std::format("<% ERROR: Unknown 'onchange' callback '{}' %>", onChange);
-            ImGui::Selectable(content.c_str());
-            ImGui::EndDisabled();
-        }
 
         if (key.empty()) {
             ImGui::BeginDisabled();
-            ImGui::InputFloat("<% ERROR: Missing attribute 'key' %>", &defaultValue);
+            ImGui::InputFloat("<% ERROR: Missing attribute 'key' %>", &defaultValue, step, stepFast, format.data(), flags);
             ImGui::EndDisabled();
         } else {
             auto current = jsonutil::getFloat(context, key, defaultValue);
             auto value = current;
 
             ImGui::BeginDisabled(!enabled);
-            if (ImGui::InputFloat(label.c_str(), &value, step, stepFast, format.c_str(), flags)) {
+            if (ImGui::InputFloat(label.data(), &value, step, stepFast, format.data(), flags)) {
                 if (value < min) {
                     value = min;
                 } else if (value > max) {
@@ -170,8 +206,39 @@ namespace newui {
                 }
 
                 if (value != current) {
-                    renderer.invokeCallback(onChange, context, current, value);
-                    context[key] = value;
+                    renderer.invokeCallback(onChange, "onchange", context, current, value);
+                    jsonutil::assignPath(context, key, value);
+                    renderer.markNeedsUpdate();
+                }
+            }
+            ImGui::EndDisabled();
+        }
+    }
+
+    NEWUI_ELEMENT(SliderFloat) {
+        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
+        auto key = jsonutil::getString(props, "key", "");
+        auto defaultValue = jsonutil::getFloat(props, "default", 0);
+        auto min = jsonutil::getFloat(props, "min", 0);
+        auto max = jsonutil::getFloat(props, "max", 100);
+        auto format = jsonutil::getString(props, "format", "%.3f");
+        auto flags = jsonutil::getInt(props, "flags", 0);
+        auto onChange = jsonutil::getString(props, "onchange", Renderer::PLACEHOLDER);
+        auto enabled = jsonutil::getBool(props, "enabled", true);
+
+        if (key.empty()) {
+            ImGui::BeginDisabled();
+            ImGui::SliderFloat("<% ERROR: Missing attribute 'key' %>", &defaultValue, min, max, format.data(), flags);
+            ImGui::EndDisabled();
+        } else {
+            auto current = jsonutil::getFloat(context, key, defaultValue);
+            auto value = current;
+
+            ImGui::BeginDisabled(!enabled);
+            if (ImGui::SliderFloat(label.data(), &value, min, max, format.data(), flags)) {
+                if (value != current) {
+                    renderer.invokeCallback(onChange, "onchange", context, current, value);
+                    jsonutil::assignPath(context, key, value);
                     renderer.markNeedsUpdate();
                 }
             }

@@ -16,6 +16,8 @@ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/config.cmake)
 endif ()
 include(${CMAKE_CURRENT_SOURCE_DIR}/config.cmake)
 
+set(PUGIXML_NO_EXCEPTIONS ON)
+
 add_subdirectory(lib/json)
 add_subdirectory(lib/pugixml)
 add_subdirectory(lib/mbedtls)

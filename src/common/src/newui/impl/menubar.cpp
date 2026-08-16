@@ -26,10 +26,10 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(Menu) {
-        auto label = props.value("label", "<% ERROR: Missing attribute 'label' %>");
+        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
         auto enabled = jsonutil::getBool(props, "enabled", true);
 
-        if (ImGui::BeginMenu(label.c_str(), enabled)) {
+        if (ImGui::BeginMenu(label.data(), enabled)) {
             for (const auto& child : node.children()) {
                 renderer.render(child, context);
             }
@@ -38,28 +38,21 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(MenuItem) {
-        auto label = props.value("label", "<% ERROR: Missing attribute 'label' %>");
-        auto icon = props.value("icon", "");
-        auto iconStr = icon.empty() ? nullptr : icon.c_str();
+        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
+        auto icon = jsonutil::getString(props, "icon", "");
+        auto iconStr = icon.empty() ? nullptr : icon.data();
         auto defaultValue = jsonutil::getBool(props, "default", false);
-        auto key = props.value("key", "");
+        auto key = jsonutil::getString(props, "key", "");
         auto enabled = jsonutil::getBool(props, "enabled", true);
-        auto onChange = props.value("onChange", Renderer::PLACEHOLDER);
-
-        if (!renderer.hasCallback<bool>(onChange)) {
-            ImGui::BeginDisabled();
-            auto content = std::format("<% ERROR: Unknown 'onchange' callback '{}' %>", onChange);
-            ImGui::MenuItemEx(content.c_str(), iconStr, nullptr, false, enabled);
-            ImGui::EndDisabled();
-        }
+        auto onChange = jsonutil::getString(props, "onchange", Renderer::PLACEHOLDER);
 
         if (key.empty()) {
             ImGui::MenuItemEx("<% ERROR: Missing attribute 'key' %>", iconStr, nullptr, false, enabled);
         } else {
-            auto current = jsonutil::getBool(context, key, defaultValue);
-            if (ImGui::MenuItemEx(label.c_str(), iconStr, nullptr, current, enabled)) {
-                renderer.invokeCallback(onChange, context, current, !current);
-                context[key] = !current;
+            auto current = jsonutil::getBool(context, key.data(), defaultValue);
+            if (ImGui::MenuItemEx(label.data(), iconStr, nullptr, current, enabled)) {
+                renderer.invokeCallback(onChange, "onchange", context, current, !current);
+                jsonutil::assignPath(context, key, !current);
                 renderer.markNeedsUpdate();
             }
         }

@@ -11,4 +11,6 @@ namespace ik {
 
         void AddPoint(int amount, bool unk);  // Seems to be false usually?
     };
+
+    static_assert(offsetof(TrainerRankManager, m_tickets) == 28);
 }

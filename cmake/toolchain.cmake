@@ -72,9 +72,8 @@ endif()
 set(ARCH "--target=${TARGET_TRIPLE} -march=${MARCH} -mtune=cortex-a57 -fPIC -nodefaultlibs ${ARCH}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARCH} -Werror=return-type -Wno-invalid-offsetof")
 # For clang 21 once I figure out why it doesn't link fakesymbols.so:
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARCH} -Werror=return-type -Wno-invalid-offsetof -Wno-error=uninitialized-const-pointer -Wno-error=unterminated-string-initialization")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ARCH} ${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections -fno-exceptions -frtti")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ARCH} ${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections -frtti")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ARCH} ${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections -fno-exceptions -frtti")
+message(${CMAKE_CXX_FLAGS})
 set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} ${ARCH}")
 list(JOIN DEFAULTLIBS " " DEFAULTLIBS_STR)
 

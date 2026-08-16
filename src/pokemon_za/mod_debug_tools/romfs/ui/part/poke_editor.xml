@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Column xmlns="https://schema.yourdomain.com/ui"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="https://schema.yourdomain.com/ui newui.xsd">
+  <Checkbox label="Allow invalid forms" key="{{ editor_type }}.allowInvalid" />
+  <SeparatorText content="Pokemon" />
+  <Columns>
+    <InputInt label="Species ID" key="{{ editor_type }}.species" min="1" default="1" max="1010" weight="1" />
+    <InputInt label="Form ID" key="{{ editor_type }}.form" max="27" weight="1" />
+  </Columns>
+  {#
+  <Callback onframe="API:validateFormNo(context.{{ editor_type }} or {})" />
+  <Row>
+    <Text contentscript="API:getMonsName((context.{{ editor_type }} or {}).species or 1)" weight="1" />
+    <Text contentscript="API:getFormName((context.{{ editor_type }} or {}).species or 1, (context.{{ editor_type }} or {}).form or 0)" weight="1" />
+  </Row>
+  <SeparatorText content="Stats" />
+  <Row>
+    <Combo label="Sex" key="{{ editor_type }}.sex" weight="1">
+      {% for sex in ["msg_zkn_07_02", "msg_zkn_07_03", "-"] %}
+        {% if loop.index == 2 %}
+          <Selectable label="{{ sex }}" key="{{ editor_type }}.sex" value="{{ loop.index }}" />
+        {% else %}
+          {% set sexName = lua("GetMessage('pokedex', '" + sex + "')") %}
+          <Selectable label="{{ sexName }}" key="{{ editor_type }}.sex" value="{{ loop.index }}" />
+        {% endif %}
+      {% endfor %}
+    </Combo>
+
+    <Combo label="Nature" key="{{ editor_type }}.nature" weight="1">
+      {% for i in range(25) %}
+        {% set natureName = lua("GetMessage('seikaku', ('SEIKAKU_%03d'):format(" + string(i) + "))") %}
+        <Selectable label="{{ natureName }}" key="{{ editor_type }}.nature" value="{{ loop.index }}" />
+      {% endfor %}
+    </Combo>
+  </Row>
+  <Row>
+    <InputInt label="Level" key="{{ editor_type }}.level" min="1" default="1" weight="1" />
+    <InputInt label="Ability" key="{{ editor_type }}.ability" max="2" weight="1" />
+  </Row>
+  {% if editor_extra_settings %}
+  <Row>
+    <Checkbox label="Shiny" key="{{ editor_type }}.forceShiny" weight="1" />
+    <Checkbox label="Alpha" key="{{ editor_type }}.forceAlpha" weight="1" />
+  </Row>
+  {% endif %}
+  <SeparatorText content="IVs/EVs" />
+  <Row>
+    <Text content=" " weight="1" />
+    <Text content="IV" weight="1" />
+    <Text content="EV" weight="1" />
+  </Row>
+  {% for i in range(6) %}
+    <Row>
+      <Text contentscript="GetMessage('level_up', 'msg_ui_lvup_01_0{{ i+3 }}')" weight="1" />
+      <InputInt label="##IV_{{ i }}" key="{{ editor_type }}.iv{{ i }}" max="31" weight="1" />
+      <InputInt label="##EV_{{ i }}" key="{{ editor_type }}.ev{{ i }}" max="252" weight="1" />
+    </Row>
+  {% endfor %}
+  <SeparatorText content="Moves" />
+  {% for i in range(4) %}
+    {% if i % 2 == 0 %}<Row>{% endif %}
+    <InputInt label="##MOVE_{{ i }}" key="{{ editor_type }}.move{{ i }}" default="{{ i }}" weight="1" />
+    <Text contentscript="GetMessage('wazaname', ('WAZANAME_%03d'):format((context.{{ editor_type }} or {}).move{{ i }} or {{ i }}))" weight="1" />
+    {% if i % 2 == 1 %}</Row>{% endif %}
+  {% endfor %}
+  #}
+</Column>

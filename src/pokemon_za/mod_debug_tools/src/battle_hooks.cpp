@@ -7,6 +7,8 @@
 #include "externals/pml/pokepara/InitialSpec.h"
 #include "externals/pml/pokepara/CalcTool.h"
 #include "externals/ik/TrainerComponent.h"
+#include "nlohmann/json.hpp"
+#include "nlohmann/json_fwd.hpp"
 
 // Settings
 static bool isMustCapture = false;
@@ -16,31 +18,64 @@ static bool expMultiplierInvert = false;
 static bool alwaysMaxEnergy = false;
 static bool movesAlwaysActive = false;
 
-void setIsMustCapture(bool value) {
-    isMustCapture = value;
-}
-
-void setIsExpShareOn(bool value) {
-    isExpShareOn = value;
-}
-
-void setExpMultiplier(int value) {
-    expMultiplier = value;
-}
-
-void setExpMultiplierInvert(bool value) {
-    expMultiplierInvert = value;
-}
-
-void setAlwaysMaxEnergy(bool value) {
-    alwaysMaxEnergy = value;
-}
-
-void setMovesAlwaysActive(bool value) {
-    movesAlwaysActive = value;
-}
-
 PokemonData s_dataForEncounter = {};
+
+extern "C" {
+    void hook_setIsMustCapture(bool value) {
+        isMustCapture = value;
+    }
+
+    void hook_setIsExpShareOn(bool value) {
+        isExpShareOn = value;
+    }
+
+    void hook_setExpMultiplier(int value) {
+        expMultiplier = value;
+    }
+
+    void hook_setExpMultiplierInvert(bool value) {
+        expMultiplierInvert = value;
+    }
+
+    void hook_setAlwaysMaxEnergy(bool value) {
+        alwaysMaxEnergy = value;
+    }
+
+    void hook_setMovesAlwaysActive(bool value) {
+        movesAlwaysActive = value;
+    }
+
+    void hook_saveEncounterData(const nlohmann::json* data) {
+        s_dataForEncounter.forceShiny = data->value("forceShiny", false);
+        s_dataForEncounter.forceAlpha = data->value("forceAlpha", false);
+        s_dataForEncounter.forceModify = data->value("forceModify", false);
+        s_dataForEncounter.allowInvalidForms = data->value("allowInvalidForms", false);
+        s_dataForEncounter.shinyMultiplier = data->value("shinyMultiplier", 1);
+        s_dataForEncounter.species = data->value("species", 1);
+        s_dataForEncounter.form = data->value("form", 0);
+        s_dataForEncounter.sex = data->value("sex", 0);
+        s_dataForEncounter.ability = data->value("ability", 0);
+        s_dataForEncounter.nature = data->value("nature", 0);
+        s_dataForEncounter.level = data->value("level", 1);
+        s_dataForEncounter.iv[0] = data->value("iv0", 0);
+        s_dataForEncounter.iv[1] = data->value("iv1", 0);
+        s_dataForEncounter.iv[2] = data->value("iv2", 0);
+        s_dataForEncounter.iv[3] = data->value("iv3", 0);
+        s_dataForEncounter.iv[4] = data->value("iv4", 0);
+        s_dataForEncounter.iv[5] = data->value("iv5", 0);
+        s_dataForEncounter.ev[0] = data->value("ev0", 0);
+        s_dataForEncounter.ev[1] = data->value("ev1", 0);
+        s_dataForEncounter.ev[2] = data->value("ev2", 0);
+        s_dataForEncounter.ev[3] = data->value("ev3", 0);
+        s_dataForEncounter.ev[4] = data->value("ev4", 0);
+        s_dataForEncounter.ev[5] = data->value("ev5", 0);
+        s_dataForEncounter.moves[0] = data->value("move0", 1);
+        s_dataForEncounter.moves[1] = data->value("move1", 2);
+        s_dataForEncounter.moves[2] = data->value("move2", 3);
+        s_dataForEncounter.moves[3] = data->value("move3", 4);
+
+    }
+}
 
 HkTrampoline<void, pml::Capture*> CaptureHook = hk::hook::trampoline([](pml::Capture* param_1) {
     CaptureHook.orig(param_1);
