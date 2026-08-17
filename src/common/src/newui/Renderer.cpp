@@ -189,7 +189,7 @@ namespace newui {
             auto result = doc.load_string(templated.c_str());
             if (result.status != pugi::status_ok) {
                 Logger::log("XML: %s", templated.c_str());
-                Logger::log("XML Parse Error at offset %d: %s\n", result.offset, result.description());
+                Logger::log("XML Parse Error at offset %d: %s", result.offset, result.description());
                 uiTemplate = std::format("<TextDisabled content=\"XML Parse Error at offset {}: {}\" />", result.offset, result.description());
                 return;
             }
@@ -210,8 +210,7 @@ namespace newui {
                 ImGui::PushID(node.name());
 
                 auto& renderer = rootRenderer.renderers[type];
-                auto props = parseAttrs(node);
-                renderer(rootRenderer, node, props, ctx);
+                renderer(rootRenderer, node, ctx);
 
                 ImGui::PopID();
             } else {

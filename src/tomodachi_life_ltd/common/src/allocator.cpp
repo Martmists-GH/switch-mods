@@ -23,7 +23,7 @@ bool canInitImgui() {
 }
 
 static void dump(sead::Heap::instance* heap, int indent = 0) {
-    Logger::log("%*s%s\n", indent, "", heap->fields.m_name);
+    Logger::log("%*s%s", indent, "", heap->fields.m_name);
     for (int i = 0; i < heap->fields.m_children.m_size; ++i) {
         auto child = heap->fields.m_children.get(i);
         if (child != nullptr) {
@@ -38,16 +38,16 @@ void* aligned_alloc(size_t alignment, size_t size) {
     auto heap = sead::gAllocatorList.m_items[0]->castTo<sead::Heap>();
 
     if (!gSetForceBssHeap && heap != nullptr && heap->fields.m_children.m_size >= 6) {
-        Logger::log("> Heap %s (%n children)\n", heap->fields.m_name, heap->fields.m_children.m_size);
+        Logger::log("> Heap %s (%n children)", heap->fields.m_name, heap->fields.m_children.m_size);
         heap = heap->fields.m_children.get(5)->impl();  // sead::TaskMgr
-        Logger::log("> Heap %s (%n children)\n", heap->fields.m_name, heap->fields.m_children.m_size);
+        Logger::log("> Heap %s (%n children)", heap->fields.m_name, heap->fields.m_children.m_size);
         heap = heap->fields.m_children.get(0)->impl();  // RootTask
-        Logger::log("> Heap %s (%n children)\n", heap->fields.m_name, heap->fields.m_children.m_size);
+        Logger::log("> Heap %s (%n children)", heap->fields.m_name, heap->fields.m_children.m_size);
         heap = heap->fields.m_children.get(5)->impl();  // ResourceMgr
-        Logger::log("> Heap %s (%n children)\n", heap->fields.m_name, heap->fields.m_children.m_size);
+        Logger::log("> Heap %s (%n children)", heap->fields.m_name, heap->fields.m_children.m_size);
         heap = heap->fields.m_children.get(1)->impl();  // ForResourceL
-        Logger::log("> Heap %s (%n children)\n", heap->fields.m_name, heap->fields.m_children.m_size);
-        Logger::log("< Allocating\n");
+        Logger::log("> Heap %s (%n children)", heap->fields.m_name, heap->fields.m_children.m_size);
+        Logger::log("< Allocating");
     } else {
         auto ptr = hk::mem::sMainHeap.allocate(size, alignment);
         if (!ptr) return nullptr;
@@ -63,7 +63,7 @@ void* aligned_alloc(size_t alignment, size_t size) {
     if (m_heapAllocCount < MAX_HEAP_TRACKED) {
         m_heapAllocData[m_heapAllocCount++] = { ptr, heap };
     } else {
-        Logger::log("Exceeded tracked heap!\n");
+        Logger::log("Exceeded tracked heap!");
     }
 
     return ptr;

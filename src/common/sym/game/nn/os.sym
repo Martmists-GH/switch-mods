@@ -56,3 +56,6 @@ _ZN2nn2os16GetCurrentThreadEv
 
 // nn::os::GetThreadId(nn::os::ThreadType const*)
 _ZN2nn2os11GetThreadIdEPKNS0_10ThreadTypeE
+
+// nn::os::GetThreadNamePointer(nn::os::ThreadType const*)
+_ZN2nn2os20GetThreadNamePointerEPKNS0_10ThreadTypeE

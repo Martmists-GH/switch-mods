@@ -354,6 +354,8 @@ static bool ImguiHeapData(gfl::SizedHeap::instance* heap, HeapMeta &meta) {
 }
 
 static nlohmann::json GetMessage(const char* file, const char* msg) {
+    auto cacheKey = std::format("{}:{}", file, msg);
+
     auto filev = gfl::StringView::Create(file);
     auto msgv = gfl::StringView::Create(msg);
     auto res = pe::text::lua::Text::GetText(&filev, &msgv);
@@ -361,9 +363,9 @@ static nlohmann::json GetMessage(const char* file, const char* msg) {
     if (res.m_ptr == nullptr) {
         return nullptr;
     }
-    auto asJson = nlohmann::json(res.m_ptr->asString());
 
-    return asJson;
+    auto resString = res.m_ptr->asString();
+    return resString;
 }
 
 static int lua_GetMessage(lua_State* L) {
@@ -382,16 +384,6 @@ static int lua_GetMessage(lua_State* L) {
 }
 
 void setup_ui() {
-    static auto perfWindow = ROOT.Window([](Window &_) {
-        _.title = "Performance";
-        _.sticky = true;
-        _.open = false;
-        _.toggleable = true;
-        _.initialPos = ImVec2(800, 50);
-        _.initialSize = ImVec2(450, 280);
-
-
-    });
     //
     // static auto partyWindow = ROOT.Window([](Window &_) {
     //     _.title = "Party Inspector";
@@ -789,7 +781,7 @@ void setup_ui() {
     //     _.FunctionElement([]() {
     //         static bool didLoad = false;
     //         if (!didLoad) {
-    //             Logger::log("Loading message files\n");
+    //             Logger::log("Loading message files");
     //             pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/seikaku.dat");
     //             pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/status.dat");
     //             pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/box.dat");
@@ -1263,10 +1255,10 @@ void setup_ui() {
     //     });
     // });
 
-    Logger::log("Creating renderer\n");
+    Logger::log("Creating renderer");
     static newui::Renderer renderer;
 
-    Logger::log("Initializing renderer with XML\n");
+    Logger::log("Initializing renderer with XML");
     renderer.init(ROM_MOUNT ":/ui/debug.xml");
 
     static bool didLoadMsg = false;
@@ -1284,11 +1276,11 @@ void setup_ui() {
         lua_setglobal(L, "GetMessage");
     });
 
-    renderer.registerRenderer("PerformanceFPS", [](newui::Renderer& renderer, const pugi::xml_node& node, const nlohmann::json& props, nlohmann::json& context) {
+    renderer.registerRenderer("PerformanceFPS", [](newui::Renderer& renderer, const pugi::xml_node& node, nlohmann::json& context) {
         static std::map<std::string, nn::TimeSpan> allTicks;
         static std::map<std::string, std::array<float, 120>> allCounts;
 
-        auto key = std::string(jsonutil::getString(props, "key", ""));
+        auto key = std::string(jsonutil::getString(node, "key", ""));
         if (key.empty()) {
             ImGui::TextUnformatted("<% ERROR: Missing attribute 'key' %>");
             return;
@@ -1352,11 +1344,11 @@ void setup_ui() {
                          nullptr, 0.0f, 0.2f);
     });
 
-    renderer.registerRenderer("PerformanceMemory", [](newui::Renderer& renderer, const pugi::xml_node& node, const nlohmann::json& props, nlohmann::json& context) {
+    renderer.registerRenderer("PerformanceMemory", [](newui::Renderer& renderer, const pugi::xml_node& node, nlohmann::json& context) {
         constexpr size_t HEAPMETA_MAX = 550;
         static std::array<HeapMeta, HEAPMETA_MAX> heapInfo = {};
 
-        auto cols = jsonutil::getInt(props, "columns", 2);
+        auto cols = jsonutil::getInt(node, "columns", 2);
 
         ImGui::BeginColumns(nullptr, cols, ImGuiOldColumnFlags_NoBorder);
         uint32_t j = 0;

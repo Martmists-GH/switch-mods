@@ -124,20 +124,20 @@ namespace newui {
         int varPushes = 0;
 
         for (auto& entry : colors) {
-            if (props.contains(entry.key)) {
-                auto col = jsonutil::getImColor(props, entry.key, ImColor());
+            if (!node.attribute(entry.key).empty()) {
+                auto col = jsonutil::getImColor(node, entry.key, ImColor());
                 ImGui::PushStyleColor(entry.color, col.Value);
                 colorPushes++;
             }
         }
 
         for (auto& entry : styleVars) {
-            if (props.contains(entry.key)) {
+            if (!node.attribute(entry.key).empty()) {
                 if (entry.type == VarType::Float) {
-                    auto f = jsonutil::getFloat(props, entry.key, 0);
+                    auto f = jsonutil::getFloat(node, entry.key, 0);
                     ImGui::PushStyleVar(entry.var, f);
                 } else {
-                    auto v = jsonutil::getImVec2(props, entry.key, ImVec2());
+                    auto v = jsonutil::getImVec2(node, entry.key, ImVec2());
                     ImGui::PushStyleVar(entry.var, v);
                 }
                 varPushes++;

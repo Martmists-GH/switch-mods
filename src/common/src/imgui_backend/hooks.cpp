@@ -50,7 +50,7 @@ bool canInitImgui() {
 
 bool InitImGui() {
     if (nvnDevice && nvnQueue && canInitImgui()) {
-        Logger::log("Creating ImGui.\n");
+        Logger::log("Creating ImGui.");
         IMGUI_CHECKVERSION();
 
         ImGuiMemAllocFunc allocFunc = [](size_t size, void *user_data) {
@@ -62,15 +62,15 @@ bool InitImGui() {
             free(ptr);
         };
 
-        Logger::log("Setting Allocator Functions.\n");
+        Logger::log("Setting Allocator Functions.");
         ImGui::SetAllocatorFunctions(allocFunc, freeFunc, nullptr);
-        Logger::log("Creating ImGui Context.\n");
+        Logger::log("Creating ImGui Context.");
 
         ImGui::CreateContext();
         ImGuiIO &io = ImGui::GetIO();
         (void) io;
 
-        Logger::log("Setting Style to Dark.\n");
+        Logger::log("Setting Style to Dark.");
         ImGui::StyleColorsDark();
 
         ImguiNvnBackend::NvnBackendInitInfo initInfo = {
@@ -78,7 +78,7 @@ bool InitImGui() {
                 .queue = nvnQueue,
         };
 
-        Logger::log("Initializing Backend.\n");
+        Logger::log("Initializing Backend.");
         ImguiNvnBackend::InitBackend(initInfo);
         InputUtil::initKBM();
         InputUtil::setPort(0); // set input helpers default port to zero
@@ -86,7 +86,7 @@ bool InitImGui() {
         return true;
 
     } else {
-        Logger::log("Unable to create ImGui Renderer!\n");
+        Logger::log("Unable to create ImGui Renderer!");
 
         return false;
     }
@@ -165,7 +165,7 @@ NVNboolean cmdBufInit(nvn::CommandBuffer *buffer, nvn::Device *device) {
     NVNboolean result = tempBufferInitFuncPtr(buffer, device);
 
     if (!hasInitImGui && nvnQueue && nvnDevice) {
-        Logger::log("Initializing ImGui.\n");
+        Logger::log("Initializing ImGui.");
         hasInitImGui = InitImGui();
         if (hasInitImGui) {
 #ifdef IMGUI_NVN_SRGB
@@ -229,7 +229,7 @@ nvn::GenericFuncPtrFunc getProc(nvn::Device *device, const char *procName) {
 
 HkTrampoline<void*, const char*> NvnBootstrapHook = hk::hook::trampoline([](const char* funcName){
         void *result = NvnBootstrapHook.orig(funcName);
-        Logger::log("Installing nvn Hooks.\n");
+        Logger::log("Installing nvn Hooks.");
 
         if (strcmp(funcName, "nvnDeviceInitialize") == 0) {
             tempDeviceInitFuncPtr = reinterpret_cast<nvn::DeviceInitializeFunc>(result);

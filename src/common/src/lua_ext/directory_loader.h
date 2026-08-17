@@ -31,7 +31,7 @@ static inline void executeScriptsInDirectory(lua_State* L, std::string folder) {
 
         char buffer[0x320];
         for (auto item: sortedFiles) {
-            Logger::log("Executing: %s\n", item->mName);
+            Logger::log("Executing: %s", item->mName);
             auto file = folder + "/%s";
             snprintf(buffer, sizeof(buffer), file.c_str(), item->mName);
             nn::fs::FileHandle fileHandle{};
@@ -41,7 +41,8 @@ static inline void executeScriptsInDirectory(lua_State* L, std::string folder) {
             nn::fs::CloseFile(fileHandle);
             strBuf[item->mFileSize] = '\0';
             if (luaL_dostring(L, strBuf) != LUA_OK) {
-                Logger::log("An error occurred in %s: %s\n", item->mName, lua_tostring(L, -1));
+                Logger::log("An error occurred in %s: %s", item->mName, lua_tostring(L, -1));
+                lua_pop(L, 1);  // Pop error string from stack
             }
             delete[] strBuf;
         }

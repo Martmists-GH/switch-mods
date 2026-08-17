@@ -54,13 +54,14 @@ HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
         long size;
         if (auto res = nn::fs::OpenFile(&file, "sd:/mod.log", nn::fs::OpenMode_Write | nn::fs::OpenMode_Append); res.IsFailure()) {
             disableFileLogger = true;
-            Logger::log("log open failed: %d\n", res.GetInnerValueForDebug());
+            Logger::log("log open failed: %d", res.GetInnerValueForDebug());
             disableFileLogger = false;
             return;
         }
         nn::fs::GetFileSize(&size, file);
 
-        nn::fs::WriteFile(file, size, message, len, nn::fs::WriteOption::CreateOption(nn::fs::WriteOptionFlag_Flush));
+        nn::fs::WriteFile(file, size, message, len, nn::fs::WriteOption::CreateOption(0));
+        nn::fs::WriteFile(file, size + len, "\n", 1, nn::fs::WriteOption::CreateOption(nn::fs::WriteOptionFlag_Flush));
         nn::fs::CloseFile(file);
     });
 
@@ -77,9 +78,9 @@ HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
         threadRef.setName("Websocket Thread");
         threadRef.start();
 
-        Logger::log("Connected to logging server!\n");
+        Logger::log("Connected to logging server!");
     } else {
-        Logger::log("Failed to connect to logging server!\n");
+        Logger::log("Failed to connect to logging server!");
     }
 #endif
 #endif
@@ -87,23 +88,23 @@ HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
 
     nn::oe::DisplayVersion display_version{};
     nn::oe::GetDisplayVersion(&display_version);
-    Logger::log("Detected version: %s\n", display_version.name);
+    Logger::log("Detected version: %s", display_version.name);
 
-    Logger::log("Base offset: %#010x\n", hk::ro::getMainModule()->range().start());
+    Logger::log("Base offset: %#010x", hk::ro::getMainModule()->range().start());
     switch (get_host()) {
         case HARDWARE:
-            Logger::log("Detected as Nintendo Switch (console)\n");
+            Logger::log("Detected as Nintendo Switch (console)");
             break;
         case RYUJINX:
-            Logger::log("Detected as Ryujinx (emulator)\n");
+            Logger::log("Detected as Ryujinx (emulator)");
             break;
         case YUZU:
-            Logger::log("Detected as Yuzu (emulator)\n");
+            Logger::log("Detected as Yuzu (emulator)");
             break;
     }
 
 #ifdef HK_ADDON_HeapSourceBss
-    Logger::log("Hakkun Heap Size: %x\n", HAKKUN_BSS_HEAP_SIZE);
+    Logger::log("Hakkun Heap Size: %x", HAKKUN_BSS_HEAP_SIZE);
 #endif
 
     MainInitHook.orig();
@@ -112,14 +113,14 @@ HkTrampoline<void> MainInitHook = hk::hook::trampoline([]() -> void {
 #ifdef ENABLE_FS_LOG
 static char buffer[0x200];
 HkTrampoline<void, nn::Result, char const*> fsErrorResultLogHook = hk::hook::trampoline([](nn::Result r, char const* msg) {
-    Logger::log("FS Access Error: %s (%d)\n", msg, r.GetInnerValueForDebug());
+    Logger::log("FS Access Error: %s (%d)", msg, r.GetInnerValueForDebug());
     fsErrorResultLogHook.orig(r, msg);
 });
 
 HkTrampoline<void, nn::Result, char const*> fsErrorLogHook = hk::hook::trampoline([](nn::Result r, char const* msg) {
     snprintf(buffer, sizeof(buffer) - 1, msg);
     buffer[0x200 - 1] = 0;
-    Logger::log("FS Access Error: %s (%d)\n", buffer, r.GetInnerValueForDebug());
+    Logger::log("FS Access Error: %s (%d)", buffer, r.GetInnerValueForDebug());
     fsErrorLogHook.orig(r, msg);
 });
 

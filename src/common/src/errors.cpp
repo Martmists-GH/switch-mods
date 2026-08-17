@@ -259,7 +259,7 @@ static void reportException(nn::os::UserExceptionInfo const* info, const char* f
     auto thread = nn::os::GetCurrentThread();
 
     if (resCode == -1) {
-        REPORT_APPEND("Unexpected abort occurred in Thread %lu (%s)!\n", nn::os::GetThreadId(thread), thread->_namePointer);
+        REPORT_APPEND("Unexpected abort occurred in Thread %lu (%s)!\n", nn::os::GetThreadId(thread), nn::os::GetThreadNamePointer(thread));
     } else {
         REPORT_APPEND("Abort occurred at %s in file %s\n"
             "Result: %x [%04x-%04x]\n"
@@ -439,7 +439,7 @@ static void reportException(nn::os::UserExceptionInfo const* info, const char* f
 
     // FIXME: Crashes on render thread
     if (resCode == -1) {
-        Logger::log("!!!Abort!!!\n%s\n",  exceptionBuffer.get().c_str());
+        Logger::log("!!!Abort!!!\n%s",  exceptionBuffer.get().c_str());
         MessageUtil::popup(resCode, "!!!Abort!!!", exceptionBuffer.get());
     } else {
         auto mod = reinterpret_cast<nn::Result&>(resCode).GetModule() | 0x2000;
@@ -450,7 +450,7 @@ static void reportException(nn::os::UserExceptionInfo const* info, const char* f
 
         REPORT_APPEND("Error: [%04x-%04x]", mod, desc);
 
-        Logger::log("Error: [%04x-%04x]\n%s\n", mod, desc, exceptionBuffer.get().c_str());
+        Logger::log("Error: [%04x-%04x]\n%s", mod, desc, exceptionBuffer.get().c_str());
         MessageUtil::popup(resCode, title.get(), exceptionBuffer.get());
     }
 }

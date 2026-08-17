@@ -38,7 +38,7 @@ HkTrampoline<int, lua_State*> LuaPrintHook = hk::hook::trampoline([](lua_State *
 HkTrampoline<void, lua_State*> LuaPanicHook = hk::hook::trampoline([](lua_State *L) {
     size_t size;
     auto message = lua_tolstring(L, 1, &size);
-    Logger::log("Lua Panic: %.*s\n", size, message);
+    Logger::log("Lua Panic: %.*s", size, message);
     LuaPanicHook.orig(L);
 });
 
@@ -47,7 +47,7 @@ HkTrampoline<void, lua_State*> LuaAbortHook = hk::hook::trampoline([](lua_State 
     size_t size;
     auto message = lua_tolstring(L, 2, &size);
     if (!condition) {
-        Logger::log("Lua Abort: %.*s\n", size, message);
+        Logger::log("Lua Abort: %.*s", size, message);
     }
     LuaAbortHook.orig(L);
 });
@@ -97,7 +97,7 @@ HkTrampoline<void, hxlua::State*, char*, uint64_t, gfl::StringView*> AfterMainHo
     auto L = state->L;
     gLuaState = L;
 
-    Logger::log("AfterMainHook executing file: %s\n", fileName->m_content.m_string);
+    Logger::log("AfterMainHook executing file: %s", fileName->m_content.m_string);
 
     if (++counter == 2) {
         registerLuaUtils(L);

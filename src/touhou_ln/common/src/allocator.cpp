@@ -44,7 +44,7 @@ void* aligned_alloc(size_t alignment, size_t size) {
     if (m_heapAllocCount < MAX_HEAP_TRACKED) {
         m_heapAllocData[m_heapAllocCount++] = { ptr, isUseAllocator };
     } else {
-        Logger::log("Exceeded tracked heap!\n");
+        Logger::log("Exceeded tracked heap!");
     }
 
     return ptr;

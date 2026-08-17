@@ -19,7 +19,7 @@
 namespace newui {
     class Renderer;
 
-    using RendererCallback = std::function<void(Renderer&, const pugi::xml_node&, const nlohmann::json&, nlohmann::json&)>;
+    using RendererCallback = std::function<void(Renderer&, const pugi::xml_node&, nlohmann::json&)>;
 
     template <typename T>
     struct __FunctionCallbackTraits {
@@ -147,6 +147,8 @@ namespace newui {
                         }
 
                         lua_pop(L, 1);
+                    } else {
+                        lua_pop(L, 1);
                     }
 
                     return true;
@@ -217,5 +219,7 @@ namespace newui {
 
         // AVOID USE, ONLY DESIGNED FOR <Include /> TAGS
         std::unordered_map<std::string, std::unique_ptr<Renderer>> includeCache = {};
+        // Cached parsed JSON for <Include context="..."/> attributes, keyed by (source + context)
+        std::unordered_map<std::string, nlohmann::json> includeContextCache = {};
     };
 }

@@ -4,11 +4,11 @@
 
 namespace newui {
     NEWUI_ELEMENT(Button) {
-        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto size = jsonutil::getImVec2(props, "size", ImVec2(0, 0));
-        auto flags = jsonutil::getInt(props, "flags", 0);
-        auto enabled = jsonutil::getBool(props, "enabled", true);
-        auto onClick = jsonutil::getString(props, "onclick", Renderer::PLACEHOLDER);
+        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
+        auto size = jsonutil::getImVec2(node, "size", ImVec2(0, 0));
+        auto flags = jsonutil::getInt(node, "flags", 0);
+        auto enabled = jsonutil::getBool(node, "enabled", true);
+        auto onClick = jsonutil::getString(node, "onclick", Renderer::PLACEHOLDER);
 
         ImGui::BeginDisabled(!enabled);
         if (ImGui::ButtonEx(label.data(), size, flags)) {
@@ -18,14 +18,14 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(Combo) {
-        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto key = jsonutil::getString(props, "key", "");
-        auto preview = jsonutil::getString(props, "preview", "");
-        auto flags = jsonutil::getInt(props, "flags", 0);
+        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
+        auto key = jsonutil::getString(node, "key", "");
+        auto preview = jsonutil::getString(node, "preview", "");
+        auto flags = jsonutil::getInt(node, "flags", 0);
 
         if (preview.empty()) {
             if (!key.empty()) {
-                auto value = context.value(key, "");
+                auto value = jsonutil::getString(context, key, "");
 
                 if (!value.empty()) {
                     for (auto child : node.children()) {
@@ -59,13 +59,13 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(Selectable) {
-        auto key = jsonutil::getString(props, "key", "");
-        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto value = jsonutil::getString(props, "value", label);
-        auto size = jsonutil::getImVec2(props, "size", ImVec2(0, 0));
-        auto flags = jsonutil::getInt(props, "flags", 0);
-        auto enabled = jsonutil::getBool(props, "enabled", true);
-        auto onClick = jsonutil::getString(props, "onclick", Renderer::PLACEHOLDER);
+        auto key = jsonutil::getString(node, "key", "");
+        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
+        auto value = jsonutil::getString(node, "value", label);
+        auto size = jsonutil::getImVec2(node, "size", ImVec2(0, 0));
+        auto flags = jsonutil::getInt(node, "flags", 0);
+        auto enabled = jsonutil::getBool(node, "enabled", true);
+        auto onClick = jsonutil::getString(node, "onclick", Renderer::PLACEHOLDER);
 
         if (key.empty()) {
             ImGui::BeginDisabled();
@@ -84,11 +84,11 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(Checkbox) {
-        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto key = jsonutil::getString(props, "key", "");
-        auto defaultValue = jsonutil::getBool(props, "default", false);
-        auto onChange = jsonutil::getString(props, "onchange", Renderer::PLACEHOLDER);
-        auto enabled = jsonutil::getBool(props, "enabled", true);
+        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
+        auto key = jsonutil::getString(node, "key", "");
+        auto defaultValue = jsonutil::getBool(node, "default", false);
+        auto onChange = jsonutil::getString(node, "onchange", Renderer::PLACEHOLDER);
+        auto enabled = jsonutil::getBool(node, "enabled", true);
 
         if (key.empty()) {
             ImGui::BeginDisabled();
@@ -109,16 +109,16 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(InputInt) {
-        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto key = jsonutil::getString(props, "key", "");
-        auto defaultValue = jsonutil::getInt(props, "default", 0);
-        auto min = jsonutil::getInt(props, "min", 0);
-        auto max = jsonutil::getInt(props, "max", 100);
-        auto step = jsonutil::getInt(props, "step", 1);
-        auto stepFast = jsonutil::getInt(props, "stepfast", 10);
-        auto flags = jsonutil::getInt(props, "flags", 0);
-        auto onChange = jsonutil::getString(props, "onchange", Renderer::PLACEHOLDER);
-        auto enabled = jsonutil::getBool(props, "enabled", true);
+        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
+        auto key = jsonutil::getString(node, "key", "");
+        auto defaultValue = jsonutil::getInt(node, "default", 0);
+        auto min = jsonutil::getInt(node, "min", 0);
+        auto max = jsonutil::getInt(node, "max", 100);
+        auto step = jsonutil::getInt(node, "step", 1);
+        auto stepFast = jsonutil::getInt(node, "stepfast", 10);
+        auto flags = jsonutil::getInt(node, "flags", 0);
+        auto onChange = jsonutil::getString(node, "onchange", Renderer::PLACEHOLDER);
+        auto enabled = jsonutil::getBool(node, "enabled", true);
 
         if (key.empty()) {
             ImGui::BeginDisabled();
@@ -147,14 +147,14 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(SliderInt) {
-        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto key = jsonutil::getString(props, "key", "");
-        auto defaultValue = jsonutil::getInt(props, "default", 0);
-        auto min = jsonutil::getInt(props, "min", 0);
-        auto max = jsonutil::getInt(props, "max", 100);
-        auto flags = jsonutil::getInt(props, "flags", 0);
-        auto onChange = jsonutil::getString(props, "onchange", Renderer::PLACEHOLDER);
-        auto enabled = jsonutil::getBool(props, "enabled", true);
+        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
+        auto key = jsonutil::getString(node, "key", "");
+        auto defaultValue = jsonutil::getInt(node, "default", 0);
+        auto min = jsonutil::getInt(node, "min", 0);
+        auto max = jsonutil::getInt(node, "max", 100);
+        auto flags = jsonutil::getInt(node, "flags", 0);
+        auto onChange = jsonutil::getString(node, "onchange", Renderer::PLACEHOLDER);
+        auto enabled = jsonutil::getBool(node, "enabled", true);
 
         if (key.empty()) {
             ImGui::BeginDisabled();
@@ -177,17 +177,17 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(InputFloat) {
-        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto key = jsonutil::getString(props, "key", "");
-        auto defaultValue = jsonutil::getFloat(props, "default", 0);
-        auto min = jsonutil::getFloat(props, "min", 0);
-        auto max = jsonutil::getFloat(props, "max", 100);
-        auto step = jsonutil::getFloat(props, "step", 1);
-        auto stepFast = jsonutil::getFloat(props, "stepfast", 10);
-        auto format = jsonutil::getString(props, "format", "%.3f");
-        auto flags = jsonutil::getInt(props, "flags", 0);
-        auto onChange = jsonutil::getString(props, "onchange", Renderer::PLACEHOLDER);
-        auto enabled = jsonutil::getBool(props, "enabled", true);
+        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
+        auto key = jsonutil::getString(node, "key", "");
+        auto defaultValue = jsonutil::getFloat(node, "default", 0);
+        auto min = jsonutil::getFloat(node, "min", 0);
+        auto max = jsonutil::getFloat(node, "max", 100);
+        auto step = jsonutil::getFloat(node, "step", 1);
+        auto stepFast = jsonutil::getFloat(node, "stepfast", 10);
+        auto format = jsonutil::getString(node, "format", "%.3f");
+        auto flags = jsonutil::getInt(node, "flags", 0);
+        auto onChange = jsonutil::getString(node, "onchange", Renderer::PLACEHOLDER);
+        auto enabled = jsonutil::getBool(node, "enabled", true);
 
         if (key.empty()) {
             ImGui::BeginDisabled();
@@ -216,15 +216,15 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(SliderFloat) {
-        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto key = jsonutil::getString(props, "key", "");
-        auto defaultValue = jsonutil::getFloat(props, "default", 0);
-        auto min = jsonutil::getFloat(props, "min", 0);
-        auto max = jsonutil::getFloat(props, "max", 100);
-        auto format = jsonutil::getString(props, "format", "%.3f");
-        auto flags = jsonutil::getInt(props, "flags", 0);
-        auto onChange = jsonutil::getString(props, "onchange", Renderer::PLACEHOLDER);
-        auto enabled = jsonutil::getBool(props, "enabled", true);
+        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
+        auto key = jsonutil::getString(node, "key", "");
+        auto defaultValue = jsonutil::getFloat(node, "default", 0);
+        auto min = jsonutil::getFloat(node, "min", 0);
+        auto max = jsonutil::getFloat(node, "max", 100);
+        auto format = jsonutil::getString(node, "format", "%.3f");
+        auto flags = jsonutil::getInt(node, "flags", 0);
+        auto onChange = jsonutil::getString(node, "onchange", Renderer::PLACEHOLDER);
+        auto enabled = jsonutil::getBool(node, "enabled", true);
 
         if (key.empty()) {
             ImGui::BeginDisabled();

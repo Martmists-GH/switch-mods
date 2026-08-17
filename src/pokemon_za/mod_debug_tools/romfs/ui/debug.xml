@@ -20,7 +20,7 @@
     <Spacing/>
 
     <CollapsingHeader label="Money">
-      <Columns columns="5">
+      <Row>
         <Text content="Money" weight="1" />
         <Text contentscript="API:getMoney()" weight="1" />
         <Group weight="1">
@@ -35,9 +35,11 @@
           <Button label="+100000" onclick="API:addMoney( 100000)" />
           <Button label="-100000" onclick="API:addMoney(-100000)" />
         </Group>
+      </Row>
 
+      <Row>
         <Text content="Medals" weight="1" />
-        <Text contentscript="tostring(API:getMedals())" weight="1" />
+        <Text contentscript="API:getMedals()" weight="1" />
         <Group weight="1">
           <Button label="+100" onclick="API:addMedals( 100)" />
           <Button label="-100" onclick="API:addMedals(-100)" />
@@ -47,9 +49,11 @@
           <Button label="-1000" onclick="API:addMedals(-1000)" />
         </Group>
         <Group weight="1" />
+      </Row>
 
+      <Row>
         <Text content="Tickets" weight="1" />
-        <Text contentscript="tostring(API:getTickets())" weight="1" />
+        <Text contentscript="API:getTickets()" weight="1" />
         <Group weight="1">
           <Button label="+100" onclick="API:addTickets( 100)" />
           <Button label="-100" onclick="API:addTickets(-100)" />
@@ -62,25 +66,23 @@
           <Button label="+10000" onclick="API:addTickets( 10000)" />
           <Button label="-10000" onclick="API:addTickets(-10000)" />
         </Group>
-      </Columns>
+      </Row>
     </CollapsingHeader>
 
     <CollapsingHeader label="Battle">
       <Checkbox label="100% Capture Rate" key="alwaysCapture" onchange="ffi.hook_setIsMustCapture(event.after)" />
       <Checkbox label="Enable EXP Share" key="expShareActive" onchange="ffi.hook_setIsExpShareOn(event.after)" default="true" />
-      <Columns>
+      <Row>
         <SliderInt label="EXP Multiplier" key="expMultiplier" max="30" default="1" onchange="ffi.hook_setExpMultiplier(event.after)" />
         <Checkbox label="Invert (x2 -> x0.5)" key="invertExpGain" onchange="ffi.hook_setExpMultiplierInvert(event.after)" />
-      </Columns>
+      </Row>
       <Checkbox label="Always Max Mega Energy" key="alwaysMaxEnergy" onchange="ffi.hook_setAlwaysMaxEnergy(event.after)" />
       <Checkbox label="Disable move cooldowns" key="alwaysMovesActive" onchange="ffi.hook_setMovesAlwaysActive(event.after)" />
     </CollapsingHeader>
 
     <CollapsingHeader label="Encounter Editor">
-      <Columns>
-        <Checkbox label="100% Shiny Rate" key="encount.forceShiny" />
-        <SliderInt label="Shiny Rate Multiplier" key="encount.shinyRateMultiplier" max="60" default="1" enabled="{{ default(encount.forceShiny, false) == false }}" />
-      </Columns>
+      <Checkbox label="100% Shiny Rate" key="encount.forceShiny" />
+      <SliderInt label="Shiny Rate Multiplier" key="encount.shinyRateMultiplier" max="60" default="1" enabled="{{ default(encount.forceShiny, false) == false }}" />
       <Checkbox label="100% Alpha Rate" key="encount.forceAlpha" />
       <Include source="{{ ROM_MOUNT }}:/ui/part/poke_editor.xml" context='{"editor_type": "encount", "editor_extra_settings": false}' />
       <Callback onframe="API:saveEncounterData(context.encount)" />

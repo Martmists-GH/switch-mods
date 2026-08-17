@@ -5,7 +5,7 @@
 
 namespace newui {
     NEWUI_ELEMENT(MainMenuBar) {
-        auto sticky = jsonutil::getBool(props, "sticky", false);
+        auto sticky = jsonutil::getBool(node, "sticky", false);
         if (!sticky && !InputUtil::isInputToggled()) return;
 
         if (ImGui::BeginMainMenuBar()) {
@@ -26,8 +26,8 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(Menu) {
-        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto enabled = jsonutil::getBool(props, "enabled", true);
+        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
+        auto enabled = jsonutil::getBool(node, "enabled", true);
 
         if (ImGui::BeginMenu(label.data(), enabled)) {
             for (const auto& child : node.children()) {
@@ -38,13 +38,13 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(MenuItem) {
-        auto label = jsonutil::getString(props, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto icon = jsonutil::getString(props, "icon", "");
+        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
+        auto icon = jsonutil::getString(node, "icon", "");
         auto iconStr = icon.empty() ? nullptr : icon.data();
-        auto defaultValue = jsonutil::getBool(props, "default", false);
-        auto key = jsonutil::getString(props, "key", "");
-        auto enabled = jsonutil::getBool(props, "enabled", true);
-        auto onChange = jsonutil::getString(props, "onchange", Renderer::PLACEHOLDER);
+        auto defaultValue = jsonutil::getBool(node, "default", false);
+        auto key = jsonutil::getString(node, "key", "");
+        auto enabled = jsonutil::getBool(node, "enabled", true);
+        auto onChange = jsonutil::getString(node, "onchange", Renderer::PLACEHOLDER);
 
         if (key.empty()) {
             ImGui::MenuItemEx("<% ERROR: Missing attribute 'key' %>", iconStr, nullptr, false, enabled);

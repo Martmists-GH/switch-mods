@@ -836,7 +836,7 @@ void setup_ui() {
         _.FunctionElement([]() {
             static bool didLoad = false;
             if (!didLoad) {
-                Logger::log("Loading message files\n");
+                Logger::log("Loading message files");
                 pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/seikaku.dat");
                 pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/status.dat");
                 pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/box.dat");

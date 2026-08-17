@@ -28,6 +28,8 @@ end
 
 ---@param details json
 function API:validateFormNo(details)
+    if details["allowInvalid"] == true then return end
+
     if (ffi.int(ffi._ZN3pml8personal14PersonalSystem14CheckPokeExistEjj(details["species"] or 1, details["species"] or 0)) == 0) then
         details["form"] = 0
     end

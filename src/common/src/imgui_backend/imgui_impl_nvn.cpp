@@ -44,13 +44,13 @@ namespace ImguiNvnBackend {
 
             if (InputUtil::isButtonPress(nn::hid::NpadButton::Left)) {
                 curId--;
-                Logger::log("ID: %d\n", curId);
+                Logger::log("ID: %d", curId);
             } else if (InputUtil::isButtonHold(nn::hid::NpadButton::Left)) {
 
                 downCounter++;
                 if (downCounter > 30) {
                     curId--;
-                    Logger::log("ID: %d\n", curId);
+                    Logger::log("ID: %d", curId);
                 }
             } else {
                 downCounter = 0;
@@ -58,13 +58,13 @@ namespace ImguiNvnBackend {
 
             if (InputUtil::isButtonPress(nn::hid::NpadButton::Right)) {
                 curId++;
-                Logger::log("ID: %d\n", curId);
+                Logger::log("ID: %d", curId);
             } else if (InputUtil::isButtonHold(nn::hid::NpadButton::Right)) {
 
                 upCounter++;
                 if (upCounter > 30) {
                     curId++;
-                    Logger::log("ID: %d\n", curId);
+                    Logger::log("ID: %d", curId);
                 }
             } else {
                 upCounter = 0;
@@ -89,11 +89,11 @@ namespace ImguiNvnBackend {
 
     bool createShaders() {
 
-        Logger::log("Creating/Loading Shaders.\n");
+        Logger::log("Creating/Loading Shaders.");
 
         auto bd = getBackendData();
 
-        Logger::log("Unable to compile shaders at runtime. falling back to pre-compiled shaders.\n");
+        Logger::log("Unable to compile shaders at runtime. falling back to pre-compiled shaders.");
 
         auto handle = FileUtil::readFile(ROM_MOUNT ":/shaders/imgui.bin", 0x1000);
         if (handle.has_value()) {
@@ -111,7 +111,7 @@ namespace ImguiNvnBackend {
 
     bool setupFont() {
 
-        Logger::log("Setting up ImGui Font.\n");
+        Logger::log("Setting up ImGui Font.");
 
         auto bd = getBackendData();
 
@@ -128,17 +128,17 @@ namespace ImguiNvnBackend {
         int texMemPoolSize = texDescSize * MaxTexDescriptors;
         int totalPoolSize = ALIGN_UP(sampMemPoolSize + texMemPoolSize, 0x1000);
         if (!MemoryPoolMaker::createPool(&bd->sampTexMemPool, totalPoolSize)) {
-            Logger::log("Failed to Create Texture/Sampler Memory Pool!\n");
+            Logger::log("Failed to Create Texture/Sampler Memory Pool!");
             return false;
         }
 
         if (!bd->samplerPool.Initialize(&bd->sampTexMemPool, 0, MaxSampDescriptors)) {
-            Logger::log("Failed to Create Sampler Pool!\n");
+            Logger::log("Failed to Create Sampler Pool!");
             return false;
         }
 
         if (!bd->texPool.Initialize(&bd->sampTexMemPool, sampMemPoolSize, MaxTexDescriptors)) {
-            Logger::log("Failed to Create Texture Pool!\n");
+            Logger::log("Failed to Create Texture Pool!");
             return false;
         }
 
@@ -151,7 +151,7 @@ namespace ImguiNvnBackend {
 
         if (!MemoryPoolMaker::createPool(&bd->fontMemPool, ALIGN_UP(texPoolSize, 0x1000),
                                          nvn::MemoryPoolFlags::CPU_UNCACHED | nvn::MemoryPoolFlags::GPU_CACHED)) {
-            Logger::log("Failed to Create Font Memory Pool!\n");
+            Logger::log("Failed to Create Font Memory Pool!");
             return false;
         }
 
@@ -163,7 +163,7 @@ namespace ImguiNvnBackend {
                 .SetStorage(&bd->fontMemPool, 0);
 
         if (!bd->fontTexture.Initialize(&bd->texBuilder)) {
-            Logger::log("Failed to Create Font Texture!\n");
+            Logger::log("Failed to Create Font Texture!");
             return false;
         }
 
@@ -187,7 +187,7 @@ namespace ImguiNvnBackend {
                 .SetWrapMode(nvn::WrapMode::CLAMP, nvn::WrapMode::CLAMP, nvn::WrapMode::CLAMP);
 
         if (!bd->fontSampler.Initialize(&bd->samplerBuilder)) {
-            Logger::log("Failed to Init Font Sampler!\n");
+            Logger::log("Failed to Init Font Sampler!");
             return false;
         }
 
@@ -200,14 +200,14 @@ namespace ImguiNvnBackend {
         bd->fontTexHandle = bd->device->GetTextureHandle(bd->textureId, bd->samplerId);
         io.Fonts->SetTexID(reinterpret_cast<ImTextureID>(&bd->fontTexHandle));
 
-        Logger::log("Finished.\n");
+        Logger::log("Finished.");
 
         return true;
     }
 
     bool setupShaders(u8 *shaderBinary, ulong binarySize) {
 
-        Logger::log("Setting up ImGui Shaders.\n");
+        Logger::log("Setting up ImGui Shaders.");
 
         auto bd = getBackendData();
 
@@ -221,7 +221,7 @@ namespace ImguiNvnBackend {
                                                             nvn::MemoryPoolFlags::SHADER_CODE);
 
         if (!bd->shaderMemory->IsBufferReady()) {
-            Logger::log("Shader Memory Pool not Ready! Unable to continue.\n");
+            Logger::log("Shader Memory Pool not Ready! Unable to continue.");
             return false;
         }
 
@@ -239,7 +239,7 @@ namespace ImguiNvnBackend {
         fragShaderData.control = shaderBinary + offsetData.mFragmentControlOffset;
 
         if (!bd->shaderProgram.SetShaders(2, bd->shaderDatas)) {
-            Logger::log("Failed to Set shader data for program.\n");
+            Logger::log("Failed to Set shader data for program.");
             return false;
         }
 
@@ -250,7 +250,7 @@ namespace ImguiNvnBackend {
         bd->uniformMemory = new MemoryBuffer(UBOSIZE);
 
         if (!bd->uniformMemory->IsBufferReady()) {
-            Logger::log("Uniform Memory Pool not Ready! Unable to continue.\n");
+            Logger::log("Uniform Memory Pool not Ready! Unable to continue.");
             return false;
         }
 
@@ -262,7 +262,7 @@ namespace ImguiNvnBackend {
 
         bd->streamState.SetDefaults().SetStride(sizeof(ImDrawVert));
 
-        Logger::log("Finished.\n");
+        Logger::log("Finished.");
 
         return true;
     }
@@ -271,7 +271,7 @@ namespace ImguiNvnBackend {
         ImGuiIO &io = ImGui::GetIO();
         HK_ASSERT_MSG(!io.BackendRendererUserData, "Already Initialized Imgui Backend!");
 
-        Logger::log("Setting Default Data/Config Data.\n");
+        Logger::log("Setting Default Data/Config Data.");
 
         io.BackendPlatformName = "Switch";
         io.BackendRendererName = "imgui_impl_nvn";
@@ -283,21 +283,21 @@ namespace ImguiNvnBackend {
         io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
         io.DisplaySize = ImVec2(1280, 720); // default size
 
-        Logger::log("Creating Backend Data.\n");
+        Logger::log("Creating Backend Data.");
 
         auto *bd = new NvnBackendData();
         HK_ASSERT_MSG(bd, "Backend was not Created!");
 
         io.BackendRendererUserData = (void *) bd;
 
-        Logger::log("Setting Init Data into Backend Data.\n");
+        Logger::log("Setting Init Data into Backend Data.");
 
         bd->device = initInfo.device;
         bd->queue = initInfo.queue;
         bd->cmdBuf = (nvn::CommandBuffer*)aligned_alloc(8, sizeof(nvn::CommandBuffer));
 
-#define CMD_POOL_SIZE ALIGN_UP(UBOSIZE, 512)
-#define CTRL_POOL_SIZE ALIGN_UP(UBOSIZE, 256)
+#define CMD_POOL_SIZE ALIGN_UP(0x4000, 512)
+#define CTRL_POOL_SIZE ALIGN_UP(0x1000, 256)
 
         auto pool = aligned_alloc(0x1000, CMD_POOL_SIZE);
 
@@ -306,7 +306,7 @@ namespace ImguiNvnBackend {
         nvn::pfncpp_nvnMemoryPoolBuilderSetFlags(&builder, nvn::MemoryPoolFlags::CPU_UNCACHED | nvn::MemoryPoolFlags::GPU_CACHED | nvn::MemoryPoolFlags::SHADER_CODE);
         nvn::pfncpp_nvnMemoryPoolBuilderSetStorage(&builder, pool, CMD_POOL_SIZE);
         if (!nvn::pfncpp_nvnMemoryPoolInitialize(&bd->cmdCmdPool, &builder)) {
-            Logger::log("Failed to Initialize Command Pool!\n");
+            Logger::log("Failed to Initialize Command Pool!");
             return;
         }
 
@@ -319,29 +319,29 @@ namespace ImguiNvnBackend {
         bd->viewportSize = ImVec2(1280, 720);
         bd->isInitialized = false;
 
-        Logger::log("Adding Default Font.\n");
+        Logger::log("Adding Default Font.");
 
         io.Fonts->AddFontDefault();
 
         ImFontConfig config;
         config.MergeMode = true;
 #ifdef WITH_MIGU_FONT
-        Logger::log("Adding Migu 1P Font.\n");
+        Logger::log("Adding Migu 1P Font.");
         io.Fonts->AddFontFromMemoryCompressedTTF(&migu_1p_compressed_data, migu_1p_compressed_size, 18.0f, &config, io.Fonts->GetGlyphRangesJapanese());
         io.Fonts->AddFontFromMemoryCompressedTTF(&migu_1p_compressed_data, migu_1p_compressed_size, 18.0f, &config, io.Fonts->GetGlyphRangesChineseFull());
 #endif
-        Logger::log("Creating Shaders.\n");
+        Logger::log("Creating Shaders.");
 
         if (createShaders()) {
-            Logger::log("Shader Binaries Loaded! Setting up Render Data.\n");
+            Logger::log("Shader Binaries Loaded! Setting up Render Data.");
 
             if (setupShaders(bd->imguiShaderBinary.ptr.get(), bd->imguiShaderBinary.size) && setupFont()) {
-                Logger::log("Rendering Setup!\n");
+                Logger::log("Rendering Setup!");
 
                 bd->isInitialized = true;
 
             } else {
-                Logger::log("Failed to Setup Render Data!\n");
+                Logger::log("Failed to Setup Render Data!");
             }
         }
     }
@@ -454,7 +454,7 @@ namespace ImguiNvnBackend {
 #endif
 //        if (displayPtr != nullptr) {  // I can guarantee this isn't null
 //            nn::vi::GetDisplayResolution(&width, &height, displayPtr);
-//            Logger::log("Display Resolution: %d x %d\n", width, height);
+//            Logger::log("Display Resolution: %d x %d", width, height);
 //        }
 
         // we dont need to process any data if it isnt valid
@@ -464,7 +464,7 @@ namespace ImguiNvnBackend {
         }
         // if we dont have any command lists to draw, we can stop here
         if (drawData->CmdListsCount == 0) {
-//            Logger::log("Command List was Empty! Skipping Render.\n");
+//            Logger::log("Command List was Empty! Skipping Render.");
             return;
         }
 
@@ -474,7 +474,7 @@ namespace ImguiNvnBackend {
 
         // if something went wrong during backend setup, don't try to render anything
         if (!bd->isInitialized) {
-            Logger::log("Backend Data was not fully initialized!\n");
+            Logger::log("Backend Data was not fully initialized!");
             return;
         }
 
@@ -484,9 +484,9 @@ namespace ImguiNvnBackend {
             if (bd->vtxBuffer) {
                 bd->vtxBuffer->Finalize();
                 IM_DELETE(bd->vtxBuffer);
-                Logger::log("Resizing Vertex Buffer to Size: %d\n", totalVtxSize);
+                Logger::log("Resizing Vertex Buffer to Size: %d", totalVtxSize);
             } else {
-                Logger::log("Initializing Vertex Buffer to Size: %d\n", totalVtxSize);
+                Logger::log("Initializing Vertex Buffer to Size: %d", totalVtxSize);
             }
 
             bd->vtxBuffer = new MemoryBuffer(totalVtxSize);
@@ -500,9 +500,9 @@ namespace ImguiNvnBackend {
                 bd->idxBuffer->Finalize();
                 IM_DELETE(bd->idxBuffer);
 
-                Logger::log("Resizing Index Buffer to Size: %d\n", totalIdxSize);
+                Logger::log("Resizing Index Buffer to Size: %d", totalIdxSize);
             } else {
-                Logger::log("Initializing Index Buffer to Size: %d\n", totalIdxSize);
+                Logger::log("Initializing Index Buffer to Size: %d", totalIdxSize);
             }
 
             bd->idxBuffer = new MemoryBuffer(totalIdxSize);
@@ -510,22 +510,22 @@ namespace ImguiNvnBackend {
 
         // if we fail to resize/init either buffers, end execution before we try to use said invalid buffer(s)
         if (!(bd->vtxBuffer->IsBufferReady() && bd->idxBuffer->IsBufferReady())) {
-            Logger::log("Cannot Draw Data! Buffers are not Ready. (%d. %d)\n", bd->vtxBuffer->IsBufferReady(), bd->idxBuffer->IsBufferReady());
+            Logger::log("Cannot Draw Data! Buffers are not Ready. (%d. %d)", bd->vtxBuffer->IsBufferReady(), bd->idxBuffer->IsBufferReady());
             return;
         }
 
-        // Logger::log("Adding memory to Command Buffer: %p, %p\n", bd->cmdCmdPool.GetBufferAddress(), bd->cmdCtrlPool);
+        // Logger::log("Adding memory to Command Buffer: %p, %p", bd->cmdCmdPool.GetBufferAddress(), bd->cmdCtrlPool);
 
         bd->cmdBuf->AddCommandMemory(&bd->cmdCmdPool, 0, CMD_POOL_SIZE);
         bd->cmdBuf->AddControlMemory(bd->cmdCtrlPool, CTRL_POOL_SIZE);
         bd->cmdBuf->BeginRecording(); // start recording our commands to the cmd buffer
 
-        // Logger::log("Binding %p to %p\n", &bd->shaderProgram, bd->cmdBuf);
+        // Logger::log("Binding %p to %p", &bd->shaderProgram, bd->cmdBuf);
 
         bd->cmdBuf->BindProgram(&bd->shaderProgram, nvn::ShaderStageBits::VERTEX |
                                                     nvn::ShaderStageBits::FRAGMENT); // bind main imgui shader
 
-        // Logger::log("Binding buffer %p to %p\n", bd->uniformMemory->GetBufferAddress(), bd->cmdBuf);
+        // Logger::log("Binding buffer %p to %p", bd->uniformMemory->GetBufferAddress(), bd->cmdBuf);
 
         bd->cmdBuf->BindUniformBuffer(nvn::ShaderStage::VERTEX, 0, *bd->uniformMemory,
                                       UBOSIZE); // bind uniform block ptr

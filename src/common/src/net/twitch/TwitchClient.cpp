@@ -43,7 +43,7 @@ namespace twitch {
                                                      clientId(std::move(clientId)),
                                                      scopes(std::move(scopes)),
                                                      tokensReady(false) {
-        Logger::log("Twitch client created\n");
+        Logger::log("Twitch client created");
 
         if (!FileUtil::exists("sd:/mod_data/twitch.tokens")) {
             FileUtil::createDirectory("sd:/mod_data");
@@ -74,7 +74,7 @@ namespace twitch {
             }
         );
         if (data.isError()) {
-            Logger::log("Error: %d - %s\n", data.errorCode, data.errorMessage.c_str());
+            Logger::log("Error: %d - %s", data.errorCode, data.errorMessage.c_str());
             return false;
         }
         auto body = data.json();
@@ -110,7 +110,7 @@ namespace twitch {
         );
         if (data.isError()) {
             auto bodyStr = data.json().dump().c_str();
-            Logger::log("Error: %s\n", bodyStr);
+            Logger::log("Error: %s", bodyStr);
             return false;
         }
 

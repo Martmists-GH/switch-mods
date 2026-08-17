@@ -59,7 +59,7 @@ static std::map<const char*, std::function<void()>>& allEvents() {
             CC_ENABLE(invertTypeEffects);
             CodePatcher cp(&btl::TYPE_EFFECT_TBL);
 
-            Logger::log("Creating patched table\n");
+            Logger::log("Creating patched table");
             for (int i = 0; i < 18; i++) {
                 for (int j = 0; j < 18; j++) {
                     cp.write(TYPE_EFFECT_TBL[j][i]);
@@ -178,7 +178,7 @@ HkTrampoline<void, btl::Capture::JudgeResult*, btl::Capture::JudgeParam*> Captur
 static void reset() {
     CodePatcher cp(&btl::TYPE_EFFECT_TBL);
 
-    Logger::log("Resetting patched table\n");
+    Logger::log("Resetting patched table");
     for (int i = 0; i < 18; i++) {
         for (int j = 0; j < 18; j++) {
             cp.write(TYPE_EFFECT_TBL[i][j]);

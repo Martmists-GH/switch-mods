@@ -8,6 +8,6 @@ lua_State* get_lua_state();
 
 #define executeLua(L, contents, cause) \
     if (luaL_dostringfile(L, contents, cause) != LUA_OK) {\
-        Logger::log("An error occurred in %s: %s\n", cause, lua_tostring(L, -1));\
+        Logger::log("An error occurred in %s: %s", cause, lua_tostring(L, -1));\
     }\
     lua_pop(L, 1);

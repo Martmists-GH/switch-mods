@@ -75,9 +75,9 @@ nn::Result SocketBase::initCommon() {
     if (!didInit) {
         didInit = true;
 
-        Logger::log("Initializing network.\n");
+        Logger::log("Initializing network.");
         if (nn::nifm::Initialize().IsFailure()) {
-            Logger::log("Failed to initialize nifm.\n");
+            Logger::log("Failed to initialize nifm.");
             initResult = err::ResultInitializationFailed();
             return initResult;
         };
@@ -86,13 +86,13 @@ nn::Result SocketBase::initCommon() {
         while (nn::nifm::IsNetworkRequestOnHold()) {}
 
         if (!nn::nifm::IsNetworkAvailable()) {
-            Logger::log("Network not available.\n");
+            Logger::log("Network not available.");
             initResult =  err::ResultUnknownError();
             return initResult;
         }
 
         if (nn::socket::Initialize(socketPool, SocketPoolSize, SocketAllocatorSize, 0xE).IsFailure()) {
-            Logger::log("Failed to initialize socket pool.\n");
+            Logger::log("Failed to initialize socket pool.");
             initResult =  err::ResultInitializationFailed();
         }
     }

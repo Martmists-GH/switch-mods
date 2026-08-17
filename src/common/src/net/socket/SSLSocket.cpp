@@ -6,7 +6,7 @@
 
 namespace {
     void debug_func(void *, int level, const char * file, int line, const char * str) {
-        Logger::log("[MBEDTLS] %s\n", str);
+        Logger::log("[MBEDTLS] %s", str);
     }
 }
 
@@ -16,7 +16,7 @@ bool SSLSocket::init() {
     mbedtls_ssl_set_bio(&ssl, &socket, mbedtls_net_send, mbedtls_net_recv, nullptr);
 
     if (mbedtls_ssl_setup(&ssl, &conf) != 0) {
-        Logger::log("SSL setup failed!\n");
+        Logger::log("SSL setup failed!");
         return false;
     }
 
@@ -33,12 +33,12 @@ SSLSocket::SSLSocket() {
     mbedtls_entropy_init(&entropy);
 
     if (mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, reinterpret_cast<const unsigned char*>("Test"), std::strlen("Test")) != 0) {
-        Logger::log("SSL drbg_seed failed!\n");
+        Logger::log("SSL drbg_seed failed!");
         goto exit;
     }
 
     if (mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT) != 0) {
-        Logger::log("SSL config_defaults failed!\n");
+        Logger::log("SSL config_defaults failed!");
         goto exit;
     }
     mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_NONE);
@@ -77,7 +77,7 @@ nn::Result SSLSocket::connect(const std::string& host, u16 port) {
     if (state != INITIALIZED) {
         close();
         state = ERRORED;
-        Logger::log("SSL tried to connect while not initialized!\n");
+        Logger::log("SSL tried to connect while not initialized!");
         return err::ResultInitializationFailed();
     }
 
@@ -85,19 +85,19 @@ nn::Result SSLSocket::connect(const std::string& host, u16 port) {
     nn::Result res = nn::ResultSuccess();
 
     if (mbedtls_net_connect(&socket, host.c_str(), portStr.c_str(), MBEDTLS_NET_PROTO_TCP) != 0) {
-        Logger::log("SSL connect failed!\n");
+        Logger::log("SSL connect failed!");
         res = err::ResultConnectionFailed();
         goto exit;
     }
 
     if (mbedtls_ssl_set_hostname(&ssl, host.c_str()) != 0) {
-        Logger::log("SSL set_hostname failed!\n");
+        Logger::log("SSL set_hostname failed!");
         res = err::ResultUnknownError();
         goto exit;
     }
 
     if (mbedtls_ssl_handshake(&ssl) != 0) {
-        Logger::log("SSL handshake failed!\n");
+        Logger::log("SSL handshake failed!");
         res = err::ResultUnknownError();
         goto exit;
     }
@@ -114,7 +114,7 @@ exit:
 int SSLSocket::send(const void* buf, int size) {
     if (size == 0) return 0;
     if (state != CONNECTED) {
-        Logger::log("SSL Socket tried to send while not connected!\n");
+        Logger::log("SSL Socket tried to send while not connected!");
         return -1;
     }
 

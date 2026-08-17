@@ -67,6 +67,6 @@ static strings_crowdcontrol_t& getStrings(CC_lang lang) {
         case CC_lang::EN: return english.crowdcontrol;
         case CC_lang::ES: return spanish.crowdcontrol;
     }
-    Logger::log("Invalid language: %d\n", lang);
+    Logger::log("Invalid language: %d", lang);
     return english.crowdcontrol;
 }

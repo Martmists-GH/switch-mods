@@ -49,9 +49,15 @@ static void renderLuaValue(lua_State* L, int idx) {
 
 namespace newui {
     NEWUI_ELEMENT(Include) {
-        auto source = std::string(jsonutil::getString(props, "source", ""));
-        auto extraContext = jsonutil::getString(props, "context", "{}");
-        auto ctx = nlohmann::json::parse(extraContext);
+        auto source = std::string(jsonutil::getString(node, "source", ""));
+        auto extraContext = jsonutil::getString(node, "context", "{}");
+
+        auto cacheKey = source + "\x00" + std::string(extraContext);
+        auto& cache = renderer.root().includeContextCache;
+        if (!cache.contains(cacheKey)) {
+            cache[cacheKey] = nlohmann::json::parse(extraContext);
+        }
+        auto& ctx = cache[cacheKey];
 
         for (auto elem : ctx.items()) {
             context[elem.key()] = elem.value();
@@ -72,8 +78,8 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(Text) {
-        auto content = jsonutil::getString(props, "content", "");
-        auto script = jsonutil::getString(props, "contentscript", "");
+        auto content = jsonutil::getString(node, "content", "");
+        auto script = jsonutil::getString(node, "contentscript", "");
         if (content.empty() && script.empty()) {
             ImGui::TextUnformatted("<% ERROR: Missing attribute 'content' %>");
             return;
@@ -123,7 +129,7 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(TextDisabled) {
-        auto content = jsonutil::getString(props, "content", "<% ERROR: Missing attribute 'content' %>");
+        auto content = jsonutil::getString(node, "content", "<% ERROR: Missing attribute 'content' %>");
         ImGui::TextDisabled("%s", content.data());
     }
 
@@ -132,7 +138,7 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(SeparatorText) {
-        auto content = jsonutil::getString(props, "content", "<% ERROR: Missing attribute 'content' %>");
+        auto content = jsonutil::getString(node, "content", "<% ERROR: Missing attribute 'content' %>");
         ImGui::SeparatorText(content.data());
     }
 
@@ -141,7 +147,7 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(Callback) {
-        auto onFrame = jsonutil::getString(props, "onframe", "");
+        auto onFrame = jsonutil::getString(node, "onframe", "");
 
         if (onFrame.empty()) {
             ImGui::TextUnformatted("<% ERROR: Missing attribute 'onframe' %>");

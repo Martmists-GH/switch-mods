@@ -21,7 +21,7 @@ MemoryBuffer::MemoryBuffer(size_t size) {
             .SetStorage(memBuffer, alignedSize);
 
     if (!pool.Initialize(&bd->memPoolBuilder)) {
-        Logger::log("Failed to Create Memory Pool! (1)\n");
+        Logger::log("Failed to Create Memory Pool! (1)");
         Logger::log("Buffer: %p", memBuffer);
         Logger::log("Aligned Buffer: %p", memBuffer, 0x1000);
         return;
@@ -30,7 +30,7 @@ MemoryBuffer::MemoryBuffer(size_t size) {
     bd->bufferBuilder.SetDevice(bd->device).SetDefaults().SetStorage(&pool, 0, alignedSize);
 
     if (!buffer.Initialize(&bd->bufferBuilder)) {
-        Logger::log("Failed to Init Buffer!\n");
+        Logger::log("Failed to Init Buffer!");
         return;
     }
 
@@ -52,14 +52,14 @@ MemoryBuffer::MemoryBuffer(size_t size, nvn::MemoryPoolFlags flags) {
 
 
     if (!pool.Initialize(&bd->memPoolBuilder)) {
-        Logger::log("Failed to Create Memory Pool! (2)\n");
+        Logger::log("Failed to Create Memory Pool! (2)");
         return;
     }
 
     bd->bufferBuilder.SetDevice(bd->device).SetDefaults().SetStorage(&pool, 0, alignedSize);
 
     if (!buffer.Initialize(&bd->bufferBuilder)) {
-        Logger::log("Failed to Init Buffer!\n");
+        Logger::log("Failed to Init Buffer!");
         return;
     }
 
@@ -78,14 +78,14 @@ MemoryBuffer::MemoryBuffer(size_t size, void *bufferPtr, nvn::MemoryPoolFlags fl
             .SetStorage(memBuffer, size);
 
     if (!pool.Initialize(&bd->memPoolBuilder)) {
-        Logger::log("Failed to Create Memory Pool! (3)\n");
+        Logger::log("Failed to Create Memory Pool! (3)");
         return;
     }
 
     bd->bufferBuilder.SetDevice(bd->device).SetDefaults().SetStorage(&pool, 0, size);
 
     if (!buffer.Initialize(&bd->bufferBuilder)) {
-        Logger::log("Failed to Init Buffer!\n");
+        Logger::log("Failed to Init Buffer!");
         return;
     }
 

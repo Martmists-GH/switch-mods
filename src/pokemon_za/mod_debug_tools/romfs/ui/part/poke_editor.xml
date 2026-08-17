@@ -4,11 +4,10 @@
        xsi:schemaLocation="https://schema.yourdomain.com/ui newui.xsd">
   <Checkbox label="Allow invalid forms" key="{{ editor_type }}.allowInvalid" />
   <SeparatorText content="Pokemon" />
-  <Columns>
+  <Row>
     <InputInt label="Species ID" key="{{ editor_type }}.species" min="1" default="1" max="1010" weight="1" />
     <InputInt label="Form ID" key="{{ editor_type }}.form" max="27" weight="1" />
-  </Columns>
-  {#
+  </Row>
   <Callback onframe="API:validateFormNo(context.{{ editor_type }} or {})" />
   <Row>
     <Text contentscript="API:getMonsName((context.{{ editor_type }} or {}).species or 1)" weight="1" />
@@ -46,15 +45,15 @@
   {% endif %}
   <SeparatorText content="IVs/EVs" />
   <Row>
-    <Text content=" " weight="1" />
-    <Text content="IV" weight="1" />
-    <Text content="EV" weight="1" />
+    <Text content=" " weight="2" />
+    <Text content="IV" weight="5" />
+    <Text content="EV" weight="5" />
   </Row>
   {% for i in range(6) %}
     <Row>
-      <Text contentscript="GetMessage('level_up', 'msg_ui_lvup_01_0{{ i+3 }}')" weight="1" />
-      <InputInt label="##IV_{{ i }}" key="{{ editor_type }}.iv{{ i }}" max="31" weight="1" />
-      <InputInt label="##EV_{{ i }}" key="{{ editor_type }}.ev{{ i }}" max="252" weight="1" />
+      <Text contentscript="GetMessage('level_up', 'msg_ui_lvup_01_0{{ i+3 }}')" weight="2" />
+      <InputInt label="##IV_{{ i }}" key="{{ editor_type }}.iv{{ i }}" max="31" weight="5" />
+      <InputInt label="##EV_{{ i }}" key="{{ editor_type }}.ev{{ i }}" max="252" weight="5" />
     </Row>
   {% endfor %}
   <SeparatorText content="Moves" />
@@ -64,5 +63,4 @@
     <Text contentscript="GetMessage('wazaname', ('WAZANAME_%03d'):format((context.{{ editor_type }} or {}).move{{ i }} or {{ i }}))" weight="1" />
     {% if i % 2 == 1 %}</Row>{% endif %}
   {% endfor %}
-  #}
 </Column>
