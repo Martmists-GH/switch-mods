@@ -75,6 +75,12 @@ namespace newui {
     }
 
     void Renderer::initTypes() {
+        registerRenderer("", [](Renderer& renderer, newui::CachedRenderNode& node, nlohmann::json& context) {
+            for (auto& child : node.children) {
+                renderer.render(child, context);
+            }
+        });
+
 #define _(Name) registerRenderer(STR(Name), Name)
 
         // Layout
@@ -193,29 +199,49 @@ namespace newui {
                 uiTemplate = std::format("<TextDisabled content=\"XML Parse Error at offset {}: {}\" />", result.offset, result.description());
                 return;
             }
+
+            cachedRoot = std::move(buildCache(doc.root()));
             m_needsUpdate = false;
         }
 
-        for (auto& node : doc.root().children()) {
-            render(node, ctx);
-        }
+        render(cachedRoot, ctx);
     }
 
-    void Renderer::render(const pugi::xml_node& node, nlohmann::json& ctx) {
-        if (node.type() == pugi::node_element) {
-            auto& rootRenderer = root();
-            auto type = substringAfter(const_cast<char*>(node.name()), ':');
+    static void rendererFallbackFunc(Renderer&, CachedRenderNode& node, nlohmann::json& ctx) {
+        ImGui::Text("<%% ERROR: Unknown node type '%s' at '%s' %%>", node.node.name(), node.node.path().c_str());
+    }
 
-            if (rootRenderer.renderers.contains(type)) {
-                ImGui::PushID(node.name());
+    CachedRenderNode Renderer::buildCache(const pugi::xml_node& node) {
+        auto type = substringAfter(const_cast<char*>(node.name()), ':');
+        // Logger::log("Building %s", node.name());
 
-                auto& renderer = rootRenderer.renderers[type];
-                renderer(rootRenderer, node, ctx);
-
-                ImGui::PopID();
-            } else {
-                ImGui::Text("<%% ERROR: Unknown node type '%s' at %s %%>", type, node.path().c_str());
-            }
+        auto& rootRenderer = root();
+        auto it = rootRenderer.renderers.find(type);
+        RendererCallback cb;
+        if (it == rootRenderer.renderers.end()) {
+            cb = &rendererFallbackFunc;
+        } else {
+            cb = it->second;
         }
+
+        std::vector<CachedRenderNode> children;
+        for (auto& el : node.children()) {
+            if (el.type() != pugi::node_element) continue;
+            // Logger::log("Building child of %s: %s", node.name(), el.type());
+            children.emplace_back(buildCache(el));
+        }
+
+        return {
+            node,
+            cb,
+            std::move(children),
+            {}
+        };
+    }
+
+    void Renderer::render(CachedRenderNode& node, nlohmann::json& ctx) {
+        ImGui::PushID(node.node.internal_object());
+        node.cachedCallback(*this, node, ctx);
+        ImGui::PopID();
     }
 }

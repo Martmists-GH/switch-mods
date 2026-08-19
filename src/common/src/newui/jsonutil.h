@@ -189,6 +189,9 @@ namespace jsonutil {
         auto path = loadPath(j, key);
         if (path == nullptr) return defaultValue;
         const auto& val = *path;
+        if (val.is_array() && val.size() == 2) {
+            return { val[0].get<float>(), val[1].get<float>() };
+        }
         if (val.is_number()) {
             auto z = val.get<float>();
             return {z, z};
@@ -270,6 +273,9 @@ namespace jsonutil {
         auto path = loadPath(j, key);
         if (path == nullptr) return defaultValue;
         const auto& val = *path;
+        if (val.is_array() && val.size() == 4) {
+            return { val[0].get<float>(), val[1].get<float>(), val[2].get<float>(), val[3].get<float>() };
+        }
         if (val.is_number()) {
             auto num = val.get<uint32_t>();
             uint8_t a = ((num >> 24) & 0xFF);

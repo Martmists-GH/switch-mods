@@ -6,21 +6,18 @@
 
 namespace newui {
     NEWUI_ELEMENT(Root) {
-        auto i = 0;
-        for (const auto& child : node.children()) {
-            ImGui::PushID(child.internal_object());
+        for (auto& child : node.children) {
             renderer.render(child, context);
-            ImGui::PopID();
         }
     }
 
     NEWUI_ELEMENT(Window) {
-        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto flags = jsonutil::getInt(node, "flags", ImGuiWindowFlags_NoCollapse);
-        auto initialSize = jsonutil::getImVec2(node, "size", ImVec2(0, 0));
-        auto initialPos = jsonutil::getImVec2(node, "position", ImVec2(0, 0));
-        auto open = jsonutil::getString(node, "open", "");
-        auto sticky = jsonutil::getBool(node, "sticky", false);
+        auto label = node.get<std::string_view>("label", "<% ERROR: Missing attribute 'label' %>");
+        auto flags = node.get<int>("flags", ImGuiWindowFlags_NoCollapse);
+        auto initialSize = node.get<ImVec2>("size", ImVec2(0, 0));
+        auto initialPos = node.get<ImVec2>("position", ImVec2(0, 0));
+        auto open = node.get<std::string_view>("open", "");
+        auto sticky = node.get<bool>("sticky", false);
 
         if (!sticky && open.empty() && !InputUtil::isInputToggled()) return;
 
@@ -34,10 +31,8 @@ namespace newui {
 
         if (open.empty()) {
             if (ImGui::Begin(label.data(), nullptr, flags)) {
-                for (const auto& child : node.children()) {
-                    ImGui::PushID(child.internal_object());
+                for (auto& child : node.children) {
                     renderer.render(child, context);
-                    ImGui::PopID();
                 }
             }
             ImGui::End();
@@ -49,10 +44,8 @@ namespace newui {
             if (!current) return;
 
             if (ImGui::Begin(label.data(), &value, flags)) {
-                for (const auto& child : node.children()) {
-                    ImGui::PushID(child.internal_object());
+                for (auto& child : node.children) {
                     renderer.render(child, context);
-                    ImGui::PopID();
                 }
             }
             ImGui::End();
@@ -66,15 +59,13 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(Columns) {
-        auto cols = jsonutil::getInt(node, "columns", 2);
-        auto flags = jsonutil::getInt(node, "flags", 0);
+        auto cols = node.get<int>("columns", 2);
+        auto flags = node.get<int>("flags", 0);
 
         ImGui::PushID(&node);
         ImGui::BeginColumns("", cols, flags);
-        for (const auto& child : node.children()) {
-            ImGui::PushID(child.internal_object());
+        for (auto& child : node.children) {
             renderer.render(child, context);
-            ImGui::PopID();
             ImGui::NextColumn();
         }
         ImGui::EndColumns();
@@ -82,18 +73,17 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(Row) {
-        auto offset = jsonutil::getFloat(node, "offset", 0.0f);
-        auto spacing = jsonutil::getFloat(node, "spacing", -1.0f);
+        auto offset = node.get<float>("offset", 0.0f);
+        auto spacing = node.get<float>("spacing", -1.0f);
         float itemSpacing = (spacing >= 0.0f) ? spacing : ImGui::GetStyle().ItemSpacing.x;
 
         size_t elementCount = 0;
         float totalWeight = 0.0f;
         bool hasZeroWeight = false;
 
-        for (const auto& child : node.children()) {
-            if (child.type() != pugi::node_element) continue;
+        for (auto& child : node.children) {
             ++elementCount;
-            auto w = jsonutil::getFloat(child, "weight", 0.0f);
+            auto w = child.get<float>("weight", 0.0f);
             totalWeight += w;
             if (w <= 0.0f) hasZeroWeight = true;
         }
@@ -103,12 +93,9 @@ namespace newui {
         if (totalWeight == 0.0f) {
             auto i = 0;
             ImGui::BeginGroup();
-            for (const auto& child : node.children()) {
-                if (child.type() != pugi::node_element) continue;
-                ImGui::PushID(child.internal_object());
+            for (auto& child : node.children) {
                 if (i++ != 0) ImGui::SameLine(offset, spacing);
                 renderer.render(child, context);
-                ImGui::PopID();
             }
             ImGui::EndGroup();
             return;
@@ -124,37 +111,32 @@ namespace newui {
 
         auto i = 0;
         ImGui::BeginGroup();
-        for (const auto& child : node.children()) {
-            if (child.type() != pugi::node_element) continue;
-
-            float childWeight = jsonutil::getFloat(child, "weight", 0.0f);
+        for (auto& child : node.children) {
+            float childWeight = child.get<float>("weight", 0.0f);
             float allocatedWidth = (totalWeight > 0.0f) ? (usableWidth * (childWeight / totalWeight)) : 0.0f;
 
             if (i++ != 0) ImGui::SameLine(offset, itemSpacing);
-            ImGui::PushID(child.internal_object());
-            if (ImGui::BeginChild(ImGui::GetID(child.internal_object()), ImVec2(allocatedWidth, 0.0f), ImGuiChildFlags_NavFlattened | ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground)) {
+            if (ImGui::BeginChild(ImGui::GetID(child.node.internal_object()), ImVec2(allocatedWidth, 0.0f), ImGuiChildFlags_NavFlattened | ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground)) {
                 ImGui::PushItemWidth(allocatedWidth);
                 renderer.render(child, context);
                 ImGui::PopItemWidth();
             }
             ImGui::EndChild();
-            ImGui::PopID();
         }
         ImGui::EndGroup();
     }
 
     NEWUI_ELEMENT(Column) {
-        auto userSpacing = jsonutil::getFloat(node, "spacing", -1.0f);
+        auto userSpacing = node.get<float>("spacing", -1.0f);
         float itemSpacing = (userSpacing >= 0.0f) ? userSpacing : ImGui::GetStyle().ItemSpacing.y;
 
         size_t elementCount = 0;
         float totalWeight = 0.0f;
         bool hasZeroWeight = false;
 
-        for (const auto& child : node.children()) {
-            if (child.type() != pugi::node_element) continue;
+        for (auto& child : node.children) {
             ++elementCount;
-            auto w = jsonutil::getFloat(child, "weight", 0.0f);
+            auto w = child.get<float>("weight", 0.0f);
             totalWeight += w;
             if (w <= 0.0f) hasZeroWeight = true;
         }
@@ -162,11 +144,8 @@ namespace newui {
         if (elementCount == 0) return;
 
         if (totalWeight == 0.0f) {
-            for (const auto& child : node.children()) {
-                if (child.type() != pugi::node_element) continue;
-                ImGui::PushID(child.internal_object());
+            for (auto& child : node.children) {
                 renderer.render(child, context);
-                ImGui::PopID();
             }
             return;
         }
@@ -179,19 +158,14 @@ namespace newui {
         float totalSpacing = itemSpacing * static_cast<float>(elementCount - 1);
         float usableHeight = std::max(0.0f, availHeight - totalSpacing);
 
-        auto i = 0;
-        for (const auto& child : node.children()) {
-            if (child.type() != pugi::node_element) continue;
-
-            float childWeight = jsonutil::getFloat(child, "weight", 1.0f);
+        for (auto& child : node.children) {
+            float childWeight = child.get<float>("weight", 0.0f);
             float allocatedHeight = (totalWeight > 0.0f) ? (usableHeight * (childWeight / totalWeight)) : 0.0f;
 
-            ImGui::PushID(child.internal_object());
-            if (ImGui::BeginChild(ImGui::GetID(child.internal_object()), ImVec2(0, allocatedHeight), ImGuiChildFlags_NavFlattened | ImGuiChildFlags_AutoResizeX, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground)) {
+            if (ImGui::BeginChild(ImGui::GetID(child.node.internal_object()), ImVec2(0, allocatedHeight), ImGuiChildFlags_NavFlattened | ImGuiChildFlags_AutoResizeX, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground)) {
                 renderer.render(child, context);
             }
             ImGui::EndChild();
-            ImGui::PopID();
 
             // if (++i < static_cast<int>(elementCount) && itemSpacing > 0.0f) {
             //     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + itemSpacing);
@@ -200,39 +174,41 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(Child) {
-        auto id = jsonutil::getString(node, "id", node.path());
-        auto size = jsonutil::getImVec2(node, "size", ImVec2(0, 0));
-        auto flags = jsonutil::getInt(node, "flags", ImGuiChildFlags_NavFlattened);
-        auto windowFlags = jsonutil::getInt(node, "windowflags", ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground);
-        if (ImGui::BeginChild(id.data(), size, flags, windowFlags)) {
-            for (const auto& child : node.children()) {
-                ImGui::PushID(child.internal_object());
+        auto id = node.get<std::string_view>("id", "");
+        auto size = node.get<ImVec2>("size", ImVec2(0, 0));
+        auto flags = node.get<int>("flags", ImGuiChildFlags_NavFlattened);
+        auto windowFlags = node.get<int>("windowflags", ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground);
+
+        bool isOpen;
+        if (id.empty()) {
+            isOpen = ImGui::BeginChild(ImGui::GetID(node.node.internal_object()), size, flags, windowFlags);
+        } else {
+            isOpen = ImGui::BeginChild(id.data(), size, flags, windowFlags);
+        }
+
+        if (isOpen) {
+            for (auto& child : node.children) {
                 renderer.render(child, context);
-                ImGui::PopID();
             }
         }
         ImGui::EndChild();
     }
 
     NEWUI_ELEMENT(CollapsingHeader) {
-        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto flags = jsonutil::getInt(node, "flags", 0);
+        auto label = node.get<std::string_view>("label", "<% ERROR: Missing attribute 'label' %>");
+        auto flags = node.get<int>("flags", 0);
 
         if (ImGui::CollapsingHeader(label.data(), flags)) {
-            for (const auto& child : node.children()) {
-                ImGui::PushID(child.internal_object());
+            for (auto& child : node.children) {
                 renderer.render(child, context);
-                ImGui::PopID();
             }
         }
     }
 
     NEWUI_ELEMENT(Group) {
         ImGui::BeginGroup();
-        for (const auto& child : node.children()) {
-            ImGui::PushID(child.internal_object());
+        for (auto& child : node.children) {
             renderer.render(child, context);
-            ImGui::PopID();
         }
         ImGui::EndGroup();
     }

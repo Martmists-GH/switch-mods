@@ -49,8 +49,8 @@ static void renderLuaValue(lua_State* L, int idx) {
 
 namespace newui {
     NEWUI_ELEMENT(Include) {
-        auto source = std::string(jsonutil::getString(node, "source", ""));
-        auto extraContext = jsonutil::getString(node, "context", "{}");
+        auto source = std::string(node.get<std::string_view>("source", ""));
+        auto extraContext = node.get<std::string_view>("context", "{}");
 
         auto cacheKey = source + "\x00" + std::string(extraContext);
         auto& cache = renderer.root().includeContextCache;
@@ -78,8 +78,8 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(Text) {
-        auto content = jsonutil::getString(node, "content", "");
-        auto script = jsonutil::getString(node, "contentscript", "");
+        auto content = node.get<std::string_view>("content", "");
+        auto script = node.get<std::string_view>("contentscript", "");
         if (content.empty() && script.empty()) {
             ImGui::TextUnformatted("<% ERROR: Missing attribute 'content' %>");
             return;
@@ -129,7 +129,7 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(TextDisabled) {
-        auto content = jsonutil::getString(node, "content", "<% ERROR: Missing attribute 'content' %>");
+        auto content = node.get<std::string_view>("content", "<% ERROR: Missing attribute 'content' %>");
         ImGui::TextDisabled("%s", content.data());
     }
 
@@ -138,7 +138,7 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(SeparatorText) {
-        auto content = jsonutil::getString(node, "content", "<% ERROR: Missing attribute 'content' %>");
+        auto content = node.get<std::string_view>("content", "<% ERROR: Missing attribute 'content' %>");
         ImGui::SeparatorText(content.data());
     }
 
@@ -147,7 +147,7 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(Callback) {
-        auto onFrame = jsonutil::getString(node, "onframe", "");
+        auto onFrame = node.get<std::string_view>("onframe", "");
 
         if (onFrame.empty()) {
             ImGui::TextUnformatted("<% ERROR: Missing attribute 'onframe' %>");

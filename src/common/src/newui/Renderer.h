@@ -11,6 +11,7 @@
     Logger::log("%s", exception.what()); \
     abort(); \
 }
+#include "jsonutil.h"
 #include "inja/inja.hpp"
 #include "nlohmann/json.hpp"
 #include "script.h"
@@ -18,8 +19,9 @@
 
 namespace newui {
     class Renderer;
+    struct CachedRenderNode;
 
-    using RendererCallback = std::function<void(Renderer&, const pugi::xml_node&, nlohmann::json&)>;
+    using RendererCallback = std::function<void(Renderer&, CachedRenderNode&, nlohmann::json&)>;
 
     template <typename T>
     struct __FunctionCallbackTraits {
@@ -34,19 +36,96 @@ namespace newui {
     template <typename T>
     using FunctionCallback = __FunctionCallbackTraits<T>::type;
 
-    static nlohmann::json parseAttrs(const pugi::xml_node& node) {
-        auto props = nlohmann::json::object();
-        for (const auto& attr : node.attributes()) {
-            props[attr.name()] = attr.value();
+    struct CachedRenderNode {
+        pugi::xml_node node;
+        RendererCallback cachedCallback;
+        std::vector<CachedRenderNode> children;
+        nlohmann::json cache;
+
+        template <typename T>
+        T get(std::string_view key, T defaultValue) {
+            static_assert(!std::is_same_v<T, T>, "Unsupported type requested for CachedRenderNode::get()");
+            return nullptr;
         }
-        return props;
+    };
+
+    template <>
+    inline int CachedRenderNode::get<int>(std::string_view key, int defaultValue) {
+        auto& el = cache[key];
+        if (el.is_null()) {
+            auto value = jsonutil::getInt(node, key, defaultValue);
+            cache[key] = value;
+            return value;
+        }
+        return el.get<int>();
     }
+
+    template <>
+    inline float CachedRenderNode::get<float>(std::string_view key, float defaultValue) {
+        auto& el = cache[key];
+        if (el.is_null()) {
+            auto value = jsonutil::getFloat(node, key, defaultValue);
+            cache[key] = value;
+            return value;
+        }
+        return el.get<float>();
+    }
+
+    template <>
+    inline bool CachedRenderNode::get<bool>(std::string_view key, bool defaultValue) {
+        auto& el = cache[key];
+        if (el.is_null()) {
+            auto value = jsonutil::getBool(node, key, defaultValue);
+            cache[key] = value;
+            return value;
+        }
+        return el.get<bool>();
+    }
+
+    template <>
+    inline std::string_view CachedRenderNode::get<std::string_view>(std::string_view key, std::string_view defaultValue) {
+        auto& el = cache[key];
+        if (el.is_null()) {
+            auto value = jsonutil::getString(node, key, defaultValue);
+            cache[key] = value;
+            return value;
+        }
+        return el.get_ref<const std::string&>();
+    }
+
+    template <>
+    inline ImVec2 CachedRenderNode::get<ImVec2>(std::string_view key, ImVec2 defaultValue) {
+        auto& el = cache[key];
+        if (el.is_null()) {
+            auto value = jsonutil::getImVec2(node, key, defaultValue);
+            cache[key] = {value.x, value.y};
+            return value;
+        }
+        return jsonutil::getImVec2(cache, key, defaultValue);
+    }
+
+    template <>
+    inline ImColor CachedRenderNode::get<ImColor>(std::string_view key, ImColor defaultValue) {
+        auto& el = cache[key];
+        if (el.is_null()) {
+            auto value = jsonutil::getImColor(node, key, defaultValue);
+            cache[key] = {value.Value.x, value.Value.y, value.Value.z, value.Value.w};
+            return value;
+        }
+        return jsonutil::getImColor(cache, key, defaultValue);
+    }
+
+
+
+
+
 
     class Renderer {
         std::string uiTemplate = "<Text content=\"<% ERROR: Renderer not initialized. %>\" />";
         nlohmann::json context = {};
         inja::Environment env = {};
         pugi::xml_document doc = {};
+        CachedRenderNode cachedRoot;
         std::unordered_map<std::string, RendererCallback> renderers = {};
 
         std::unordered_map<std::string, FunctionCallback<void>> callbacksVoid = {};
@@ -215,7 +294,8 @@ namespace newui {
 
         void render();
         void render(nlohmann::json& ctx);
-        void render(const pugi::xml_node& node, nlohmann::json& ctx);
+        CachedRenderNode buildCache(const pugi::xml_node& node);
+        void render(CachedRenderNode& node, nlohmann::json& ctx);
 
         // AVOID USE, ONLY DESIGNED FOR <Include /> TAGS
         std::unordered_map<std::string, std::unique_ptr<Renderer>> includeCache = {};

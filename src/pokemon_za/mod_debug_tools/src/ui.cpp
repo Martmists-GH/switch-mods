@@ -1276,11 +1276,11 @@ void setup_ui() {
         lua_setglobal(L, "GetMessage");
     });
 
-    renderer.registerRenderer("PerformanceFPS", [](newui::Renderer& renderer, const pugi::xml_node& node, nlohmann::json& context) {
+    renderer.registerRenderer("PerformanceFPS", [](newui::Renderer& renderer, newui::CachedRenderNode& node, nlohmann::json& context) {
         static std::map<std::string, nn::TimeSpan> allTicks;
         static std::map<std::string, std::array<float, 120>> allCounts;
 
-        auto key = std::string(jsonutil::getString(node, "key", ""));
+        auto key = std::string(node.get<std::string_view>("key", ""));
         if (key.empty()) {
             ImGui::TextUnformatted("<% ERROR: Missing attribute 'key' %>");
             return;
@@ -1344,11 +1344,11 @@ void setup_ui() {
                          nullptr, 0.0f, 0.2f);
     });
 
-    renderer.registerRenderer("PerformanceMemory", [](newui::Renderer& renderer, const pugi::xml_node& node, nlohmann::json& context) {
+    renderer.registerRenderer("PerformanceMemory", [](newui::Renderer& renderer, newui::CachedRenderNode& node, nlohmann::json& context) {
         constexpr size_t HEAPMETA_MAX = 550;
         static std::array<HeapMeta, HEAPMETA_MAX> heapInfo = {};
 
-        auto cols = jsonutil::getInt(node, "columns", 2);
+        auto cols = node.get<int>("columns", 2);
 
         ImGui::BeginColumns(nullptr, cols, ImGuiOldColumnFlags_NoBorder);
         uint32_t j = 0;

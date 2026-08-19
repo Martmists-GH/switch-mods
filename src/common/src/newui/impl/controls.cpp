@@ -4,11 +4,11 @@
 
 namespace newui {
     NEWUI_ELEMENT(Button) {
-        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto size = jsonutil::getImVec2(node, "size", ImVec2(0, 0));
-        auto flags = jsonutil::getInt(node, "flags", 0);
-        auto enabled = jsonutil::getBool(node, "enabled", true);
-        auto onClick = jsonutil::getString(node, "onclick", Renderer::PLACEHOLDER);
+        auto label = node.get<std::string_view>("label", "<% ERROR: Missing attribute 'label' %>");
+        auto size = node.get<ImVec2>("size", ImVec2(0, 0));
+        auto flags = node.get<int>("flags", 0);
+        auto enabled = node.get<bool>("enabled", true);
+        auto onClick = node.get<std::string_view>("onclick", Renderer::PLACEHOLDER);
 
         ImGui::BeginDisabled(!enabled);
         if (ImGui::ButtonEx(label.data(), size, flags)) {
@@ -18,17 +18,18 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(Combo) {
-        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto key = jsonutil::getString(node, "key", "");
-        auto preview = jsonutil::getString(node, "preview", "");
-        auto flags = jsonutil::getInt(node, "flags", 0);
+        auto label = node.get<std::string_view>("label", "<% ERROR: Missing attribute 'label' %>");
+        auto key = node.get<std::string_view>("key", "");
+        auto preview = node.get<std::string_view>("preview", "");
+        auto flags = node.get<int>("flags", 0);
 
         if (preview.empty()) {
             if (!key.empty()) {
                 auto value = jsonutil::getString(context, key, "");
 
                 if (!value.empty()) {
-                    for (auto child : node.children()) {
+                    for (auto& cachedChild : node.children) {
+                        auto& child = cachedChild.node;
                         if (child.type() == pugi::node_element && strcasecmp(child.name(), "Selectable") == 0) {
                             auto val = child.attribute("value");
                             if (val.empty()) {
@@ -49,7 +50,7 @@ namespace newui {
         }
 
         if (ImGui::BeginCombo(label.data(), preview.data(), flags)) {
-            for (const auto& child : node.children()) {
+            for (auto& child : node.children) {
                 renderer.render(child, context);
             }
 
@@ -59,13 +60,13 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(Selectable) {
-        auto key = jsonutil::getString(node, "key", "");
-        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto value = jsonutil::getString(node, "value", label);
-        auto size = jsonutil::getImVec2(node, "size", ImVec2(0, 0));
-        auto flags = jsonutil::getInt(node, "flags", 0);
-        auto enabled = jsonutil::getBool(node, "enabled", true);
-        auto onClick = jsonutil::getString(node, "onclick", Renderer::PLACEHOLDER);
+        auto key = node.get<std::string_view>("key", "");
+        auto label = node.get<std::string_view>("label", "<% ERROR: Missing attribute 'label' %>");
+        auto value = node.get<std::string_view>("value", label);
+        auto size = node.get<ImVec2>("size", ImVec2(0, 0));
+        auto flags = node.get<int>("flags", 0);
+        auto enabled = node.get<bool>("enabled", true);
+        auto onClick = node.get<std::string_view>("onclick", Renderer::PLACEHOLDER);
 
         if (key.empty()) {
             ImGui::BeginDisabled();
@@ -84,11 +85,11 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(Checkbox) {
-        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto key = jsonutil::getString(node, "key", "");
-        auto defaultValue = jsonutil::getBool(node, "default", false);
-        auto onChange = jsonutil::getString(node, "onchange", Renderer::PLACEHOLDER);
-        auto enabled = jsonutil::getBool(node, "enabled", true);
+        auto label = node.get<std::string_view>("label", "<% ERROR: Missing attribute 'label' %>");
+        auto key = node.get<std::string_view>("key", "");
+        auto defaultValue = node.get<bool>("default", false);
+        auto onChange = node.get<std::string_view>("onchange", Renderer::PLACEHOLDER);
+        auto enabled = node.get<bool>("enabled", true);
 
         if (key.empty()) {
             ImGui::BeginDisabled();
@@ -109,16 +110,16 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(InputInt) {
-        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto key = jsonutil::getString(node, "key", "");
-        auto defaultValue = jsonutil::getInt(node, "default", 0);
-        auto min = jsonutil::getInt(node, "min", 0);
-        auto max = jsonutil::getInt(node, "max", 100);
-        auto step = jsonutil::getInt(node, "step", 1);
-        auto stepFast = jsonutil::getInt(node, "stepfast", 10);
-        auto flags = jsonutil::getInt(node, "flags", 0);
-        auto onChange = jsonutil::getString(node, "onchange", Renderer::PLACEHOLDER);
-        auto enabled = jsonutil::getBool(node, "enabled", true);
+        auto label = node.get<std::string_view>("label", "<% ERROR: Missing attribute 'label' %>");
+        auto key = node.get<std::string_view>("key", "");
+        auto defaultValue = node.get<int>("default", 0);
+        auto min = node.get<int>("min", 0);
+        auto max = node.get<int>("max", 100);
+        auto step = node.get<int>("step", 1);
+        auto stepFast = node.get<int>("stepfast", 10);
+        auto flags = node.get<int>("flags", 0);
+        auto onChange = node.get<std::string_view>("onchange", Renderer::PLACEHOLDER);
+        auto enabled = node.get<bool>("enabled", true);
 
         if (key.empty()) {
             ImGui::BeginDisabled();
@@ -147,14 +148,14 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(SliderInt) {
-        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto key = jsonutil::getString(node, "key", "");
-        auto defaultValue = jsonutil::getInt(node, "default", 0);
-        auto min = jsonutil::getInt(node, "min", 0);
-        auto max = jsonutil::getInt(node, "max", 100);
-        auto flags = jsonutil::getInt(node, "flags", 0);
-        auto onChange = jsonutil::getString(node, "onchange", Renderer::PLACEHOLDER);
-        auto enabled = jsonutil::getBool(node, "enabled", true);
+        auto label = node.get<std::string_view>("label", "<% ERROR: Missing attribute 'label' %>");
+        auto key = node.get<std::string_view>("key", "");
+        auto defaultValue = node.get<int>("default", 0);
+        auto min = node.get<int>("min", 0);
+        auto max = node.get<int>("max", 100);
+        auto flags = node.get<int>("flags", 0);
+        auto onChange = node.get<std::string_view>("onchange", Renderer::PLACEHOLDER);
+        auto enabled = node.get<bool>("enabled", true);
 
         if (key.empty()) {
             ImGui::BeginDisabled();
@@ -177,17 +178,17 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(InputFloat) {
-        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto key = jsonutil::getString(node, "key", "");
-        auto defaultValue = jsonutil::getFloat(node, "default", 0);
-        auto min = jsonutil::getFloat(node, "min", 0);
-        auto max = jsonutil::getFloat(node, "max", 100);
-        auto step = jsonutil::getFloat(node, "step", 1);
-        auto stepFast = jsonutil::getFloat(node, "stepfast", 10);
-        auto format = jsonutil::getString(node, "format", "%.3f");
-        auto flags = jsonutil::getInt(node, "flags", 0);
-        auto onChange = jsonutil::getString(node, "onchange", Renderer::PLACEHOLDER);
-        auto enabled = jsonutil::getBool(node, "enabled", true);
+        auto label = node.get<std::string_view>("label", "<% ERROR: Missing attribute 'label' %>");
+        auto key = node.get<std::string_view>("key", "");
+        auto defaultValue = node.get<float>("default", 0);
+        auto min = node.get<float>("min", 0);
+        auto max = node.get<float>("max", 100);
+        auto step = node.get<float>("step", 1);
+        auto stepFast = node.get<float>("stepfast", 10);
+        auto format = node.get<std::string_view>("format", "%.3f");
+        auto flags = node.get<int>("flags", 0);
+        auto onChange = node.get<std::string_view>("onchange", Renderer::PLACEHOLDER);
+        auto enabled = node.get<bool>("enabled", true);
 
         if (key.empty()) {
             ImGui::BeginDisabled();
@@ -216,15 +217,15 @@ namespace newui {
     }
 
     NEWUI_ELEMENT(SliderFloat) {
-        auto label = jsonutil::getString(node, "label", "<% ERROR: Missing attribute 'label' %>");
-        auto key = jsonutil::getString(node, "key", "");
-        auto defaultValue = jsonutil::getFloat(node, "default", 0);
-        auto min = jsonutil::getFloat(node, "min", 0);
-        auto max = jsonutil::getFloat(node, "max", 100);
-        auto format = jsonutil::getString(node, "format", "%.3f");
-        auto flags = jsonutil::getInt(node, "flags", 0);
-        auto onChange = jsonutil::getString(node, "onchange", Renderer::PLACEHOLDER);
-        auto enabled = jsonutil::getBool(node, "enabled", true);
+        auto label = node.get<std::string_view>("label", "<% ERROR: Missing attribute 'label' %>");
+        auto key = node.get<std::string_view>("key", "");
+        auto defaultValue = node.get<float>("default", 0);
+        auto min = node.get<float>("min", 0);
+        auto max = node.get<float>("max", 100);
+        auto format = node.get<std::string_view>("format", "%.3f");
+        auto flags = node.get<int>("flags", 0);
+        auto onChange = node.get<std::string_view>("onchange", Renderer::PLACEHOLDER);
+        auto enabled = node.get<bool>("enabled", true);
 
         if (key.empty()) {
             ImGui::BeginDisabled();

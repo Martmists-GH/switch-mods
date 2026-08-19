@@ -4,4 +4,4 @@
 #include "Renderer.h"
 #include "script.h"
 
-#define NEWUI_ELEMENT(Name) void Name(Renderer& renderer, const pugi::xml_node& node, nlohmann::json& context)
+#define NEWUI_ELEMENT(Name) void Name(Renderer& renderer, newui::CachedRenderNode& node, nlohmann::json& context)
