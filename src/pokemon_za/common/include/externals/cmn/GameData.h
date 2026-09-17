@@ -1,24 +1,24 @@
 #pragma once
 
-#include <externals/ik/PokemonParam.h>
+#include <externals/ik/BasePokemonParam.h>
 
 #include "externals/gfl/object.h"
 
 // TODO: Move
 namespace ik {
     struct UnitParty : ExternalType<UnitParty> {
-        struct vtable : gfl::Object::vtable {
+        struct vtable : gfl::Object<>::vtable {
             void* unk1;
             void* unk2;
             void* unk3;
             void* unk4;
-            gfl::RefPointer<ik::PokemonParam>(*GetMemberPtr)(UnitParty* ptr, int index);
+            gfl::IntrusivePtr<ik::BasePokemonParam>(*GetMemberPtr)(UnitParty* ptr, int index);
             void* unk5[9];
         };
 
         struct fields {};
 
-        gfl::RefPointer<ik::PokemonParam> GetMemberPtr(int idx) {
+        gfl::IntrusivePtr<ik::BasePokemonParam> GetMemberPtr(int idx) {
             return impl()->vtable->GetMemberPtr(this, idx);
         }
     };
@@ -26,6 +26,6 @@ namespace ik {
 
 namespace cmn {
     struct GameData {
-        static gfl::RefPointer<ik::UnitParty> GetPlayerParty();
+        static gfl::IntrusivePtr<ik::UnitParty> GetPlayerParty();
     };
 }

@@ -22,8 +22,8 @@ namespace ik {
 
         static FlagWorkManager s_instance;
 
-        int32_t GetWorkValue(gfl::StringHolder* work);
-        void SetWorkValue(gfl::StringHolder* work, uint32_t value);
+        int32_t GetWorkValue(gfl::StringView* work);
+        void SetWorkValue(gfl::StringView* work, uint32_t value);
         bool GetFlag(char* flag);
         void SetFlag(char* flag, bool value);
     };

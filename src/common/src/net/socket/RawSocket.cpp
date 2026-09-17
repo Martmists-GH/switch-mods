@@ -12,7 +12,7 @@ RawSocket::RawSocket() {
 
     socket = nn::socket::Socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
     if (socket < 0) {
-        Logger::log("Failed to create socket: %d\n", nn::socket::GetLastErrno());
+        Logger::log("Failed to create socket: %d", nn::socket::GetLastErrno());
         close();
         state = ERRORED;
     }
@@ -27,7 +27,7 @@ RawSocket::~RawSocket() {
 
 nn::Result RawSocket::connect(const std::string& host, u16 port) {
     if (state != INITIALIZED) {
-        Logger::log("Attempted to connect before initializing!\n");
+        Logger::log("Attempted to connect before initializing!");
         close();
         state = ERRORED;
         return err::ResultInitializationFailed();
@@ -42,13 +42,13 @@ nn::Result RawSocket::connect(const std::string& host, u16 port) {
     serverAddress.sin_family = htons(AF_INET);
 
     if (auto err = nn::socket::Connect(socket, reinterpret_cast<sockaddr*>(&serverAddress), sizeof(serverAddress)); err.IsFailure()) {
-        Logger::log("Failed to connect to server: %d/%d\n", err.GetInnerValueForDebug(), nn::socket::GetLastErrno());
+        Logger::log("Failed to connect to server: %d/%d", err.GetInnerValueForDebug(), nn::socket::GetLastErrno());
         res = err::ResultConnectionFailed();
         goto exit;
     }
 
     if (nn::socket::Fcntl(socket, F_SETFL, nn::socket::Fcntl(socket, F_GETFL) | O_NONBLOCK) < 0) {
-        Logger::log("Failed to fcntl socket: %d\n", nn::socket::GetLastErrno());
+        Logger::log("Failed to fcntl socket: %d", nn::socket::GetLastErrno());
         res = err::ResultUnknownError();
         goto exit;
     }
@@ -65,13 +65,13 @@ exit:
 int RawSocket::send(const void* buf, int size) {
     if (size == 0) return 0;
     if (state != CONNECTED) {
-        Logger::log("Sending in invalid state: %d\n", state);
+        Logger::log("Sending in invalid state: %d", state);
         return -1;
     }
 
     auto sent = nn::socket::Send(socket, buf, size, 0);
     if (sent < 0) {
-        Logger::log("Send error: %d/%d\n", sent, nn::socket::GetLastErrno());
+        Logger::log("Send error: %d/%d", sent, nn::socket::GetLastErrno());
         close();
     }
     return sent;
@@ -80,7 +80,7 @@ int RawSocket::send(const void* buf, int size) {
 int RawSocket::recv(void* buf, int size) {
     if (size == 0) return 0;
     if (state != CONNECTED) {
-        Logger::log("Receiving in invalid state: %d\n", state);
+        Logger::log("Receiving in invalid state: %d", state);
         return -1;
     }
 
@@ -88,7 +88,7 @@ int RawSocket::recv(void* buf, int size) {
     if (received < 0) {
         auto err = nn::socket::GetLastErrno();
         if (err == EAGAIN) return 0;
-        Logger::log("Receive error: %d/%d\n", received, nn::socket::GetLastErrno());
+        Logger::log("Receive error: %d/%d", received, nn::socket::GetLastErrno());
         close();
     }
     return received;

@@ -3,9 +3,11 @@
 #include "nn/hid.h"
 
 class InputUtil {
+    static bool checkToggleInput();
 
 public:
     static void updatePadState();
+
 
     static void setPort(ulong port) { selectedPort = port; }
 

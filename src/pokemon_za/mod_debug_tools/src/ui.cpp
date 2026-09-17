@@ -1,5 +1,6 @@
 #ifdef IMGUI_ENABLED
 #include "ui/ui.h"
+#include "newui/newui.h"
 
 #include <algorithm>
 #include <format>
@@ -26,14 +27,18 @@
 #include "externals/pml/personal/PersonalSystem.h"
 #include "imgui_ext.h"
 #include "flag_work.h"
+#include "lua_ext/directory_loader.h"
 
 using namespace ui;
 
-void setIsMustCapture(bool value);
-void setIsExpShareOn(bool value);
-void setExpMultiplier(int value);
-void setExpMultiplierInvert(bool value);
-void setAlwaysMaxEnergy(bool value);
+extern "C" {
+void hook_setIsMustCapture(bool value);
+void hook_setIsExpShareOn(bool value);
+void hook_setExpMultiplier(int value);
+void hook_setExpMultiplierInvert(bool value);
+void hook_setAlwaysMaxEnergy(bool value);
+void hook_setMovesAlwaysActive(bool value);
+}
 
 namespace ik::ItemId {
     extern char* names[2635];
@@ -348,963 +353,1033 @@ static bool ImguiHeapData(gfl::SizedHeap::instance* heap, HeapMeta &meta) {
     return true;
 }
 
+static nlohmann::json GetMessage(const char* file, const char* msg) {
+    auto cacheKey = std::format("{}:{}", file, msg);
+
+    auto filev = gfl::StringView::Create(file);
+    auto msgv = gfl::StringView::Create(msg);
+    auto res = pe::text::lua::Text::GetText(&filev, &msgv);
+
+    if (res.m_ptr == nullptr) {
+        return nullptr;
+    }
+
+    auto resString = res.m_ptr->asString();
+    return resString;
+}
+
+static int lua_GetMessage(lua_State* L) {
+    auto file = lua_tostring(L, 1);
+    auto msg = lua_tostring(L, 2);
+    lua_pop(L, 2);
+
+    auto res = GetMessage(file, msg);
+    if (res.is_null()) {
+        lua_pushnil(L);
+    } else {
+        lua_pushstring(L, res.get_ref<std::string&>().c_str());
+    }
+
+    return 1;
+}
+
 void setup_ui() {
-    static auto perfWindow = ROOT.Window([](Window &_) {
-        _.title = "Performance";
-        _.sticky = true;
-        _.open = false;
-        _.toggleable = true;
-        _.initialPos = ImVec2(800, 50);
-        _.initialSize = ImVec2(450, 280);
+    //
+    // static auto partyWindow = ROOT.Window([](Window &_) {
+    //     _.title = "Party Inspector";
+    //     _.initialPos = ImVec2(800, 50);
+    //     _.initialSize = ImVec2(500, 280);
+    //
+    //     auto partyIdx = _.InputInt([](InputInt &_) {
+    //         _.min = 0;
+    //         _.value = 0;
+    //         _.max = 5;
+    //         _.label = "Party Index";
+    //     });
+    //     _.FunctionElement([partyIdx]() {
+    //         auto i = partyIdx->value;
+    //         auto party = cmn::GameData::GetPlayerParty();
+    //         auto param = party.m_ptr->GetMemberPtr(i);
+    //         if (param.m_ptr == nullptr) {
+    //             return;
+    //         }
+    //
+    //         auto pp = param.m_ptr->fields.m_pp->castTo<pml::pokepara::CoreParam>();
+    //         auto acc = pp->fields.m_accessor;
+    //
+    //         acc->StartFastMode();
+    //
+    //         auto builder = Builder::single();
+    //         builder.TextSeparator("CalcData");
+    //         builder.Grid([acc](Grid &_) {
+    //                 _.columns = 4;
+    //                 _.Text("Level");
+    //                 _.Text(std::format("{}", acc->calcData->level));
+    //                 _.Text("HP Offset");
+    //                 _.Text(std::format("{}", acc->calcData->hpOffset));
+    //                 _.Text("HP");
+    //                 _.Text(std::format("{}", acc->calcData->maxHp));
+    //                 _.Text("ATK");
+    //                 _.Text(std::format("{}", acc->calcData->atk));
+    //                 _.Text("DEF");
+    //                 _.Text(std::format("{}", acc->calcData->def));
+    //                 _.Text("SPD");
+    //                 _.Text(std::format("{}", acc->calcData->spd));
+    //                 _.Text("SPATK");
+    //                 _.Text(std::format("{}", acc->calcData->spatk));
+    //                 _.Text("SPDEF");
+    //                 _.Text(std::format("{}", acc->calcData->spdef));
+    //         });
+    //
+    //         builder.TextSeparator("CoreData");
+    //         builder.Grid([acc](Grid &_) {
+    //             _.columns = 4;
+    //             _.Text("Personal RND");
+    //             _.Text(std::format("{:08x}", acc->coreData->personalRnd));
+    //             _.Text("Checksum");
+    //             _.Text(std::format("{:04x}", acc->coreData->checksum));
+    //             _.Text("Fast Mode");
+    //             _.Text((acc->coreData->fastMode) ? "true" : "false");
+    //             _.Text("Bad Egg");
+    //             _.Text((acc->coreData->badEgg) ? "true" : "false");
+    //         });
+    //
+    //         auto& a = acc->coreData->GetCoreDataBlockA();
+    //         auto& b = acc->coreData->GetCoreDataBlockB();
+    //         auto& c = acc->coreData->GetCoreDataBlockC();
+    //         auto& d = acc->coreData->GetCoreDataBlockD();
+    //
+    //         builder.TextSeparator("CoreDataBlockA");
+    //         builder.Grid([a](Grid &_) {
+    //             _.columns = 4;
+    //             _.Text("Species");
+    //             _.Text(std::format("{}", a.monsno));
+    //             _.Text("Form");
+    //             _.Text(std::format("{}", a.formno));
+    //
+    //             _.Text("ID");
+    //             _.Text(std::format("{:08x}", a.id));
+    //             _.Text("Color RND");
+    //             _.Text(std::format("{:08x}", a.colorRnd));
+    //
+    //             _.Text("Exp");
+    //             _.Text(std::format("{}", a.exp));
+    //             _.Text("Ability");
+    //             _.Text(std::format("{}", a.ability));
+    //
+    //             _.Text("Ability flags");
+    //             _.Text((a.abilityFlag1) ? "true" : "false");
+    //             _.Text((a.abilityFlag2) ? "true" : "false");
+    //             _.Text((a.abilityFlag3) ? "true" : "false");
+    //
+    //             _.Text("Nature");
+    //             _.Text(std::format("{}", (int)a.nature));
+    //             _.Text("Nature Mint");
+    //             _.Text(std::format("{}", (int)a.natureMint));
+    //
+    //             _.Text("Box Marking");
+    //             _.Text(std::format("{}", a.boxMarking));
+    //             _.Text("From Event");
+    //             _.Text((a.fromEvent) ? "true" : "false");
+    //
+    //             _.Text("Sex");
+    //             _.Text(std::format("{}", (int)a.sex));
+    //             _.Text("Alpha");
+    //             _.Text((a.isOybn) ? "true" : "false");
+    //
+    //             _.Text("EV");
+    //             _.Text(std::format("{}", a.ev[0]));
+    //             _.Text(std::format("{}", a.ev[1]));
+    //             _.Text(std::format("{}", a.ev[2]));
+    //             _.FunctionElement([](){});
+    //             _.Text(std::format("{}", a.ev[3]));
+    //             _.Text(std::format("{}", a.ev[4]));
+    //             _.Text(std::format("{}", a.ev[5]));
+    //         });
+    //
+    //         builder.TextSeparator("CoreDataBlockB");
+    //         builder.Grid([b](Grid &_) {
+    //             _.columns = 4;
+    //
+    //             _.Text("TODO");
+    //         });
+    //
+    //         builder.render();
+    //
+    //         acc->EndFastMode();
+    //     });
+    // });
+    //
+    // static constexpr const char* const QUEST_TYPES[] = {
+    //     "Main",
+    //     "Side",
+    //     "Lab",
+    // };
+    // static auto questWindow = ROOT.Window([](Window &_) {
+    //     _.title = "Quest Inspector";
+    //     _.initialPos = ImVec2(500, 50);
+    //     _.initialSize = ImVec2(800, 600);
+    //
+    //     static char questName[0x100] = {0};
+    //     static ik::quest::Quest* quest;
+    //
+    //     auto type = _.ComboSimple([](ComboSimple &_) {
+    //         _.label = "Quest Type";
+    //         _.items = QUEST_TYPES;
+    //         _.items_count = 3;
+    //         _.onChange = [](int arg) {
+    //             quest = nullptr;
+    //         };
+    //     });
+    //     _.FunctionElement([type]() {
+    //         auto& mgr = ik::QuestManager::s_instance;
+    //         if (ImGui::BeginCombo("Quest", (quest == nullptr) ? nullptr : questName)) {
+    //             ik::Quest* questContainer;
+    //             gfl::StringView filenameHolder{};
+    //
+    //             switch (type->selected) {
+    //                 default:
+    //                     questContainer = mgr.m_mainQuests;
+    //                     filenameHolder = gfl::StringView::Create("questlist_main");
+    //                     break;
+    //                 case 1:
+    //                     questContainer = mgr.m_subQuests;
+    //                     filenameHolder = gfl::StringView::Create("questlist_sub");
+    //                     break;
+    //                 case 2:
+    //                     questContainer = mgr.m_labQuests;
+    //                     filenameHolder = gfl::StringView::Create("questlist_mj");
+    //                     break;
+    //             }
+    //
+    //             std::vector<ik::quest::Quest*> quests;
+    //             auto iterHead = questContainer->m_items.first;
+    //             while (iterHead != nullptr) {
+    //                 quests.push_back(&iterHead->value);
+    //                 iterHead = iterHead->next;
+    //             }
+    //
+    //             std::ranges::sort(quests, [&filenameHolder](const ik::quest::Quest* a, const ik::quest::Quest* b) {
+    //                 if (a == nullptr || b == nullptr) return false;
+    //                 auto labelA = gfl::StringView::Create(&a->m_label->m_start);
+    //                 auto labelB = gfl::StringView::Create(&b->m_label->m_start);
+    //                 auto strA = pe::text::lua::Text::GetText(&filenameHolder, &labelA);
+    //                 auto strB = pe::text::lua::Text::GetText(&filenameHolder, &labelB);
+    //
+    //                 if (strA.m_ptr == nullptr || strB.m_ptr == nullptr) return false;
+    //                 return strA.m_ptr->asString() < strB.m_ptr->asString();
+    //             });
+    //
+    //             for (auto entry : quests) {
+    //                 auto entryLabel = gfl::StringView::Create(&entry->m_label->m_start);
+    //                 auto entryNamePtr = pe::text::lua::Text::GetText(&filenameHolder, &entryLabel);
+    //
+    //                 if (entryNamePtr.m_ptr != nullptr) {
+    //                     auto entryName = entryNamePtr.m_ptr->asString();
+    //                     auto entryNameC = entryName.c_str();
+    //                     if (ImGui::Selectable(entryNameC, quest == entry)) {
+    //                         memcpy(&questName, entryNameC, strlen(entryNameC));
+    //                         questName[strlen(entryNameC)] = 0;
+    //                         quest = entry;
+    //                     }
+    //                 }
+    //             }
+    //
+    //             ImGui::EndCombo();
+    //         }
+    //     });
+    //
+    //     _.Grid([](Grid &_) {
+    //         _.columns = 4;
+    //         _.Text("ID");
+    //         _.FunctionElement([]() {
+    //             if (quest != nullptr) {
+    //                 ImGui::Text("%s", &quest->m_id->m_start);
+    //             }
+    //         });
+    //
+    //         _.Text("Label");
+    //         _.FunctionElement([]() {
+    //             if (quest != nullptr) {
+    //                 ImGui::Text("%s", &quest->m_label->m_start);
+    //             }
+    //         });
+    //
+    //         _.Text("Client");
+    //         _.FunctionElement([]() {
+    //             if (quest != nullptr) {
+    //                 ImGui::Text("%s", &quest->m_client->m_start);
+    //             }
+    //         });
+    //
+    //         _.Text("Quest number");
+    //         _.FunctionElement([]() {
+    //             if (quest != nullptr) {
+    //                 ImGui::Text("%d", quest->m_questNum);
+    //             }
+    //         });
+    //
+    //         _.Text("Subquest number");
+    //         _.FunctionElement([]() {
+    //             if (quest != nullptr) {
+    //                 ImGui::Text("%d", quest->m_subQuestNum);
+    //             }
+    //         });
+    //
+    //         _.Text("Priority");
+    //         _.FunctionElement([]() {
+    //             if (quest != nullptr) {
+    //                 ImGui::Text("%d", quest->m_priority);
+    //             }
+    //         });
+    //
+    //         _.Text("Work ID");
+    //         _.FunctionElement([]() {
+    //             if (quest != nullptr) {
+    //                 ImGui::Text("%s", &quest->m_work->m_start);
+    //             }
+    //         });
+    //
+    //         _.Text("Work Value");
+    //         _.FunctionElement([]() {
+    //             if (quest != nullptr) {
+    //                 auto& mgr = ik::FlagWorkManager::s_instance;
+    //                 auto holder = gfl::StringView::Create(&quest->m_work->m_start);
+    //                 auto value = mgr.GetWorkValue(&holder);
+    //                 ImGui::Text("%d", value);
+    //             }
+    //         });
+    //     });
+    //
+    //     _.Grid([](Grid& _) {
+    //         _.columns = 3;
+    //
+    //         _.Button([](Button &_) {
+    //             _.label = "Complete";
+    //             _.onClick = []() {
+    //                 auto holder = gfl::StringView::Create(&quest->m_id->m_start);
+    //                 auto& mgr = ik::QuestManager::s_instance;
+    //                 mgr.QuestComplete(&holder, true);
+    //                 mgr.SendQuestProgressUpdate(quest, 1);
+    //                 auto work = gfl::StringView::Create(&quest->m_work->m_start);
+    //                 ik::FlagWorkManager::s_instance.SetWorkValue(&work, 255);
+    //             };
+    //         });
+    //
+    //         _.Button([](Button &_) {
+    //             _.label = "Reset progress";
+    //             _.onClick = []() {
+    //                 auto work = gfl::StringView::Create(&quest->m_work->m_start);
+    //                 ik::FlagWorkManager::s_instance.SetWorkValue(&work, 0);
+    //                 auto& mgr = ik::QuestManager::s_instance;
+    //                 mgr.SendQuestProgressUpdate(quest, 1);
+    //             };
+    //         });
+    //     });
+    //
+    //     _.TextSeparator("Progress");
+    //     _.FunctionElement([type]() {
+    //         if (quest != nullptr) {
+    //             std::vector<ik::quest::Progress*> parts {};
+    //             auto iterHead = quest->m_progress.first;
+    //             while (iterHead != nullptr) {
+    //                 parts.emplace_back(&iterHead->value);
+    //                 iterHead = iterHead->next;
+    //             }
+    //             std::ranges::sort(parts, [](ik::quest::Progress* a, ik::quest::Progress* b) {
+    //                 return a->m_id < b->m_id;
+    //             });
+    //
+    //             if (!parts.empty() && ImGui::BeginTabBar("##progress")) {
+    //                 for (auto item : parts) {
+    //                     ImGui::PushID(item);
+    //                     if (ImGui::BeginTabItem(std::format("{}", item->m_id).c_str())) {
+    //                         ImGui::BeginColumns("##fields", 2);
+    //                         ImGui::Text("ID"); ImGui::NextColumn();
+    //                         ImGui::Text("%d", item->m_id); ImGui::NextColumn();
+    //                         ImGui::Text("ID after completion"); ImGui::NextColumn();
+    //                         ImGui::Text("%d", item->m_nextId); ImGui::NextColumn();
+    //                         ImGui::Text("Summary"); ImGui::NextColumn();
+    //                         ImGui::Text("%s", &item->m_summary->m_start); ImGui::NextColumn();
+    //                         ImGui::EndColumns();
+    //
+    //                         ImGui::BeginColumns("##actions", 3);
+    //                         if (ImGui::Button("Set active")) {
+    //                             auto holder = gfl::StringView::Create(&quest->m_work->m_start);
+    //                             ik::FlagWorkManager::s_instance.SetWorkValue(&holder, item->m_id);
+    //                             auto& mgr = ik::QuestManager::s_instance;
+    //                             mgr.SendQuestProgressUpdate(quest, 1);
+    //                         }
+    //                         ImGui::EndColumns();
+    //
+    //                         if (item->m_condition.m_groups.size() > 0 && ImGui::CollapsingHeader("Conditions")) {
+    //                             QuestCondition(&item->m_condition);
+    //                         }
+    //
+    //                         if ((item->m_purpose.m_text != nullptr || item->m_purpose.m_items.size() > 0) && ImGui::CollapsingHeader("Purpose")) {
+    //                             ImGui::BeginColumns("##purpose_fields", 2);
+    //                             if (item->m_purpose.m_text != nullptr) {
+    //                                 ImGui::Text("Text"); ImGui::NextColumn();
+    //                                 ImGui::Text("%s", &item->m_purpose.m_text->m_start); ImGui::NextColumn();
+    //                             }
+    //                             ImGui::EndColumns();
+    //                             auto j = 0;
+    //                             for (auto purpose = item->m_purpose.m_items.m_begin; purpose != item->m_purpose.m_items.m_end; purpose++) {
+    //                                 ImGui::PushID(purpose);
+    //                                 if (ImGui::TreeNodeEx("node", ImGuiTreeNodeFlags_DefaultOpen, "Purpose %d", j)) {
+    //                                     if (purpose->m_map != nullptr && ImGui::TreeNodeEx("map", ImGuiTreeNodeFlags_Leaf, "Map ID: %s", &purpose->m_map->m_start)) ImGui::TreePop();
+    //                                     if (purpose->m_object != nullptr && ImGui::TreeNodeEx("object", ImGuiTreeNodeFlags_Leaf, "Object ID: %s", &purpose->m_object->m_start)) ImGui::TreePop();
+    //
+    //                                     QuestCondition(&purpose->m_displayCondition);
+    //                                     ImGui::TreePop();
+    //                                 }
+    //
+    //                                 ImGui::PopID();
+    //                             }
+    //                         }
+    //
+    //                         ImGui::EndTabItem();
+    //                     }
+    //                     ImGui::PopID();
+    //                 }
+    //                 ImGui::EndTabBar();
+    //             }
+    //
+    //             if (quest->m_rewards.size() > 0) {
+    //                 ImGui::SeparatorText("Rewards");
+    //                 for (auto reward = quest->m_rewards.m_begin; reward != quest->m_rewards.m_end; reward++) {
+    //                     ImGui::PushID(reward);
+    //                     bool open;
+    //                     if (reward->m_type >= 0 && reward->m_type < std::size(REWARD_TYPES)) {
+    //                         open = ImGui::TreeNodeEx("type", ImGuiTreeNodeFlags_DefaultOpen, "%s", REWARD_TYPES[reward->m_type]);
+    //                     } else {
+    //                         open = ImGui::TreeNodeEx("type", ImGuiTreeNodeFlags_DefaultOpen, "??? (type: %d)", reward->m_type);
+    //                     }
+    //
+    //                     if (open) {
+    //                         if (reward->m_param[0] != nullptr && strlen(&reward->m_param[0]->m_start) > 0 && ImGui::TreeNodeEx("param_0", ImGuiTreeNodeFlags_Leaf, "%s", &reward->m_param[0]->m_start)) ImGui::TreePop();
+    //                         if (reward->m_param[1] != nullptr && strlen(&reward->m_param[1]->m_start) > 0 && ImGui::TreeNodeEx("param_1", ImGuiTreeNodeFlags_Leaf, "%s", &reward->m_param[1]->m_start)) ImGui::TreePop();
+    //                         if (reward->m_param[2] != nullptr && strlen(&reward->m_param[2]->m_start) > 0 && ImGui::TreeNodeEx("param_2", ImGuiTreeNodeFlags_Leaf, "%s", &reward->m_param[2]->m_start)) ImGui::TreePop();
+    //
+    //                         ImGui::TreePop();
+    //                     }
+    //
+    //                     ImGui::PopID();
+    //                 }
+    //             }
+    //         }
+    //     });
+    // });
+    //
+    // static auto mainWindow = ROOT.Window([](Window& _) {
+    //     _.title = STR(MODULE_NAME_SPACES) " - By Martmists";
+    //     _.toggleable = false;
+    //     _.flags |= ImGuiWindowFlags_MenuBar;
+    //     _.initialPos = ImVec2(50, 50);
+    //     _.initialSize = ImVec2(400, 450);
+    //
+    //     _.FunctionElement([]() {
+    //         static bool didLoad = false;
+    //         if (!didLoad) {
+    //             Logger::log("Loading message files");
+    //             pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/seikaku.dat");
+    //             pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/status.dat");
+    //             pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/box.dat");
+    //             pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/hud_itemget.dat");
+    //             didLoad = true;
+    //         }
+    //     });
+    //
+    //     _.MenuBar([](MenuBar &_) {
+    //         _.Menu([](Menu &_) {
+    //             _.label = "Windows";
+    //             _.MenuItem([](MenuItem &_) {
+    //                 _.label = "Performance";
+    //                 _.checked = &perfWindow->open;
+    //             });
+    //             _.MenuItem([](MenuItem &_) {
+    //                 _.label = "Party Inspector";
+    //                 _.checked = &partyWindow->open;
+    //             });
+    //             _.MenuItem([](MenuItem &_) {
+    //                 _.label = "Quest Inspector";
+    //                 _.checked = &questWindow->open;
+    //             });
+    //         });
+    //     });
+    //
+    //     _.Text("Press ZL+R to toggle all menus.\nHold Y to move or resize.");
+    //     _.Text("Early access on patreon.com/martmists");
+    //
+    //     _.Spacing();
+    //
+    //     _.CollapsingHeader([](CollapsingHeader &_) {
+    //         _.label = "Money";
+    //         _.Grid([](Grid &_) {
+    //             _.columns = 5;
+    //             _.Text("Money");
+    //             _.FunctionElement([](FunctionElement &_) {
+    //                 _.callback = [] {
+    //                     auto numCurrency = ik::event::IkkakuEventScriptCommand::GetCurrentMoney();
+    //                     ImGui::Text("%d", numCurrency);
+    //                 };
+    //             });
+    //             _.Group([](Group &_) {
+    //                 _.Button("+1000##Money", [] {
+    //                     ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(1000);
+    //                 });
+    //                 _.Button("-1000##Money", [] {
+    //                     ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(-1000);
+    //                 });
+    //             });
+    //             _.Group([](Group &_) {
+    //                 _.Button("+10000##Money", [] {
+    //                     ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(10000);
+    //                 });
+    //                 _.Button("-10000##Money", [] {
+    //                     ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(-10000);
+    //                 });
+    //             });
+    //             _.Group([](Group &_) {
+    //                 _.Button("+100000##Money", [] {
+    //                     ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(100000);
+    //                 });
+    //                 _.Button("-100000##Money", [] {
+    //                     ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(-100000);
+    //                 });
+    //             });
+    //
+    //             _.FunctionElement([]() {
+    //                 ImGui::TextFile("hud_itemget", "hud_itemget_02_01");
+    //             });
+    //             _.FunctionElement([](FunctionElement &_) {
+    //                 _.callback = [] {
+    //                     auto numMedals = ik::ZARoyaleSaveAccessor::GetMedalNum();
+    //                     ImGui::Text("%d", numMedals);
+    //                 };
+    //             });
+    //             _.Group([](Group &_) {
+    //                 _.Button("+100##Medals", [] {
+    //                     auto newValue = ik::ZARoyaleSaveAccessor::GetMedalNum() + 100;
+    //                     ik::ZARoyaleSaveAccessor::SetMedalNum(std::clamp(newValue, 0u, 9999u));
+    //                 });
+    //                 _.Button("-100##Medals", [] {
+    //                     auto newValue = ik::ZARoyaleSaveAccessor::GetMedalNum() - 100;
+    //                     ik::ZARoyaleSaveAccessor::SetMedalNum(std::clamp(newValue, 0u, 9999u));
+    //                 });
+    //             });
+    //             _.Group([](Group &_) {
+    //                 _.Button("+1000##Medals", [] {
+    //                     auto newValue = ik::ZARoyaleSaveAccessor::GetMedalNum() + 1000;
+    //                     ik::ZARoyaleSaveAccessor::SetMedalNum(std::clamp(newValue, 0u, 9999u));
+    //                 });
+    //                 _.Button("-1000##Medals", [] {
+    //                     auto newValue = ik::ZARoyaleSaveAccessor::GetMedalNum() - 1000;
+    //                     ik::ZARoyaleSaveAccessor::SetMedalNum(std::clamp(newValue, 0u, 9999u));
+    //                 });
+    //             });
+    //             _.Group([](Group &_) {
+    //                 // Empty to match number of columns
+    //             });
+    //
+    //             _.FunctionElement([]() {
+    //                 ImGui::Text("Tickets");
+    //             });
+    //             _.FunctionElement([](FunctionElement &_) {
+    //                 _.callback = [] {
+    //                     ImGui::Text("%d", ik::TrainerRankManager::s_instance.m_tickets);
+    //                 };
+    //             });
+    //
+    //             _.Group([](Group &_) {
+    //                 _.Button("+100##Tickets", [] {
+    //                     ik::TrainerRankManager::s_instance.AddPoint(100, false);
+    //                 });
+    //                 _.Button("-100##Tickets", [] {
+    //                     ik::TrainerRankManager::s_instance.AddPoint(-100, false);
+    //                 });
+    //             });
+    //             _.Group([](Group &_) {
+    //                 _.Button("+1000##Tickets", [] {
+    //                     ik::TrainerRankManager::s_instance.AddPoint(1000, false);
+    //                 });
+    //                 _.Button("-1000##Tickets", [] {
+    //                     ik::TrainerRankManager::s_instance.AddPoint(-1000, false);
+    //                 });
+    //             });
+    //             _.Group([](Group &_) {
+    //                 _.Button("+10000##Tickets", [] {
+    //                     ik::TrainerRankManager::s_instance.AddPoint(10000, false);
+    //                 });
+    //                 _.Button("-10000##Tickets", [] {
+    //                     ik::TrainerRankManager::s_instance.AddPoint(-10000, false);
+    //                 });
+    //             });
+    //         });
+    //     });
+    //
+    //     _.CollapsingHeader([](CollapsingHeader &_) {
+    //         _.label = "Battle";
+    //
+    //         _.Checkbox("100% Capture Rate", false, [](bool it) {
+    //             setIsMustCapture(it);
+    //         });
+    //         _.Checkbox("Enable EXP Share", true, [](bool it) {
+    //             setIsExpShareOn(it);
+    //         });
+    //         _.Row([](Row &_) {
+    //             _.SliderInt([](SliderInt &_) {
+    //                 _.label = "EXP Multiplier";
+    //                 _.min = 0;
+    //                 _.max = 30;
+    //                 _.value = 1;
+    //                 _.onChange = [](int mult) {
+    //                     setExpMultiplier(mult);
+    //                 };
+    //             });
+    //             _.Checkbox("Invert (x2 -> x0.5)", [](bool value) {
+    //                 setExpMultiplierInvert(value);
+    //             });
+    //         });
+    //         _.Checkbox("Always Max Mega Energy", [](bool it){
+    //             setAlwaysMaxEnergy(it);
+    //         });
+    //         _.Checkbox("Disable move cooldowns", [](bool it) {
+    //             setMovesAlwaysActive(it);
+    //         });
+    //     });
+    //
+    //     _.CollapsingHeader([](CollapsingHeader &_) {
+    //         _.label = "Encounter Editor";
+    //         _.Row([](Row &_){
+    //             _.Checkbox("100% Shiny Rate", false, [](bool it) {
+    //                 s_dataForEncounter.forceShiny = it;
+    //             });
+    //             _.SliderInt([](SliderInt &_) {
+    //                 _.label = "Shiny rate Multiplier";
+    //                 _.min = 0;
+    //                 _.max = 60;
+    //                 _.value = 1;
+    //                 _.onChange = [](int mult) {
+    //                     s_dataForEncounter.shinyMultiplier = mult;
+    //                 };
+    //             });
+    //         });
+    //         _.Checkbox("100% Alpha Rate", s_dataForEncounter.forceAlpha, [](bool it) {
+    //             s_dataForEncounter.forceAlpha = it;
+    //         });
+    //         _.Separator();
+    //         _.Checkbox("Force modify encounter", [](bool value) {
+    //             s_dataForEncounter.forceModify = value;
+    //         });
+    //
+    //         _.FunctionElement([]() {
+    //             auto instance = Builder::single();
+    //             PokemonEditor(&s_dataForEncounter, instance, false);
+    //             instance.render();
+    //         });
+    //     });
+    //
+    //     _.CollapsingHeader([](CollapsingHeader &_) {
+    //         _.label = "Party";
+    //
+    //         static bool enabled = false;
+    //         static PokemonData s_partyData;
+    //         auto partyIdx = _.InputInt([](InputInt &_) {
+    //             _.min = 0;
+    //             _.value = 0;
+    //             _.max = 5;
+    //             _.label = "Party Index";
+    //         });
+    //         _.Checkbox("Enable", false, [](bool it) {
+    //             enabled = it;
+    //         });
+    //         _.FunctionElement([partyIdx]() {
+    //             auto i = partyIdx->value;
+    //             auto party = cmn::GameData::GetPlayerParty();
+    //             auto param = party.m_ptr->GetMemberPtr(i);
+    //             if (param.m_ptr == nullptr) {
+    //                 return;
+    //             }
+    //
+    //             auto pp = param.m_ptr->fields.m_pp->castTo<pml::pokepara::CoreParam>();
+    //             auto acc = pp->fields.m_accessor;
+    //
+    //             // Ensure correct block order
+    //             acc->StartFastMode();
+    //
+    //             auto& a = acc->GetCoreDataBlockA();
+    //             auto& b = acc->GetCoreDataBlockB();
+    //
+    //             auto isFixPressed = false;
+    //             if (acc->coreData->badEgg) {
+    //                 ImGui::Text("Bad Egg detected!");
+    //                 ImGui::SameLine();
+    //                 if (ImGui::Button("Fix")) {
+    //                     acc->coreData->badEgg = false;
+    //                     b.egg = false;
+    //                     isFixPressed = true;
+    //                 }
+    //             }
+    //
+    //             s_partyData.forceShiny = pp->IsRare();
+    //             s_partyData.forceAlpha = a.isOybn;
+    //             s_partyData.species = a.monsno;
+    //             s_partyData.form = a.formno;
+    //             s_partyData.sex = a.sex;
+    //             s_partyData.ability = a.ability;
+    //             s_partyData.nature = a.natureMint;
+    //             s_partyData.level = acc->GetLevel();
+    //             auto oldLevel = s_partyData.level;
+    //             s_partyData.iv[0] = b.ivHp;
+    //             s_partyData.iv[1] = b.ivAtk;
+    //             s_partyData.iv[2] = b.ivDef;
+    //             s_partyData.iv[3] = b.ivSpd;
+    //             s_partyData.iv[4] = b.ivSpAtk;
+    //             s_partyData.iv[5] = b.ivSpDef;
+    //             for (int j = 0; j < 6; j++) {
+    //                 s_partyData.ev[j] = a.ev[j];
+    //             }
+    //             for (int j = 0; j < 4; j++) {
+    //                 s_partyData.moves[j] = b.waza[j];
+    //             }
+    //
+    //             auto builder = Builder::single();
+    //             PokemonEditor(&s_partyData, builder, true);
+    //             builder.render();
+    //
+    //             if (!enabled && !isFixPressed) {
+    //                 acc->EndFastMode();
+    //                 return;
+    //             };
+    //
+    //             if (s_partyData.forceShiny) {
+    //                 a.colorRnd = pml::pokepara::CalcTool::CorrectColorRndForRare(a.id, a.colorRnd);
+    //             } else {
+    //                 a.colorRnd = pml::pokepara::CalcTool::CorrectColorRndForNotRare(a.id, a.colorRnd);
+    //             }
+    //             a.isOybn = s_partyData.forceAlpha;
+    //             a.monsno = s_partyData.species;
+    //             a.formno = s_partyData.form;
+    //             a.sex = s_partyData.sex;
+    //             a.ability = s_partyData.ability;
+    //             a.natureMint = s_partyData.nature;
+    //             if (s_partyData.level != oldLevel) {
+    //                 auto exp = pml::personal::PersonalSystem::GetMinExp(s_partyData.species, s_partyData.form, s_partyData.level);
+    //                 a.exp = exp;
+    //             }
+    //             acc->SetLevel(s_partyData.level);
+    //             b.ivHp = s_partyData.iv[0];
+    //             b.ivAtk = s_partyData.iv[1];
+    //             b.ivDef = s_partyData.iv[2];
+    //             b.ivSpd = s_partyData.iv[3];
+    //             b.ivSpAtk = s_partyData.iv[4];
+    //             b.ivSpDef = s_partyData.iv[5];
+    //             for (int j = 0; j < 6; j++) {
+    //                 a.ev[j] = s_partyData.ev[j];
+    //             }
+    //             for (int j = 0; j < 4; j++) {
+    //                 b.waza[j] = s_partyData.moves[j];
+    //             }
+    //
+    //             pp->UpdateCalcDatas(true);
+    //
+    //             // Fix checksum to prevent bad egg
+    //             acc->EndFastMode();
+    //         });
+    //     });
+    //
+    //     _.CollapsingHeader([](CollapsingHeader &_) {
+    //         _.label = "Bag";
+    //         auto itemID = _.InputInt([](InputInt &_) {
+    //             _.label = "Item ID";
+    //             _.min = 1;
+    //             _.value = 1;
+    //             _.max = 2634;
+    //             if (is_version("2.0.0") || is_version("2.0.1") || is_version("2.0.2")) {
+    //                 _.max = 2684;
+    //             }
+    //         });
+    //         _.FunctionElement([itemID]() {
+    //             auto value = itemID->value;
+    //             auto str = ik::ItemId::names[value];
+    //             if (strlen(str) > 0) {
+    //                 ImGui::Text("%s", str);
+    //             } else {
+    //                 ImGui::Text("[INVALID ITEM: %d]", value);
+    //             }
+    //
+    //             ImGui::SameLine();
+    //
+    //             auto label = std::vformat((value < 1000) ? "ITEMNAME_{:03d}" : "ITEMNAME_{:04d}", std::make_format_args(value));
+    //             auto ptr = pe::text::lua::Text::GetText("itemname", label.c_str());
+    //             if (ptr.m_ptr == nullptr) {
+    //                 ImGui::Text("[null]");
+    //             } else {
+    //                 auto text = ptr.m_ptr->asString();
+    //                 ImGui::Text("%s", text.c_str());
+    //             }
+    //         });
+    //         _.Grid([itemID](Grid &_) {
+    //             _.columns = 3;
+    //             _.Button("Add 1##Items", [itemID]() {
+    //                 ik::event::IkkakuEventScriptCommand::AddItem(itemID->value, 1);
+    //             });
+    //             _.Button("Add 10##Items", [itemID]() {
+    //                 ik::event::IkkakuEventScriptCommand::AddItem(itemID->value, 10);
+    //             });
+    //             _.Button("Add 100##Items", [itemID]() {
+    //                 ik::event::IkkakuEventScriptCommand::AddItem(itemID->value, 100);
+    //             });
+    //             _.Button("Remove 1##Items", [itemID]() {
+    //                 ik::event::IkkakuEventScriptCommand::AddItem(itemID->value, -1);
+    //             });
+    //             _.Button("Remove 10##Items", [itemID]() {
+    //                 ik::event::IkkakuEventScriptCommand::AddItem(itemID->value, -10);
+    //             });
+    //             _.Button("Remove 100##Items", [itemID]() {
+    //                 ik::event::IkkakuEventScriptCommand::AddItem(itemID->value, -100);
+    //             });
+    //         });
+    //     });
+    //
+    //     // static char flagSelectedNameBuffer[0x100] = {0};
+    //     // static char workSelectedNameBuffer[0x100] = {0};
+    //     //
+    //     // _.CollapsingHeader([](CollapsingHeader& _) {
+    //     //     _.label = "Flags";
+    //     //     _.Grid([](Grid &_) {
+    //     //         _.columns = 3;
+    //     //
+    //     //         _.Text("Flag");
+    //     //         _.FunctionElement([] {
+    //     //             if (ImGui::BeginCombo("Flag Name", flagSelectedNameBuffer)) {
+    //     //                 for (auto flag : ALL_FLAG) {
+    //     //                     if (ImGui::Selectable(flag, strcmp(flagSelectedNameBuffer, flag) == 0)) {
+    //     //                         auto size = strlen(flag);
+    //     //                         memcpy(flagSelectedNameBuffer, flag, size);
+    //     //                         flagSelectedNameBuffer[size] = '\0';
+    //     //                     }
+    //     //                 }
+    //     //                 ImGui::EndCombo();
+    //     //             }
+    //     //         });
+    //     //         _.FunctionElement([] {
+    //     //             if (flagSelectedNameBuffer[0] == '\0') return;
+    //     //             bool out = ik::FlagWorkManager::s_instance.GetFlag(flagSelectedNameBuffer);
+    //     //             if (ImGui::Checkbox("Value", &out)) {
+    //     //                 ik::FlagWorkManager::s_instance.SetFlag(flagSelectedNameBuffer, out);
+    //     //             }
+    //     //         });
+    //     //
+    //     //         _.Text("Work");
+    //     //         _.FunctionElement([] {
+    //     //             if (ImGui::BeginCombo("Work Name", workSelectedNameBuffer)) {
+    //     //                 for (auto work : ALL_WORK) {
+    //     //                     if (ImGui::Selectable(work, strcmp(workSelectedNameBuffer, work) == 0)) {
+    //     //                         auto size = strlen(work);
+    //     //                         memcpy(workSelectedNameBuffer, work, size);
+    //     //                         workSelectedNameBuffer[size] = '\0';
+    //     //                     }
+    //     //                 }
+    //     //                 ImGui::EndCombo();
+    //     //             }
+    //     //         });
+    //     //         _.FunctionElement([] {
+    //     //             if (workSelectedNameBuffer[0] == '\0') return;
+    //     //             auto s = gfl::StringHolder::Create(workSelectedNameBuffer);
+    //     //             int out = ik::FlagWorkManager::s_instance.GetWorkValue(&s);
+    //     //             if (ImGui::InputInt("Value", &out)) {
+    //     //                 ik::FlagWorkManager::s_instance.SetWorkValue(&s, out);
+    //     //             }
+    //     //         });
+    //     //     });
+    //     // });
+    //
+    //     _.CollapsingHeader([](CollapsingHeader &_) {
+    //         _.label = "Weather";
+    //         _.Button("Reset", [](){
+    //             ik::EventSystemCallFunctions::ReleaseFixWeather();
+    //         });
+    //         _.Row([](Row &_) {
+    //             _.Button("Sunny", []() {
+    //                 gfl::StringView holder = gfl::StringView::Create("sunny");
+    //                 gfa::EventContext ctx = gfa::EventContext::make(&holder);
+    //                 ik::EventSystemCallFunctions::FixWeather(&ctx);
+    //             });
+    //             _.Button("Cloudy", []() {
+    //                 gfl::StringView holder = gfl::StringView::Create("cloudy");
+    //                 gfa::EventContext ctx = gfa::EventContext::make(&holder);
+    //                 ik::EventSystemCallFunctions::FixWeather(&ctx);
+    //             });
+    //             _.Button("Rain", []() {
+    //                 gfl::StringView holder = gfl::StringView::Create("rain");
+    //                 gfa::EventContext ctx = gfa::EventContext::make(&holder);
+    //                 ik::EventSystemCallFunctions::FixWeather(&ctx);
+    //             });
+    //         });
+    //         _.Row([](Row &_) {
+    //             _.Button("Storm", []() {
+    //                 gfl::StringView holder = gfl::StringView::Create("storm");
+    //                 gfa::EventContext ctx = gfa::EventContext::make(&holder);
+    //                 ik::EventSystemCallFunctions::FixWeather(&ctx);
+    //             });
+    //             _.Button("Snow", []() {
+    //                 gfl::StringView holder = gfl::StringView::Create("snow");
+    //                 gfa::EventContext ctx = gfa::EventContext::make(&holder);
+    //                 ik::EventSystemCallFunctions::FixWeather(&ctx);
+    //             });
+    //             _.Button("Snowstorm", []() {
+    //                 gfl::StringView holder = gfl::StringView::Create("snowstorm");
+    //                 gfa::EventContext ctx = gfa::EventContext::make(&holder);
+    //                 ik::EventSystemCallFunctions::FixWeather(&ctx);
+    //             });
+    //         });
+    //         _.Row([](Row &_) {
+    //             _.Button("Diamonddust", []() {
+    //                 gfl::StringView holder = gfl::StringView::Create("diamonddust");
+    //                 gfa::EventContext ctx = gfa::EventContext::make(&holder);
+    //                 ik::EventSystemCallFunctions::FixWeather(&ctx);
+    //             });
+    //             _.Button("Sandstorm", []() {
+    //                 gfl::StringView holder = gfl::StringView::Create("sandstorm");
+    //                 gfa::EventContext ctx = gfa::EventContext::make(&holder);
+    //                 ik::EventSystemCallFunctions::FixWeather(&ctx);
+    //             });
+    //             _.Button("Mist", []() {
+    //                 gfl::StringView holder = gfl::StringView::Create("mist");
+    //                 gfa::EventContext ctx = gfa::EventContext::make(&holder);
+    //                 ik::EventSystemCallFunctions::FixWeather(&ctx);
+    //             });
+    //         });
+    //     });
+    // });
 
-        _.TextSeparator("FPS");
+    Logger::log("Creating renderer");
+    static newui::Renderer renderer;
 
-        static nn::TimeSpan lastTick = nn::os::ConvertToTimeSpan(nn::os::GetSystemTick());
-        static std::array<float, 120> counts = {0};
-        _.FunctionElement([]() {
-            nn::TimeSpan curTick = nn::os::ConvertToTimeSpan(nn::os::GetSystemTick());
-            float deltaTime = (curTick.nanoseconds - lastTick.nanoseconds) / 1e9f;
-            lastTick = curTick;
+    Logger::log("Initializing renderer with XML");
+    renderer.init(ROM_MOUNT ":/ui/debug.xml");
 
-            for (size_t i = 0; i < counts.size() - 1; ++i) {
-                counts[i] = counts[i + 1];
-            }
-            counts.back() = deltaTime;
+    static bool didLoadMsg = false;
+    ROOT.callbacks.emplace_back([]() {
+        if (!didLoadMsg) {
+            didLoadMsg = true;
+            pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/pokedex.dat");
+            pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/seikaku.dat");
+            pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/level_up.dat");
+        }
+    });
 
-            float sum = 0.0f, minFT = FLT_MAX, maxFT = 0.0f;
-            for (float t : counts) {
-                sum += t;
-                minFT = std::min(minFT, t);
-                maxFT = std::max(maxFT, t);
-            }
+    renderer.registerLua([](lua_State* L) {
+        lua_pushcfunction(L, lua_GetMessage);
+        lua_setglobal(L, "GetMessage");
+    });
 
-            float avgFT = sum / counts.size();
-            float fps = 1.0f / avgFT;
+    renderer.registerRenderer("PerformanceFPS", [](newui::Renderer& renderer, newui::CachedRenderNode& node, nlohmann::json& context) {
+        static std::map<std::string, nn::TimeSpan> allTicks;
+        static std::map<std::string, std::array<float, 120>> allCounts;
 
-            std::array<float, 120> sorted = counts;
-            std::sort(sorted.begin(), sorted.end());
-            auto pct = [&](float p) {
-                float idx = p * (sorted.size() - 1);
-                size_t i0 = idx;
-                size_t i1 = std::min(i0 + 1, sorted.size() - 1);
-                float t = idx - i0;
-                return std::lerp(sorted[i0], sorted[i1], t);
-            };
+        auto key = std::string(node.get<std::string_view>("key", ""));
+        if (key.empty()) {
+            ImGui::TextUnformatted("<% ERROR: Missing attribute 'key' %>");
+            return;
+        }
 
-            float p50 = pct(0.50f);
-            float p90 = pct(0.90f);
-            float p99 = pct(0.99f);
+        if (!allTicks.contains(key)) {
+            allTicks[key] = nn::os::ConvertToTimeSpan(nn::os::GetSystemTick());
+            allCounts[key] = {0};
+        }
 
-            const size_t shortWindow = 30;
-            float shortSum = 0.0f;
-            for (size_t i = counts.size() - shortWindow; i < counts.size(); ++i) {
-                shortSum += counts[i];
-            }
-            float shortAvg = shortSum / shortWindow;
-            float shortFPS = 1.0f / shortAvg;
+        auto& lastTick = allTicks[key];
+        auto& counts = allCounts[key];
 
-            ImGui::Text("FPS (120-frame avg): %.2f", fps);
-            ImGui::Text("FPS (last 30): %.2f", shortFPS);
-            ImGui::Text("Frame Time:\n avg %.3f ms\n min %.3f\n max %.3f", avgFT * 1000.0f, minFT * 1000.0f, maxFT * 1000.0f);
-            ImGui::Text("Percentiles:\n P50 %.3f ms\n P90 %.3f ms\n P99 %.3f ms", p50 * 1000.0f, p90 * 1000.0f, p99 * 1000.0f);
+        nn::TimeSpan curTick = nn::os::ConvertToTimeSpan(nn::os::GetSystemTick());
+        float deltaTime = (curTick.nanoseconds - lastTick.nanoseconds) / 1e9f;
+        allTicks[key] = curTick;
 
-            ImGui::PlotLines("Frame Times (ms)", counts.data(), counts.size(), 0,
-                             nullptr, 0.0f, 0.2f);
-        });
+        for (size_t i = 0; i < counts.size() - 1; ++i) {
+            counts[i] = counts[i + 1];
+        }
+        counts.back() = deltaTime;
 
-        _.TextSeparator("Memory");
+        float sum = 0.0f, minFT = FLT_MAX, maxFT = 0.0f;
+        for (float t : counts) {
+            sum += t;
+            minFT = std::min(minFT, t);
+            maxFT = std::max(maxFT, t);
+        }
 
+        float avgFT = sum / counts.size();
+        float fps = 1.0f / avgFT;
+
+        std::array<float, 120> sorted = counts;
+        std::sort(sorted.begin(), sorted.end());
+        auto pct = [&](float p) {
+            float idx = p * (sorted.size() - 1);
+            size_t i0 = idx;
+            size_t i1 = std::min(i0 + 1, sorted.size() - 1);
+            float t = idx - i0;
+            return std::lerp(sorted[i0], sorted[i1], t);
+        };
+
+        float p50 = pct(0.50f);
+        float p90 = pct(0.90f);
+        float p99 = pct(0.99f);
+
+        const size_t shortWindow = 30;
+        float shortSum = 0.0f;
+        for (size_t i = counts.size() - shortWindow; i < counts.size(); ++i) {
+            shortSum += counts[i];
+        }
+        float shortAvg = shortSum / shortWindow;
+        float shortFPS = 1.0f / shortAvg;
+
+        ImGui::Text("FPS (120-frame avg): %.2f", fps);
+        ImGui::Text("FPS (last 30): %.2f", shortFPS);
+        ImGui::Text("Frame Time:\n avg %.3f ms\n min %.3f\n max %.3f", avgFT * 1000.0f, minFT * 1000.0f, maxFT * 1000.0f);
+        ImGui::Text("Percentiles:\n P50 %.3f ms\n P90 %.3f ms\n P99 %.3f ms", p50 * 1000.0f, p90 * 1000.0f, p99 * 1000.0f);
+
+        ImGui::PlotLines("Frame Times (ms)", counts.data(), counts.size(), 0,
+                         nullptr, 0.0f, 0.2f);
+    });
+
+    renderer.registerRenderer("PerformanceMemory", [](newui::Renderer& renderer, newui::CachedRenderNode& node, nlohmann::json& context) {
         constexpr size_t HEAPMETA_MAX = 550;
         static std::array<HeapMeta, HEAPMETA_MAX> heapInfo = {};
-        _.FunctionElement([]() {
-            ImGui::BeginColumns(nullptr, 2, ImGuiOldColumnFlags_NoBorder);
-            uint32_t j = 0;
-            if (ImguiHeapData(gfl::SizedHeap::s_globalHeap, heapInfo[j++])) ImGui::NextColumn();
-            for (uint32_t i = 0; i < gfl::HeapManager::s_managerCount; i++) {
-                auto manager = (&gfl::HeapManager::s_managerList)[i];
-                for (int k = 0; k < manager->GetCount(); k++) {
-                    auto heap = manager->GetHeap(k);
-                    if (j + 1 >= HEAPMETA_MAX) {
-                        j++;
-                    } else {
-                        if (ImguiHeapData(heap, heapInfo[j++])) ImGui::NextColumn();
-                    }
+
+        auto cols = node.get<int>("columns", 2);
+
+        ImGui::BeginColumns(nullptr, cols, ImGuiOldColumnFlags_NoBorder);
+        uint32_t j = 0;
+        if (ImguiHeapData(gfl::SizedHeap::s_globalHeap, heapInfo[j++])) ImGui::NextColumn();
+        for (uint32_t i = 0; i < gfl::HeapManager::s_managerCount; i++) {
+            auto manager = (&gfl::HeapManager::s_managerList)[i];
+            for (int k = 0; k < manager->GetCount(); k++) {
+                auto heap = manager->GetHeap(k);
+                if (j + 1 >= HEAPMETA_MAX) {
+                    j++;
+                } else {
+                    if (ImguiHeapData(heap, heapInfo[j++])) ImGui::NextColumn();
                 }
             }
-            ImGui::EndColumns();
+        }
+        ImGui::EndColumns();
 
-            ImGui::Separator();
-            auto stats = GetGlobalHeapState();
-            ImGui::Text("GlobalHeap Wrapper: Allocated %d/%d objects", stats.first, stats.second);
-            ImGui::Text("HeapMeta: Using %d/%d heaps", j, HEAPMETA_MAX);
-        });
+        ImGui::Separator();
+        auto stats = GetGlobalHeapState();
+        ImGui::Text("GlobalHeap Wrapper: Allocated %d/%d objects", stats.first, stats.second);
+        ImGui::Text("HeapMeta: Using %d/%d heaps", j, HEAPMETA_MAX);
     });
 
-    static auto partyWindow = ROOT.Window([](Window &_) {
-        _.title = "Party Inspector";
-        _.initialPos = ImVec2(800, 50);
-        _.initialSize = ImVec2(500, 280);
-
-        auto partyIdx = _.InputInt([](InputInt &_) {
-            _.min = 0;
-            _.value = 0;
-            _.max = 5;
-            _.label = "Party Index";
-        });
-        _.FunctionElement([partyIdx]() {
-            auto i = partyIdx->value;
-            auto party = cmn::GameData::GetPlayerParty();
-            auto param = party.m_ptr->GetMemberPtr(i);
-            if (param.m_ptr == nullptr) {
-                return;
-            }
-
-            auto pp = param.m_ptr->fields.m_pp->castTo<pml::pokepara::CoreParam>();
-            auto acc = pp->fields.m_accessor;
-
-            acc->StartFastMode();
-
-            auto builder = Builder::single();
-            builder.TextSeparator("CalcData");
-            builder.Grid([acc](Grid &_) {
-                    _.columns = 4;
-                    _.Text("Level");
-                    _.Text(std::format("{}", acc->calcData->level));
-                    _.Text("HP Offset");
-                    _.Text(std::format("{}", acc->calcData->hpOffset));
-                    _.Text("HP");
-                    _.Text(std::format("{}", acc->calcData->maxHp));
-                    _.Text("ATK");
-                    _.Text(std::format("{}", acc->calcData->atk));
-                    _.Text("DEF");
-                    _.Text(std::format("{}", acc->calcData->def));
-                    _.Text("SPD");
-                    _.Text(std::format("{}", acc->calcData->spd));
-                    _.Text("SPATK");
-                    _.Text(std::format("{}", acc->calcData->spatk));
-                    _.Text("SPDEF");
-                    _.Text(std::format("{}", acc->calcData->spdef));
-            });
-
-            builder.TextSeparator("CoreData");
-            builder.Grid([acc](Grid &_) {
-                _.columns = 4;
-                _.Text("Personal RND");
-                _.Text(std::format("{:08x}", acc->coreData->personalRnd));
-                _.Text("Checksum");
-                _.Text(std::format("{:04x}", acc->coreData->checksum));
-                _.Text("Fast Mode");
-                _.Text((acc->coreData->fastMode) ? "true" : "false");
-                _.Text("Bad Egg");
-                _.Text((acc->coreData->badEgg) ? "true" : "false");
-            });
-            
-            auto& a = acc->coreData->GetCoreDataBlockA();
-            auto& b = acc->coreData->GetCoreDataBlockB();
-            auto& c = acc->coreData->GetCoreDataBlockC();
-            auto& d = acc->coreData->GetCoreDataBlockD();
-            
-            builder.TextSeparator("CoreDataBlockA");
-            builder.Grid([a](Grid &_) {
-                _.columns = 4;
-                _.Text("Species");
-                _.Text(std::format("{}", a.monsno));
-                _.Text("Form");
-                _.Text(std::format("{}", a.formno));
-            
-                _.Text("ID");
-                _.Text(std::format("{:08x}", a.id));
-                _.Text("Color RND");
-                _.Text(std::format("{:08x}", a.colorRnd));
-            
-                _.Text("Exp");
-                _.Text(std::format("{}", a.exp));
-                _.Text("Ability");
-                _.Text(std::format("{}", a.ability));
-            
-                _.Text("Ability flags");
-                _.Text((a.abilityFlag1) ? "true" : "false");
-                _.Text((a.abilityFlag2) ? "true" : "false");
-                _.Text((a.abilityFlag3) ? "true" : "false");
-            
-                _.Text("Nature");
-                _.Text(std::format("{}", (int)a.nature));
-                _.Text("Nature Mint");
-                _.Text(std::format("{}", (int)a.natureMint));
-            
-                _.Text("Box Marking");
-                _.Text(std::format("{}", a.boxMarking));
-                _.Text("From Event");
-                _.Text((a.fromEvent) ? "true" : "false");
-            
-                _.Text("Sex");
-                _.Text(std::format("{}", (int)a.sex));
-                _.Text("Alpha");
-                _.Text((a.isOybn) ? "true" : "false");
-            
-                _.Text("EV");
-                _.Text(std::format("{}", a.ev[0]));
-                _.Text(std::format("{}", a.ev[1]));
-                _.Text(std::format("{}", a.ev[2]));
-                _.FunctionElement([](){});
-                _.Text(std::format("{}", a.ev[3]));
-                _.Text(std::format("{}", a.ev[4]));
-                _.Text(std::format("{}", a.ev[5]));
-            });
-            
-            builder.TextSeparator("CoreDataBlockB");
-            builder.Grid([b](Grid &_) {
-                _.columns = 4;
-            
-                _.Text("TODO");
-            });
-
-            builder.render();
-
-            acc->EndFastMode();
-        });
+    renderer.registerCallback<void>("reload", [](nlohmann::json&) {
+        executeScriptsInDirectory(newui::obtainLuaState(), ROM_MOUNT ":/ui/script");
+        renderer.init(ROM_MOUNT ":/ui/debug.xml");
+        renderer.includeCache.clear();
     });
 
-    static constexpr const char* const QUEST_TYPES[] = {
-        "Main",
-        "Side",
-        "Lab",
-    };
-    static auto questWindow = ROOT.Window([](Window &_) {
-        _.title = "Quest Inspector";
-        _.initialPos = ImVec2(500, 50);
-        _.initialSize = ImVec2(800, 600);
-
-        static char questName[0x100] = {0};
-        static ik::quest::Quest* quest;
-
-        auto type = _.ComboSimple([](ComboSimple &_) {
-            _.label = "Quest Type";
-            _.items = QUEST_TYPES;
-            _.items_count = 3;
-            _.onChange = [](int arg) {
-                quest = nullptr;
-            };
-        });
-        _.FunctionElement([type]() {
-            auto& mgr = ik::QuestManager::s_instance;
-            if (ImGui::BeginCombo("Quest", (quest == nullptr) ? nullptr : questName)) {
-                ik::Quest* questContainer;
-                gfl::StringHolder filenameHolder{};
-
-                switch (type->selected) {
-                    default:
-                        questContainer = mgr.m_mainQuests;
-                        filenameHolder = gfl::StringHolder::Create("questlist_main");
-                        break;
-                    case 1:
-                        questContainer = mgr.m_subQuests;
-                        filenameHolder = gfl::StringHolder::Create("questlist_sub");
-                        break;
-                    case 2:
-                        questContainer = mgr.m_labQuests;
-                        filenameHolder = gfl::StringHolder::Create("questlist_mj");
-                        break;
-                }
-
-                std::vector<ik::quest::Quest*> quests;
-                auto iterHead = questContainer->m_items.first;
-                while (iterHead != nullptr) {
-                    quests.push_back(&iterHead->value);
-                    iterHead = iterHead->next;
-                }
-
-                std::ranges::sort(quests, [&filenameHolder](const ik::quest::Quest* a, const ik::quest::Quest* b) {
-                    if (a == nullptr || b == nullptr) return false;
-                    auto labelA = gfl::StringHolder::Create(&a->m_label->m_start);
-                    auto labelB = gfl::StringHolder::Create(&b->m_label->m_start);
-                    auto strA = pe::text::lua::Text::GetText(&filenameHolder, &labelA);
-                    auto strB = pe::text::lua::Text::GetText(&filenameHolder, &labelB);
-
-                    if (strA.m_ptr == nullptr || strB.m_ptr == nullptr) return false;
-                    return strA.m_ptr->asString() < strB.m_ptr->asString();
-                });
-
-                for (auto entry : quests) {
-                    auto entryLabel = gfl::StringHolder::Create(&entry->m_label->m_start);
-                    auto entryNamePtr = pe::text::lua::Text::GetText(&filenameHolder, &entryLabel);
-
-                    if (entryNamePtr.m_ptr != nullptr) {
-                        auto entryName = entryNamePtr.m_ptr->asString();
-                        auto entryNameC = entryName.c_str();
-                        if (ImGui::Selectable(entryNameC, quest == entry)) {
-                            memcpy(&questName, entryNameC, strlen(entryNameC));
-                            questName[strlen(entryNameC)] = 0;
-                            quest = entry;
-                        }
-                    }
-                }
-
-                ImGui::EndCombo();
-            }
-        });
-
-        _.Grid([](Grid &_) {
-            _.columns = 4;
-            _.Text("ID");
-            _.FunctionElement([]() {
-                if (quest != nullptr) {
-                    ImGui::Text("%s", &quest->m_id->m_start);
-                }
-            });
-
-            _.Text("Label");
-            _.FunctionElement([]() {
-                if (quest != nullptr) {
-                    ImGui::Text("%s", &quest->m_label->m_start);
-                }
-            });
-
-            _.Text("Client");
-            _.FunctionElement([]() {
-                if (quest != nullptr) {
-                    ImGui::Text("%s", &quest->m_client->m_start);
-                }
-            });
-
-            _.Text("Quest number");
-            _.FunctionElement([]() {
-                if (quest != nullptr) {
-                    ImGui::Text("%d", quest->m_questNum);
-                }
-            });
-
-            _.Text("Subquest number");
-            _.FunctionElement([]() {
-                if (quest != nullptr) {
-                    ImGui::Text("%d", quest->m_subQuestNum);
-                }
-            });
-
-            _.Text("Priority");
-            _.FunctionElement([]() {
-                if (quest != nullptr) {
-                    ImGui::Text("%d", quest->m_priority);
-                }
-            });
-
-            _.Text("Work ID");
-            _.FunctionElement([]() {
-                if (quest != nullptr) {
-                    ImGui::Text("%s", &quest->m_work->m_start);
-                }
-            });
-
-            _.Text("Work Value");
-            _.FunctionElement([]() {
-                if (quest != nullptr) {
-                    auto& mgr = ik::FlagWorkManager::s_instance;
-                    auto holder = gfl::StringHolder::Create(&quest->m_work->m_start);
-                    auto value = mgr.GetWorkValue(&holder);
-                    ImGui::Text("%d", value);
-                }
-            });
-        });
-
-        _.Grid([](Grid& _) {
-            _.columns = 3;
-
-            _.Button([](Button &_) {
-                _.label = "Complete";
-                _.onClick = []() {
-                    auto holder = gfl::StringHolder::Create(&quest->m_id->m_start);
-                    auto& mgr = ik::QuestManager::s_instance;
-                    mgr.QuestComplete(&holder, true);
-                    mgr.SendQuestProgressUpdate(quest, 1);
-                    auto work = gfl::StringHolder::Create(&quest->m_work->m_start);
-                    ik::FlagWorkManager::s_instance.SetWorkValue(&work, 255);
-                };
-            });
-
-            _.Button([](Button &_) {
-                _.label = "Reset progress";
-                _.onClick = []() {
-                    auto work = gfl::StringHolder::Create(&quest->m_work->m_start);
-                    ik::FlagWorkManager::s_instance.SetWorkValue(&work, 0);
-                    auto& mgr = ik::QuestManager::s_instance;
-                    mgr.SendQuestProgressUpdate(quest, 1);
-                };
-            });
-        });
-
-        _.TextSeparator("Progress");
-        _.FunctionElement([type]() {
-            if (quest != nullptr) {
-                std::vector<ik::quest::Progress*> parts {};
-                auto iterHead = quest->m_progress.first;
-                while (iterHead != nullptr) {
-                    parts.emplace_back(&iterHead->value);
-                    iterHead = iterHead->next;
-                }
-                std::ranges::sort(parts, [](ik::quest::Progress* a, ik::quest::Progress* b) {
-                    return a->m_id < b->m_id;
-                });
-
-                if (!parts.empty() && ImGui::BeginTabBar("##progress")) {
-                    for (auto item : parts) {
-                        ImGui::PushID(item);
-                        if (ImGui::BeginTabItem(std::format("{}", item->m_id).c_str())) {
-                            ImGui::BeginColumns("##fields", 2);
-                            ImGui::Text("ID"); ImGui::NextColumn();
-                            ImGui::Text("%d", item->m_id); ImGui::NextColumn();
-                            ImGui::Text("ID after completion"); ImGui::NextColumn();
-                            ImGui::Text("%d", item->m_nextId); ImGui::NextColumn();
-                            ImGui::Text("Summary"); ImGui::NextColumn();
-                            ImGui::Text("%s", &item->m_summary->m_start); ImGui::NextColumn();
-                            ImGui::EndColumns();
-
-                            ImGui::BeginColumns("##actions", 3);
-                            if (ImGui::Button("Set active")) {
-                                auto holder = gfl::StringHolder::Create(&quest->m_work->m_start);
-                                ik::FlagWorkManager::s_instance.SetWorkValue(&holder, item->m_id);
-                                auto& mgr = ik::QuestManager::s_instance;
-                                mgr.SendQuestProgressUpdate(quest, 1);
-                            }
-                            ImGui::EndColumns();
-
-                            if (item->m_condition.m_groups.size() > 0 && ImGui::CollapsingHeader("Conditions")) {
-                                QuestCondition(&item->m_condition);
-                            }
-
-                            if ((item->m_purpose.m_text != nullptr || item->m_purpose.m_items.size() > 0) && ImGui::CollapsingHeader("Purpose")) {
-                                ImGui::BeginColumns("##purpose_fields", 2);
-                                if (item->m_purpose.m_text != nullptr) {
-                                    ImGui::Text("Text"); ImGui::NextColumn();
-                                    ImGui::Text("%s", &item->m_purpose.m_text->m_start); ImGui::NextColumn();
-                                }
-                                ImGui::EndColumns();
-                                auto j = 0;
-                                for (auto purpose = item->m_purpose.m_items.m_begin; purpose != item->m_purpose.m_items.m_end; purpose++) {
-                                    ImGui::PushID(purpose);
-                                    if (ImGui::TreeNodeEx("node", ImGuiTreeNodeFlags_DefaultOpen, "Purpose %d", j)) {
-                                        if (purpose->m_map != nullptr && ImGui::TreeNodeEx("map", ImGuiTreeNodeFlags_Leaf, "Map ID: %s", &purpose->m_map->m_start)) ImGui::TreePop();
-                                        if (purpose->m_object != nullptr && ImGui::TreeNodeEx("object", ImGuiTreeNodeFlags_Leaf, "Object ID: %s", &purpose->m_object->m_start)) ImGui::TreePop();
-
-                                        QuestCondition(&purpose->m_displayCondition);
-                                        ImGui::TreePop();
-                                    }
-
-                                    ImGui::PopID();
-                                }
-                            }
-
-                            ImGui::EndTabItem();
-                        }
-                        ImGui::PopID();
-                    }
-                    ImGui::EndTabBar();
-                }
-
-                if (quest->m_rewards.size() > 0) {
-                    ImGui::SeparatorText("Rewards");
-                    for (auto reward = quest->m_rewards.m_begin; reward != quest->m_rewards.m_end; reward++) {
-                        ImGui::PushID(reward);
-                        bool open;
-                        if (reward->m_type >= 0 && reward->m_type < std::size(REWARD_TYPES)) {
-                            open = ImGui::TreeNodeEx("type", ImGuiTreeNodeFlags_DefaultOpen, "%s", REWARD_TYPES[reward->m_type]);
-                        } else {
-                            open = ImGui::TreeNodeEx("type", ImGuiTreeNodeFlags_DefaultOpen, "??? (type: %d)", reward->m_type);
-                        }
-
-                        if (open) {
-                            if (reward->m_param[0] != nullptr && strlen(&reward->m_param[0]->m_start) > 0 && ImGui::TreeNodeEx("param_0", ImGuiTreeNodeFlags_Leaf, "%s", &reward->m_param[0]->m_start)) ImGui::TreePop();
-                            if (reward->m_param[1] != nullptr && strlen(&reward->m_param[1]->m_start) > 0 && ImGui::TreeNodeEx("param_1", ImGuiTreeNodeFlags_Leaf, "%s", &reward->m_param[1]->m_start)) ImGui::TreePop();
-                            if (reward->m_param[2] != nullptr && strlen(&reward->m_param[2]->m_start) > 0 && ImGui::TreeNodeEx("param_2", ImGuiTreeNodeFlags_Leaf, "%s", &reward->m_param[2]->m_start)) ImGui::TreePop();
-
-                            ImGui::TreePop();
-                        }
-
-                        ImGui::PopID();
-                    }
-                }
-            }
-        });
-    });
-
-    ROOT.Window([](Window& _) {
-        _.title = STR(MODULE_NAME_SPACES) " - By Martmists";
-        _.toggleable = false;
-        _.flags |= ImGuiWindowFlags_MenuBar;
-        _.initialPos = ImVec2(50, 50);
-        _.initialSize = ImVec2(400, 450);
-
-        _.FunctionElement([]() {
-            static bool didLoad = false;
-            if (!didLoad) {
-                Logger::log("Loading message files\n");
-                pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/seikaku.dat");
-                pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/status.dat");
-                pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/box.dat");
-                pe::text::lua::Text::LoadMsgData("ik_message/dat/JPN/common/hud_itemget.dat");
-                didLoad = true;
-            }
-        });
-
-        _.MenuBar([](MenuBar &_) {
-            _.Menu([](Menu &_) {
-                _.label = "Windows";
-                _.MenuItem([](MenuItem &_) {
-                    _.label = "Performance";
-                    _.checked = &perfWindow->open;
-                });
-                _.MenuItem([](MenuItem &_) {
-                    _.label = "Party Inspector";
-                    _.checked = &partyWindow->open;
-                });
-                _.MenuItem([](MenuItem &_) {
-                    _.label = "Quest Inspector";
-                    _.checked = &questWindow->open;
-                });
-            });
-        });
-
-        _.Text("Press ZL+R to toggle all menus.\nHold Y to move or resize.");
-        _.Text("Early access on patreon.com/martmists");
-
-        _.Spacing();
-
-        _.CollapsingHeader([](CollapsingHeader &_) {
-            _.label = "Money";
-            _.Grid([](Grid &_) {
-                _.columns = 5;
-                _.Text("Money");
-                _.FunctionElement([](FunctionElement &_) {
-                    _.callback = [] {
-                        auto numCurrency = ik::event::IkkakuEventScriptCommand::GetCurrentMoney();
-                        ImGui::Text("%d", numCurrency);
-                    };
-                });
-                _.Group([](Group &_) {
-                    _.Button("+1000##Money", [] {
-                        ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(1000);
-                    });
-                    _.Button("-1000##Money", [] {
-                        ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(-1000);
-                    });
-                });
-                _.Group([](Group &_) {
-                    _.Button("+10000##Money", [] {
-                        ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(10000);
-                    });
-                    _.Button("-10000##Money", [] {
-                        ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(-10000);
-                    });
-                });
-                _.Group([](Group &_) {
-                    _.Button("+100000##Money", [] {
-                        ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(100000);
-                    });
-                    _.Button("-100000##Money", [] {
-                        ik::event::IkkakuEventScriptCommand::AddAndShowMonyeUI(-100000);
-                    });
-                });
-
-                _.FunctionElement([]() {
-                    ImGui::TextFile("hud_itemget", "hud_itemget_02_01");
-                });
-                _.FunctionElement([](FunctionElement &_) {
-                    _.callback = [] {
-                        auto numMedals = ik::ZARoyaleSaveAccessor::GetMedalNum();
-                        ImGui::Text("%d", numMedals);
-                    };
-                });
-                _.Group([](Group &_) {
-                    _.Button("+100##Medals", [] {
-                        auto newValue = ik::ZARoyaleSaveAccessor::GetMedalNum() + 100;
-                        ik::ZARoyaleSaveAccessor::SetMedalNum(std::clamp(newValue, 0u, 9999u));
-                    });
-                    _.Button("-100##Medals", [] {
-                        auto newValue = ik::ZARoyaleSaveAccessor::GetMedalNum() - 100;
-                        ik::ZARoyaleSaveAccessor::SetMedalNum(std::clamp(newValue, 0u, 9999u));
-                    });
-                });
-                _.Group([](Group &_) {
-                    _.Button("+1000##Medals", [] {
-                        auto newValue = ik::ZARoyaleSaveAccessor::GetMedalNum() + 1000;
-                        ik::ZARoyaleSaveAccessor::SetMedalNum(std::clamp(newValue, 0u, 9999u));
-                    });
-                    _.Button("-1000##Medals", [] {
-                        auto newValue = ik::ZARoyaleSaveAccessor::GetMedalNum() - 1000;
-                        ik::ZARoyaleSaveAccessor::SetMedalNum(std::clamp(newValue, 0u, 9999u));
-                    });
-                });
-                _.Group([](Group &_) {
-                    // Empty to match number of columns
-                });
-
-                _.FunctionElement([]() {
-                    ImGui::Text("Tickets");
-                });
-                _.FunctionElement([](FunctionElement &_) {
-                    _.callback = [] {
-                        ImGui::Text("%d", ik::TrainerRankManager::s_instance.m_tickets);
-                    };
-                });
-
-                _.Group([](Group &_) {
-                    _.Button("+100##Tickets", [] {
-                        ik::TrainerRankManager::s_instance.AddPoint(100, false);
-                    });
-                    _.Button("-100##Tickets", [] {
-                        ik::TrainerRankManager::s_instance.AddPoint(-100, false);
-                    });
-                });
-                _.Group([](Group &_) {
-                    _.Button("+1000##Tickets", [] {
-                        ik::TrainerRankManager::s_instance.AddPoint(1000, false);
-                    });
-                    _.Button("-1000##Tickets", [] {
-                        ik::TrainerRankManager::s_instance.AddPoint(-1000, false);
-                    });
-                });
-                _.Group([](Group &_) {
-                    _.Button("+10000##Tickets", [] {
-                        ik::TrainerRankManager::s_instance.AddPoint(10000, false);
-                    });
-                    _.Button("-10000##Tickets", [] {
-                        ik::TrainerRankManager::s_instance.AddPoint(-10000, false);
-                    });
-                });
-            });
-        });
-
-        _.CollapsingHeader([](CollapsingHeader &_) {
-            _.label = "Battle";
-
-            _.Checkbox("100% Capture Rate", false, [](bool it) {
-                setIsMustCapture(it);
-            });
-            _.Checkbox("Enable EXP Share", true, [](bool it) {
-                setIsExpShareOn(it);
-            });
-            _.Row([](Row &_) {
-                _.SliderInt([](SliderInt &_) {
-                    _.label = "EXP Multiplier";
-                    _.min = 0;
-                    _.max = 30;
-                    _.value = 1;
-                    _.onChange = [](int mult) {
-                        setExpMultiplier(mult);
-                    };
-                });
-                _.Checkbox("Invert (x2 -> x0.5)", [](bool value) {
-                    setExpMultiplierInvert(value);
-                });
-            });
-            _.Checkbox("Always Max Mega Energy", [](bool it){
-                setAlwaysMaxEnergy(it);
-            });
-        });
-
-        _.CollapsingHeader([](CollapsingHeader &_) {
-            _.label = "Encounter Editor";
-            _.Row([](Row &_){
-                _.Checkbox("100% Shiny Rate", false, [](bool it) {
-                    s_dataForEncounter.forceShiny = it;
-                });
-                _.SliderInt([](SliderInt &_) {
-                    _.label = "Shiny rate Multiplier";
-                    _.min = 0;
-                    _.max = 60;
-                    _.value = 1;
-                    _.onChange = [](int mult) {
-                        s_dataForEncounter.shinyMultiplier = mult;
-                    };
-                });
-            });
-            _.Checkbox("100% Alpha Rate", s_dataForEncounter.forceAlpha, [](bool it) {
-                s_dataForEncounter.forceAlpha = it;
-            });
-            _.Separator();
-            _.Checkbox("Force modify encounter", [](bool value) {
-                s_dataForEncounter.forceModify = value;
-            });
-
-            _.FunctionElement([]() {
-                auto instance = Builder::single();
-                PokemonEditor(&s_dataForEncounter, instance, false);
-                instance.render();
-            });
-        });
-
-        _.CollapsingHeader([](CollapsingHeader &_) {
-            _.label = "Party";
-
-            static bool enabled = false;
-            static PokemonData s_partyData;
-            auto partyIdx = _.InputInt([](InputInt &_) {
-                _.min = 0;
-                _.value = 0;
-                _.max = 5;
-                _.label = "Party Index";
-            });
-            _.Checkbox("Enable", false, [](bool it) {
-                enabled = it;
-            });
-            _.FunctionElement([partyIdx]() {
-                auto i = partyIdx->value;
-                auto party = cmn::GameData::GetPlayerParty();
-                auto param = party.m_ptr->GetMemberPtr(i);
-                if (param.m_ptr == nullptr) {
-                    return;
-                }
-
-                auto pp = param.m_ptr->fields.m_pp->castTo<pml::pokepara::CoreParam>();
-                auto acc = pp->fields.m_accessor;
-
-                // Ensure correct block order
-                acc->StartFastMode();
-
-                auto& a = acc->GetCoreDataBlockA();
-                auto& b = acc->GetCoreDataBlockB();
-
-                auto isFixPressed = false;
-                if (acc->coreData->badEgg) {
-                    ImGui::Text("Bad Egg detected!");
-                    ImGui::SameLine();
-                    if (ImGui::Button("Fix")) {
-                        acc->coreData->badEgg = false;
-                        b.egg = false;
-                        isFixPressed = true;
-                    }
-                }
-
-                s_partyData.forceShiny = pp->IsRare();
-                s_partyData.forceAlpha = a.isOybn;
-                s_partyData.species = a.monsno;
-                s_partyData.form = a.formno;
-                s_partyData.sex = a.sex;
-                s_partyData.ability = a.ability;
-                s_partyData.nature = a.natureMint;
-                s_partyData.level = acc->GetLevel();
-                auto oldLevel = s_partyData.level;
-                s_partyData.iv[0] = b.ivHp;
-                s_partyData.iv[1] = b.ivAtk;
-                s_partyData.iv[2] = b.ivDef;
-                s_partyData.iv[3] = b.ivSpd;
-                s_partyData.iv[4] = b.ivSpAtk;
-                s_partyData.iv[5] = b.ivSpDef;
-                for (int j = 0; j < 6; j++) {
-                    s_partyData.ev[j] = a.ev[j];
-                }
-                for (int j = 0; j < 4; j++) {
-                    s_partyData.moves[j] = b.waza[j];
-                }
-
-                auto builder = Builder::single();
-                PokemonEditor(&s_partyData, builder, true);
-                builder.render();
-
-                if (!enabled && !isFixPressed) {
-                    acc->EndFastMode();
-                    return;
-                };
-
-                if (s_partyData.forceShiny) {
-                    a.colorRnd = pml::pokepara::CalcTool::CorrectColorRndForRare(a.id, a.colorRnd);
-                } else {
-                    a.colorRnd = pml::pokepara::CalcTool::CorrectColorRndForNotRare(a.id, a.colorRnd);
-                }
-                a.isOybn = s_partyData.forceAlpha;
-                a.monsno = s_partyData.species;
-                a.formno = s_partyData.form;
-                a.sex = s_partyData.sex;
-                a.ability = s_partyData.ability;
-                a.natureMint = s_partyData.nature;
-                if (s_partyData.level != oldLevel) {
-                    auto exp = pml::personal::PersonalSystem::GetMinExp(s_partyData.species, s_partyData.form, s_partyData.level);
-                    a.exp = exp;
-                }
-                acc->SetLevel(s_partyData.level);
-                b.ivHp = s_partyData.iv[0];
-                b.ivAtk = s_partyData.iv[1];
-                b.ivDef = s_partyData.iv[2];
-                b.ivSpd = s_partyData.iv[3];
-                b.ivSpAtk = s_partyData.iv[4];
-                b.ivSpDef = s_partyData.iv[5];
-                for (int j = 0; j < 6; j++) {
-                    a.ev[j] = s_partyData.ev[j];
-                }
-                for (int j = 0; j < 4; j++) {
-                    b.waza[j] = s_partyData.moves[j];
-                }
-
-                pp->UpdateCalcDatas(true);
-
-                // Fix checksum to prevent bad egg
-                acc->EndFastMode();
-            });
-        });
-
-        _.CollapsingHeader([](CollapsingHeader &_) {
-            _.label = "Bag";
-            auto itemID = _.InputInt([](InputInt &_) {
-                _.label = "Item ID";
-                _.min = 1;
-                _.value = 1;
-                _.max = 2634;
-                if (is_version("2.0.0") || is_version("2.0.1") || is_version("2.0.2")) {
-                    _.max = 2684;
-                }
-            });
-            _.FunctionElement([itemID]() {
-                auto value = itemID->value;
-                auto str = ik::ItemId::names[value];
-                if (strlen(str) > 0) {
-                    ImGui::Text("%s", str);
-                } else {
-                    ImGui::Text("[INVALID ITEM: %d]", value);
-                }
-
-                ImGui::SameLine();
-
-                auto label = std::vformat((value < 1000) ? "ITEMNAME_{:03d}" : "ITEMNAME_{:04d}", std::make_format_args(value));
-                auto ptr = pe::text::lua::Text::GetText("itemname", label.c_str());
-                if (ptr.m_ptr == nullptr) {
-                    ImGui::Text("[null]");
-                } else {
-                    auto text = ptr.m_ptr->asString();
-                    ImGui::Text("%s", text.c_str());
-                }
-            });
-            _.Grid([itemID](Grid &_) {
-                _.columns = 3;
-                _.Button("Add 1##Items", [itemID]() {
-                    ik::event::IkkakuEventScriptCommand::AddItem(itemID->value, 1);
-                });
-                _.Button("Add 10##Items", [itemID]() {
-                    ik::event::IkkakuEventScriptCommand::AddItem(itemID->value, 10);
-                });
-                _.Button("Add 100##Items", [itemID]() {
-                    ik::event::IkkakuEventScriptCommand::AddItem(itemID->value, 100);
-                });
-                _.Button("Remove 1##Items", [itemID]() {
-                    ik::event::IkkakuEventScriptCommand::AddItem(itemID->value, -1);
-                });
-                _.Button("Remove 10##Items", [itemID]() {
-                    ik::event::IkkakuEventScriptCommand::AddItem(itemID->value, -10);
-                });
-                _.Button("Remove 100##Items", [itemID]() {
-                    ik::event::IkkakuEventScriptCommand::AddItem(itemID->value, -100);
-                });
-            });
-        });
-
-        // static char flagSelectedNameBuffer[0x100] = {0};
-        // static char workSelectedNameBuffer[0x100] = {0};
-        //
-        // _.CollapsingHeader([](CollapsingHeader& _) {
-        //     _.label = "Flags";
-        //     _.Grid([](Grid &_) {
-        //         _.columns = 3;
-        //
-        //         _.Text("Flag");
-        //         _.FunctionElement([] {
-        //             if (ImGui::BeginCombo("Flag Name", flagSelectedNameBuffer)) {
-        //                 for (auto flag : ALL_FLAG) {
-        //                     if (ImGui::Selectable(flag, strcmp(flagSelectedNameBuffer, flag) == 0)) {
-        //                         auto size = strlen(flag);
-        //                         memcpy(flagSelectedNameBuffer, flag, size);
-        //                         flagSelectedNameBuffer[size] = '\0';
-        //                     }
-        //                 }
-        //                 ImGui::EndCombo();
-        //             }
-        //         });
-        //         _.FunctionElement([] {
-        //             if (flagSelectedNameBuffer[0] == '\0') return;
-        //             bool out = ik::FlagWorkManager::s_instance.GetFlag(flagSelectedNameBuffer);
-        //             if (ImGui::Checkbox("Value", &out)) {
-        //                 ik::FlagWorkManager::s_instance.SetFlag(flagSelectedNameBuffer, out);
-        //             }
-        //         });
-        //
-        //         _.Text("Work");
-        //         _.FunctionElement([] {
-        //             if (ImGui::BeginCombo("Work Name", workSelectedNameBuffer)) {
-        //                 for (auto work : ALL_WORK) {
-        //                     if (ImGui::Selectable(work, strcmp(workSelectedNameBuffer, work) == 0)) {
-        //                         auto size = strlen(work);
-        //                         memcpy(workSelectedNameBuffer, work, size);
-        //                         workSelectedNameBuffer[size] = '\0';
-        //                     }
-        //                 }
-        //                 ImGui::EndCombo();
-        //             }
-        //         });
-        //         _.FunctionElement([] {
-        //             if (workSelectedNameBuffer[0] == '\0') return;
-        //             auto s = gfl::StringHolder::Create(workSelectedNameBuffer);
-        //             int out = ik::FlagWorkManager::s_instance.GetWorkValue(&s);
-        //             if (ImGui::InputInt("Value", &out)) {
-        //                 ik::FlagWorkManager::s_instance.SetWorkValue(&s, out);
-        //             }
-        //         });
-        //     });
-        // });
-
-        _.CollapsingHeader([](CollapsingHeader &_) {
-            _.label = "Weather";
-            _.Button("Reset", [](){
-                ik::EventSystemCallFunctions::ReleaseFixWeather();
-            });
-            _.Row([](Row &_) {
-                _.Button("Sunny", []() {
-                    gfl::StringHolder holder = gfl::StringHolder::Create("sunny");
-                    gfa::EventContext ctx = gfa::EventContext::make(&holder);
-                    ik::EventSystemCallFunctions::FixWeather(&ctx);
-                });
-                _.Button("Cloudy", []() {
-                    gfl::StringHolder holder = gfl::StringHolder::Create("cloudy");
-                    gfa::EventContext ctx = gfa::EventContext::make(&holder);
-                    ik::EventSystemCallFunctions::FixWeather(&ctx);
-                });
-                _.Button("Rain", []() {
-                    gfl::StringHolder holder = gfl::StringHolder::Create("rain");
-                    gfa::EventContext ctx = gfa::EventContext::make(&holder);
-                    ik::EventSystemCallFunctions::FixWeather(&ctx);
-                });
-            });
-            _.Row([](Row &_) {
-                _.Button("Storm", []() {
-                    gfl::StringHolder holder = gfl::StringHolder::Create("storm");
-                    gfa::EventContext ctx = gfa::EventContext::make(&holder);
-                    ik::EventSystemCallFunctions::FixWeather(&ctx);
-                });
-                _.Button("Snow", []() {
-                    gfl::StringHolder holder = gfl::StringHolder::Create("snow");
-                    gfa::EventContext ctx = gfa::EventContext::make(&holder);
-                    ik::EventSystemCallFunctions::FixWeather(&ctx);
-                });
-                _.Button("Snowstorm", []() {
-                    gfl::StringHolder holder = gfl::StringHolder::Create("snowstorm");
-                    gfa::EventContext ctx = gfa::EventContext::make(&holder);
-                    ik::EventSystemCallFunctions::FixWeather(&ctx);
-                });
-            });
-            _.Row([](Row &_) {
-                _.Button("Diamonddust", []() {
-                    gfl::StringHolder holder = gfl::StringHolder::Create("diamonddust");
-                    gfa::EventContext ctx = gfa::EventContext::make(&holder);
-                    ik::EventSystemCallFunctions::FixWeather(&ctx);
-                });
-                _.Button("Sandstorm", []() {
-                    gfl::StringHolder holder = gfl::StringHolder::Create("sandstorm");
-                    gfa::EventContext ctx = gfa::EventContext::make(&holder);
-                    ik::EventSystemCallFunctions::FixWeather(&ctx);
-                });
-                _.Button("Mist", []() {
-                    gfl::StringHolder holder = gfl::StringHolder::Create("mist");
-                    gfa::EventContext ctx = gfa::EventContext::make(&holder);
-                    ik::EventSystemCallFunctions::FixWeather(&ctx);
-                });
-            });
-        });
+    ROOT.callbacks.emplace_back([] {
+        renderer.render();
     });
 }
 #endif

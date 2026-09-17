@@ -35,7 +35,7 @@ void WebsocketClient::reconnect(const std::string& url) {
     });
 
     if (const int r = sock->sendAll(body); r < 0) {
-        Logger::log("Websocket send failed: %d\n", r);
+        Logger::log("Websocket send failed: %d", r);
         close();
     } else {
         std::string collected;
@@ -44,14 +44,14 @@ void WebsocketClient::reconnect(const std::string& url) {
             memset(buffer, 0, 1024);
             auto recv = sock->recv(buffer, 1024);
             if (recv < 0) {
-                Logger::log("Websocket recv failed: %d\n", recv);
+                Logger::log("Websocket recv failed: %d", recv);
                 close();
                 return;
             }
             collected.append(std::string(buffer, recv));
-            // Logger::log("Collected response:\n%s\n", collected.c_str());
+            // Logger::log("Collected response:\n%s", collected.c_str());
         } while (collected.find("\r\n\r\n") == std::string::npos);
-        Logger::log("Websocket ready!\n");
+        Logger::log("Websocket ready!");
         isOpen = true;
     }
 }
@@ -237,11 +237,11 @@ start:
 
     if (h[0] & 0x80) {
         // TODO: Handle additional frames?
-        Logger::log("Unhandled unfinished frame!\n");
+        Logger::log("Unhandled unfinished frame!");
     }
 
     // If unknown opcode, ignore
-    Logger::log("Unhandled opcode: %d\n", opcode);
+    Logger::log("Unhandled opcode: %d", opcode);
 
     return std::nullopt;
 }

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        xmlns:debug="https://schema.yourdomain.com/pokemon_za/debug_tools"
+        targetNamespace="https://schema.yourdomain.com/pokemon_za/debug_tools"
+        elementFormDefault="qualified"
+>
+  <xs:element name="PerformanceFPS" type="debug:FPSType" />
+  <xs:element name="PerformanceMemory" type="debug:FPSType" />
+
+  <xs:complexType name="FPSType">
+    <xs:attribute name="key" type="xs:string" default="default" />
+  </xs:complexType>
+
+  <xs:complexType name="MemoryType">
+    <xs:attribute name="columns" type="xs:int" default="2" />
+  </xs:complexType>
+</xs:schema>

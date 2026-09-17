@@ -4,8 +4,8 @@
 #include <nn/primitives.h>
 
 #define UBOSIZE 0x1000
-#define MEGABYTE (1024 * 1024)
-#define POOL_SIZE ALIGN_UP(UBOSIZE, MEGABYTE)
+#define CMD_POOL_SIZE ALIGN_UP(UBOSIZE, 512)
+#define CTRL_POOL_SIZE ALIGN_UP(UBOSIZE, 256)
 
 // ImGuiBackend::ImGuiBackend(nvn::Device* device) : m_device(device) {
 //     {
@@ -18,14 +18,14 @@
 //         m_queue.Initialize(&builder);
 //     }
 //
-//     m_commandBufferData.m_cmdPool = aligned_alloc(MEGABYTE, POOL_SIZE);
+//     m_commandBufferData.m_cmdPool = aligned_alloc(UBOSIZE, CMD_POOL_SIZE);
 //
 //     {
 //         nvn::MemoryPoolBuilder builder{};
 //         builder
 //             .SetDevice(device)
 //             .SetFlags(nvn::MemoryPoolFlags::CPU_UNCACHED | nvn::MemoryPoolFlags::GPU_CACHED | nvn::MemoryPoolFlags::SHADER_CODE)
-//             .SetStorage(m_commandBufferData.m_cmdPool, UBOSIZE);
+//             .SetStorage(m_commandBufferData.m_cmdPool, CMD_POOL_SIZE);
 //         m_commandBufferData.m_pool.Initialize(&builder);
 //     }
 //

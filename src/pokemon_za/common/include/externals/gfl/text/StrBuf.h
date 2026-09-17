@@ -15,8 +15,8 @@ struct string16_deletable_facet : Facet {
 
 namespace gfl::text {
     struct StrBuf : ExternalType<StrBuf> {
-        struct vtable : gfl::ReferenceObject::vtable { };
-        struct fields : gfl::ReferenceObject::fields {
+        struct vtable : gfl::ReferenceObject<>::vtable { };
+        struct fields : gfl::ReferenceObject<>::fields {
             char16_t* m_buffer;
         };
 

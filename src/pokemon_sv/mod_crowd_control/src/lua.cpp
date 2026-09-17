@@ -21,7 +21,7 @@ void wsLoop(void* arg) {
 
     WebsocketClient ws("wss://eventsub.wss.twitch.tv/ws");
     if (!ws.open()) {
-        Logger::log("Failed to set up WS\n");
+        Logger::log("Failed to set up WS");
         return;
     }
 
@@ -30,7 +30,7 @@ void wsLoop(void* arg) {
         auto data = ws.receiveJson();
         if (data.empty()) {
             if (!ws.open()) {
-                Logger::log("WebSocket Closed!\n");
+                Logger::log("WebSocket Closed!");
                 break;
             }
             continue;
@@ -42,12 +42,12 @@ void wsLoop(void* arg) {
             auto session_id = data["payload"]["session"]["id"].get<std::string>();
             auto userData = twitch.getUserData();
             if (!userData.has_value()) {
-                Logger::log("Failed to fetch user data!\n");
+                Logger::log("Failed to fetch user data!");
                 break;
             }
             auto subInfo = twitch.subscribeEvent("channel.poll.end", userData.value().id, session_id);
             if (!subInfo.has_value()) {
-                Logger::log("Failed to subscribe!\n");
+                Logger::log("Failed to subscribe!");
                 break;
             }
         } else if (type == "session_reconnect") {
@@ -84,18 +84,18 @@ void wsLoop(void* arg) {
                     chosen = max[0];
                 }
 
-                Logger::log("Launching event: %s\n", chosen.c_str());
+                Logger::log("Launching event: %s", chosen.c_str());
 
                 triggerEvent(chosen);
             } else {
-                Logger::log("Unhandled notification: %s\n", subscription.c_str());
+                Logger::log("Unhandled notification: %s", subscription.c_str());
             }
         } else if (type == "session_keepalive") {
             // Don't log
             continue;
         } else {
             auto dumped = data.dump();
-            Logger::log("Unhandled event: %s\n", dumped.c_str());
+            Logger::log("Unhandled event: %s", dumped.c_str());
         }
     }
 
@@ -109,7 +109,7 @@ void eventLoop(void* arg) {
     std::string lastEvent = "";
 
     if (!data.has_value()) {
-        Logger::log("Failed to get user info!\n");
+        Logger::log("Failed to get user info!");
         running = false;
         return;
     }
@@ -119,14 +119,14 @@ void eventLoop(void* arg) {
         auto lang = CC_lang_current();
         auto& strings = getStrings(lang);
 
-        Logger::log("Waiting %d seconds...\n", cfg.pollInterval);
+        Logger::log("Waiting %d seconds...", cfg.pollInterval);
 
         nn::os::SleepThread(nn::TimeSpan::FromSeconds(cfg.pollInterval + 5)); // add 5 seconds just in case some slowdown happens
         auto allEvents = getEventList();
         auto chosen = std::vector<std::string>();
         std::ranges::shuffle(allEvents, generator);
 
-        Logger::log("Selecting random events\n");
+        Logger::log("Selecting random events");
         auto offset = 0;
         for (int i = 0; i < cfg.pollOptions; i++) {
             auto item = allEvents[i + offset];
@@ -138,10 +138,10 @@ void eventLoop(void* arg) {
             }
         }
 
-        Logger::log("Creating poll!\n");
+        Logger::log("Creating poll!");
         auto res = twitch.createPoll(data.value().id, strings.poll.title, chosen, cfg.pollDuration);
         if (!res.has_value()) {
-            Logger::log("Failed to create poll!\n");
+            Logger::log("Failed to create poll!");
             break;
         }
 
@@ -165,23 +165,23 @@ static int luaCCStart(lua_State* L) {
     didInit = true;
     running = true;
 
-    Logger::log("Starting Crowd Control!\n");
+    Logger::log("Starting Crowd Control!");
 
     static auto wsThread = ThreadUtil::createThread(wsLoop, "CC WS Thread");
     static auto eventThread = ThreadUtil::createThread(eventLoop, "CC Event Thread");
 
     wsThread->start();
     eventThread->start();
-    Logger::log("Crowd Control threads started!\n");
+    Logger::log("Crowd Control threads started!");
 
     return 0;
 }
 
 static int luaCCInit(lua_State* L) {
-    Logger::log("Crowd Control initialization!\n");
+    Logger::log("Crowd Control initialization!");
     auto twitch = getTwitchClient();
     if (twitch.obtainTokens()) {
-        Logger::log("Tokens restored from file!\n");
+        Logger::log("Tokens restored from file!");
         if (!twitch.getUserData().has_value()) {
             twitch.invalidateTokens();
             twitch.obtainTokens();

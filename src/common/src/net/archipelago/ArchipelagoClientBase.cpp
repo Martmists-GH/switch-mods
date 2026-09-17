@@ -57,7 +57,7 @@ namespace ap {
         } else if (cmd == "SetReply") {
             onSetReply(SetReply(pkt));
         } else {
-            Logger::log("AP received unknown command: %s\n", cmd.c_str());
+            Logger::log("AP received unknown command: %s", cmd.c_str());
         }
     }
 

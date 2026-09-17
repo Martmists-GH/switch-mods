@@ -8,16 +8,16 @@
 
 namespace pe::text::lua {
     struct Text {
-        static void LoadMsgData(gfl::StringHolder* path);
+        static void LoadMsgData(gfl::StringView* path);
         static void LoadMsgData(const char* path) {
-            auto pathStr = gfl::StringHolder::Create(path);
+            auto pathStr = gfl::StringView::Create(path);
             pe::text::lua::Text::LoadMsgData(&pathStr);
         }
 
-        static gfl::RefPointer<gfl::text::StrBuf> GetText(gfl::StringHolder* file, gfl::StringHolder* label);
-        inline static gfl::RefPointer<gfl::text::StrBuf> GetText(const char* file, const char* label) {
-            auto fileHolder = gfl::StringHolder::Create(file);
-            auto labelHolder = gfl::StringHolder::Create(label);
+        static gfl::IntrusivePtr<gfl::text::StrBuf> GetText(gfl::StringView* file, gfl::StringView* label);
+        inline static gfl::IntrusivePtr<gfl::text::StrBuf> GetText(const char* file, const char* label) {
+            auto fileHolder = gfl::StringView::Create(file);
+            auto labelHolder = gfl::StringView::Create(label);
             return GetText(&fileHolder, &labelHolder);
         }
     };

@@ -40,14 +40,14 @@ HkTrampoline<int, lua_State*> LuaPrintHook = hk::hook::trampoline([](lua_State *
 HkTrampoline<void, lua_State*> LuaPanicHook = hk::hook::trampoline([](lua_State *L) {
     size_t size;
     auto message = lua_tolstring(L, 1, &size);
-    Logger::log("Lua Panic: %.*s\n", size, message);
+    Logger::log("Lua Panic: %.*s", size, message);
     LuaPanicHook.orig(L);
 });
 
 HkTrampoline<void, lua_State*> LuaPanicHookInline1 = hk::hook::trampoline([](lua_State *L) {
     size_t size;
     auto message = lua_tolstring(L, 1, &size);
-    Logger::log("Lua Panic (inline): %.*s\n", size, message);
+    Logger::log("Lua Panic (inline): %.*s", size, message);
     LuaPanicHookInline1.orig(L);
 });
 
@@ -56,7 +56,7 @@ HkTrampoline<void, lua_State*> LuaAbortHook = hk::hook::trampoline([](lua_State 
     size_t size;
     auto message = lua_tolstring(L, 2, &size);
     if (!condition) {
-        Logger::log("Lua Abort: %.*s\n", size, message);
+        Logger::log("Lua Abort: %.*s", size, message);
     }
     LuaAbortHook.orig(L);
 });
@@ -94,7 +94,7 @@ static int luaToStringContent(lua_State* L) {
     auto value = holder->Get();
 
     auto str = value->asString();
-    Logger::log("StrBuf: %s\n", str.c_str());
+    Logger::log("StrBuf: %s", str.c_str());
 
     lua_pushstring(L, str.c_str());
 
@@ -121,7 +121,7 @@ HkTrampoline<void, hxlua::State*, char*, uint64_t, gfl::StringHolder*> AfterMain
     auto L = state->L;
     gLuaState = L;
 
-    Logger::log("AfterMainHook executing file: %s\n", fileName->m_content.m_string);
+    Logger::log("AfterMainHook executing file: %s", fileName->m_content.m_string);
 
     if (++counter == 6) {
         registerLuaUtils(L);
@@ -147,7 +147,7 @@ HkTrampoline<void, hxlua::State*, char*, uint64_t, gfl::StringHolder*> AfterMain
 
             char buffer[0x320];
             for (auto item: sortedFiles) {
-                Logger::log("Executing: %s\n", item->mName);
+                Logger::log("Executing: %s", item->mName);
                 snprintf(buffer, sizeof(buffer), ROM_MOUNT ":/script/lua/boot/%s", item->mName);
                 nn::fs::FileHandle fileHandle{};
                 nn::fs::OpenFile(&fileHandle, buffer, nn::fs::OpenMode_Read);
@@ -156,7 +156,7 @@ HkTrampoline<void, hxlua::State*, char*, uint64_t, gfl::StringHolder*> AfterMain
                 nn::fs::CloseFile(fileHandle);
                 strBuf[item->mFileSize] = '\0';
                 if (luaL_dostringfile(L, strBuf, item->mName) != LUA_OK) {
-                    Logger::log("An error occurred in %s: %s\n", item->mName, lua_tostring(L, -1));
+                    Logger::log("An error occurred in %s: %s", item->mName, lua_tostring(L, -1));
                 }
                 delete[] strBuf;
             }

@@ -7,6 +7,7 @@ _ZN2nn2os17ConvertToTimeSpanENS0_4TickE
 
 // nn::os::GetSystemTick()
 _ZN2nn2os13GetSystemTickEv
+nnosGetSystemTick
 
 // nn::os::CreateThread(nn::os::ThreadType*, void (*)(void*), void*, void*, unsigned long, int, int)
 _ZN2nn2os12CreateThreadEPNS0_10ThreadTypeEPFvPvES3_S3_mii
@@ -49,3 +50,12 @@ _ZN2nn2os27DefaultUserExceptionHandlerEPNS0_17UserExceptionInfoE
 
 // nn::os::EnableUserExceptionHandlerOnDebugging(bool)
 _ZN2nn2os37EnableUserExceptionHandlerOnDebuggingEb
+
+// nn::os::GetCurrentThread()
+_ZN2nn2os16GetCurrentThreadEv
+
+// nn::os::GetThreadId(nn::os::ThreadType const*)
+_ZN2nn2os11GetThreadIdEPKNS0_10ThreadTypeE
+
+// nn::os::GetThreadNamePointer(nn::os::ThreadType const*)
+_ZN2nn2os20GetThreadNamePointerEPKNS0_10ThreadTypeE

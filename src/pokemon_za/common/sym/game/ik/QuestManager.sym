@@ -3,28 +3,28 @@
 // gfl::Singleton<ik::QuestManager>::s_instance
 _ZN3gfl9SingletonIN2ik12QuestManagerEE10s_instanceE = 0x05f0ff40
 
-// ik::QuestManager::QuestComplete(gfl::StringHolder*, bool)
-_ZN2ik12QuestManager13QuestCompleteEPN3gfl12StringHolderEb = 0x007d3c8c
+// ik::QuestManager::QuestComplete(gfl::StringView*, bool)
+_ZN2ik12QuestManager13QuestCompleteEPN3gfl10StringViewEb = 0x007d3c8c
 
 // ik::QuestManager::SendQuestProgressUpdate(ik::quest::Quest*, int)
 _ZN2ik12QuestManager23SendQuestProgressUpdateEPNS_5quest5QuestEi = 0x007aec10
 
 @game:102
 _ZN3gfl9SingletonIN2ik12QuestManagerEE10s_instanceE = 0x05f10f40
-_ZN2ik12QuestManager13QuestCompleteEPN3gfl12StringHolderEb = 0x007a3778
+_ZN2ik12QuestManager13QuestCompleteEPN3gfl10StringViewEb = 0x007a3778
 _ZN2ik12QuestManager23SendQuestProgressUpdateEPNS_5quest5QuestEi = 0x007b7100
 
 @game:103
 _ZN3gfl9SingletonIN2ik12QuestManagerEE10s_instanceE = 0x05f10f40
-_ZN2ik12QuestManager13QuestCompleteEPN3gfl12StringHolderEb = 0x007a3778
+_ZN2ik12QuestManager13QuestCompleteEPN3gfl10StringViewEb = 0x007a3778
 _ZN2ik12QuestManager23SendQuestProgressUpdateEPNS_5quest5QuestEi = 0x007b7100
 
 @game:200
 _ZN3gfl9SingletonIN2ik12QuestManagerEE10s_instanceE = 0x0610a800
-_ZN2ik12QuestManager13QuestCompleteEPN3gfl12StringHolderEb = 0x0082a490
+_ZN2ik12QuestManager13QuestCompleteEPN3gfl10StringViewEb = 0x0082a490
 _ZN2ik12QuestManager23SendQuestProgressUpdateEPNS_5quest5QuestEi = 0x0048b050
 
 @game:201,202
 _ZN3gfl9SingletonIN2ik12QuestManagerEE10s_instanceE = 0x0610f800
-_ZN2ik12QuestManager13QuestCompleteEPN3gfl12StringHolderEb = 0x0082a690
+_ZN2ik12QuestManager13QuestCompleteEPN3gfl10StringViewEb = 0x0082a690
 _ZN2ik12QuestManager23SendQuestProgressUpdateEPNS_5quest5QuestEi = 0x0048b240

@@ -58,10 +58,13 @@ function(create_mod name folder)
         "${HAKKUN_LIB_DIR}/src/hk/diag/ipclogger.cpp"
         "${HAKKUN_LIB_DIR}/src/hk/init/module.cpp"
     )
+    list(APPEND ALL_DEFINES INJA_NOEXCEPTION JSON_NO_IO PUGIXML_NO_EXCEPTIONS)
+    list(APPEND MODULE_ARGS_SOURCE_SHALLOW "${CMAKE_SOURCE_DIR}/lib/lua")
 
     # Hakkun addons
     if (${MODULE_ARGS_WITH_IMGUI})
         list(APPEND ALL_INCLUDE
+            ${PROJECT_SOURCE_DIR}/lib/inja/single_include
             ${PROJECT_SOURCE_DIR}/lib/imgui
         )
         list(APPEND ALL_SOURCE
@@ -315,6 +318,7 @@ function(create_mod_variant module variant title_id game)
 
         nnsdk
         nlohmann_json
+        pugixml-static
         MbedTLS::mbedtls
 
         -nodefaultlibs
@@ -322,7 +326,7 @@ function(create_mod_variant module variant title_id game)
         -Wno-unused-command-line-argument
 
         -Wl,--no-demangle
-        -Wl,--gc-sections
+#        -Wl,--gc-sections
         "-T${PROJECT_SOURCE_DIR}/lib/hakkun/data/link.aarch64.ld"
         "-T${PROJECT_SOURCE_DIR}/lib/hakkun/data/misc.ld"
         -Wl,--Bdynamic
@@ -432,7 +436,7 @@ function(create_releases module game_name variant title_id)
 
     create_release(atmosphere "atmosphere/contents/${title_id}/")
     create_release(modmanager "mods/${game_name}/${module}/contents/${title_id}/")
-#    create_release(ryujinx "atmosphere/contents/${title_id}/")
+    create_release(ryujinx "atmosphere/contents/${title_id}/")
 #    create_release(yuzu "atmosphere/contents/${title_id}/")
 endfunction()
 

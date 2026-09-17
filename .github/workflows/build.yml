@@ -58,6 +58,7 @@ jobs:
       - name: Build Project
         run: |
           export SWITCHTOOLS=$(pwd)/switch-tools
+          export PATH="/usr/lib/llvm-21/bin:$PATH"
           cmake -B build -DCMAKE_BUILD_TYPE="MinSizeRel" -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain.cmake \
             -DCMAKE_C_COMPILER=clang-21 -DCMAKE_CXX_COMPILER=clang++-21 -DCMAKE_ASM_COMPILER=clang-21 -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld-21" -DCMAKE_MODULE_LINKER_FLAGS="-fuse-ld=lld-21" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld-21"
           cmake --build build --target all_modules_zips -j $(nproc)

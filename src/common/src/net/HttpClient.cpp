@@ -22,7 +22,7 @@ HttpResponse HttpClient::execute(const std::string& url, const std::string& meth
     HttpResponse response;
 
     auto packet = buildRequest(method, std::get<3>(tuple), headersCopy, body);
-    Logger::log("HTTP Request:\n%s\n", packet.c_str());
+    Logger::log("HTTP Request:\n%s", packet.c_str());
 
     if (auto sent = sock->sendAll(packet); sent < 0) {
         sock->close();
@@ -46,7 +46,7 @@ HttpResponse HttpClient::execute(const std::string& url, const std::string& meth
         responseBody.append(buffer, read);
     } while (true);
 
-    Logger::log("HTTP Response:\n%s\n", responseBody.c_str());
+    Logger::log("HTTP Response:\n%s", responseBody.c_str());
     auto result = parseResponse(responseBody);
 
     response.statusCode = std::get<0>(result);

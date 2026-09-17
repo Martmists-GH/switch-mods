@@ -4,7 +4,7 @@
 #include "externals/gfl/hash.h"
 
 namespace gfl {
-    struct StringContent {
+    struct StaticString {
         uint64_t m_hash;
         const char* m_string;
         size_t m_length;
@@ -13,13 +13,13 @@ namespace gfl {
     struct String : ExternalType<String> {
         struct vtable : gfl::ReferenceObject::vtable {};
         struct fields : gfl::ReferenceObject::fields {
-            gfl::StringContent m_content;
+            gfl::StaticString m_content;
         };
     };
     static_assert(offsetof(String::instance, fields.m_content) == 0x30);
 
     struct StringHolder {
-        gfl::StringContent m_content;
+        gfl::StaticString m_content;
         gfl::String* m_object;
 
         static StringHolder Create(const char* content) {

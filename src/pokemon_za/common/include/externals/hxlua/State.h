@@ -9,7 +9,7 @@ namespace hxlua {
 
         static int OnPanic(lua_State* L);
 
-        void Load(char* buffer, uint64_t bufferSize, gfl::StringHolder* fileName);
+        void Load(char* buffer, uint64_t bufferSize, gfl::StringView* fileName);
     };
 
     static_assert(offsetof(State, L) == 0x68);

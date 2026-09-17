@@ -1,0 +1,20 @@
+@game:100
+
+// ik::FieldPokemonParam::SetWazaRecastTime(int, int)
+_ZN2ik17FieldPokemonParam17SetWazaRecastTimeEii = 0x02bd72d8
+
+@game:102
+
+_ZN2ik17FieldPokemonParam17SetWazaRecastTimeEii = 0x02bd7958
+
+@game:103
+
+_ZN2ik17FieldPokemonParam17SetWazaRecastTimeEii = 0x02bd9668
+
+@game:200
+
+_ZN2ik17FieldPokemonParam17SetWazaRecastTimeEii = 0x02d6c2c4
+
+@game:201,202
+
+_ZN2ik17FieldPokemonParam17SetWazaRecastTimeEii = 0x02d71f94

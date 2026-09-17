@@ -80,9 +80,14 @@ void InputUtil::updatePadState() {
     prevTouchState = curTouchState;
     // nn::hid::GetTouchScreenState(&curTouchState);
 
-    if (isHoldZL() && isPressR()) {
+    if (checkToggleInput()) {
         toggleInput = !toggleInput;
     }
+}
+
+__attribute__((weak))
+bool InputUtil::checkToggleInput() {
+    return isHoldZL() && isPressR();
 }
 
 bool InputUtil::tryGetContState(nn::hid::NpadBaseState *state, ulong port) {

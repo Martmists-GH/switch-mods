@@ -30,3 +30,14 @@ create_mod(
         TITLE_ID "0100F43008C44000"
         GAME_TITLE "Pokemon Legends Z-A"
 )
+
+# Roguelike mod
+create_mod(
+        ZA_Roguelike_Mode
+        mod_debug_tools
+        WITH_IMGUI
+        SOURCE_SHALLOW "${CMAKE_SOURCE_DIR}/lib/lua"
+        SDK_PAST_1900
+        TITLE_ID "0100F43008C44000"
+        GAME_TITLE "Pokemon Legends Z-A"
+)

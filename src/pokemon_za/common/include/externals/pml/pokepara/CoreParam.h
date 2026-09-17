@@ -185,8 +185,8 @@ namespace pml::pokepara {
     };
 
     struct CoreParam : ExternalType<CoreParam> {
-        struct vtable : gfl::ReferenceObject::vtable {};
-        struct fields : gfl::ReferenceObject::fields {
+        struct vtable : gfl::ReferenceObject<>::vtable {};
+        struct fields : gfl::ReferenceObject<>::fields {
             CoreData* m_coreData;
             char unk[0x38];
             Accessor* m_accessor;
