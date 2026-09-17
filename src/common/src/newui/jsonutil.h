@@ -83,11 +83,11 @@ namespace jsonutil {
         auto path = loadPath(j, key);
         if (path == nullptr) return defaultValue;
         auto& val = *path;
-        if (val.is_number()) return val.get<float>();
         if (val.is_string()) {
             auto& str = val.get_ref<const std::string&>();
             return asFloat(str, defaultValue);
         }
+        if (val.is_number()) return val.get<float>();
 
         return defaultValue;
     }
@@ -115,12 +115,13 @@ namespace jsonutil {
         auto path = loadPath(j, key);
         if (path == nullptr) return defaultValue;
         auto& val = *path;
-        if (val.is_number_integer() || val.is_number_unsigned()) return val.get<int>();
-        if (val.is_number_float()) return static_cast<int>(val.get<float>());
         if (val.is_string()) {
             auto& str = val.get_ref<const std::string&>();
             return asInt(str, defaultValue);
         }
+        if (val.is_number_integer() || val.is_number_unsigned()) return val.get<int>();
+        if (val.is_number_float()) return static_cast<int>(val.get<float>());
+
         return defaultValue;
     }
 
@@ -141,18 +142,14 @@ namespace jsonutil {
         auto path = loadPath(j, key);
         if (path == nullptr) return defaultValue;
         const auto& val = *path;
+        if (val.is_string()) {
+            const auto& str = val.get_ref<const std::string&>();
+            return asBool(str, defaultValue);
+        }
         if (val.is_boolean()) return val.get<bool>();
         if (val.is_number_integer() || val.is_number_unsigned()) return val.get<int>() != 0;
         if (val.is_number_float()) return static_cast<int>(val.get<float>()) != 0;
-        if (val.is_string()) {
-            const auto& str = val.get_ref<const std::string&>();
-            if (str.empty()) return defaultValue;
-            if (str == "true") return true;
-            if (str == "false") return false;
-            int result = 0;
-            auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), result);
-            if (ec == std::errc {}) return result != 0;
-        }
+
         return defaultValue;
     }
 
@@ -189,6 +186,10 @@ namespace jsonutil {
         auto path = loadPath(j, key);
         if (path == nullptr) return defaultValue;
         const auto& val = *path;
+        if (val.is_string()) {
+            auto& str = val.get_ref<const std::string&>();
+            return asImVec2(str, defaultValue);
+        }
         if (val.is_array() && val.size() == 2) {
             return { val[0].get<float>(), val[1].get<float>() };
         }
@@ -196,10 +197,7 @@ namespace jsonutil {
             auto z = val.get<float>();
             return {z, z};
         }
-        if (val.is_string()) {
-            auto& str = val.get_ref<const std::string&>();
-            return asImVec2(str, defaultValue);
-        }
+
         return defaultValue;
     }
 
@@ -273,6 +271,11 @@ namespace jsonutil {
         auto path = loadPath(j, key);
         if (path == nullptr) return defaultValue;
         const auto& val = *path;
+        if (val.is_string()) {
+            const auto& str = val.get_ref<const std::string&>();
+            if (str.empty()) return defaultValue;
+            return asImColor(str, defaultValue);
+        }
         if (val.is_array() && val.size() == 4) {
             return { val[0].get<float>(), val[1].get<float>(), val[2].get<float>(), val[3].get<float>() };
         }
@@ -287,11 +290,7 @@ namespace jsonutil {
             }
             return {r, g, b, a};
         }
-        if (val.is_string()) {
-            const auto& str = val.get_ref<const std::string&>();
-            if (str.empty()) return defaultValue;
-            return asImColor(str, defaultValue);
-        }
+
         return defaultValue;
     }
 

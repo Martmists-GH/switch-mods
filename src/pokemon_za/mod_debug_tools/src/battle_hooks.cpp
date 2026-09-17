@@ -1,12 +1,16 @@
 #include <hook_util.h>
 #include <hk/hook/Trampoline.h>
 
+#include "externals/cmn/GameData.h"
+#include "externals/gfl/string.h"
 #include "externals/ik/BasePokemonParam.h"
+#include "externals/ik/EventSystemCallFunctions.h"
 #include "externals/pml/battle/Exp.h"
 #include "externals/pml/Capture.h"
 #include "externals/pml/pokepara/InitialSpec.h"
 #include "externals/pml/pokepara/CalcTool.h"
 #include "externals/ik/TrainerComponent.h"
+#include "newui/jsonutil.h"
 #include "nlohmann/json.hpp"
 #include "nlohmann/json_fwd.hpp"
 
@@ -18,7 +22,7 @@ static bool expMultiplierInvert = false;
 static bool alwaysMaxEnergy = false;
 static bool movesAlwaysActive = false;
 
-PokemonData s_dataForEncounter = {};
+static PokemonData s_dataForEncounter = {};
 
 extern "C" {
     void hook_setIsMustCapture(bool value) {
@@ -53,9 +57,9 @@ extern "C" {
         s_dataForEncounter.shinyMultiplier = data->value("shinyMultiplier", 1);
         s_dataForEncounter.species = data->value("species", 1);
         s_dataForEncounter.form = data->value("form", 0);
-        s_dataForEncounter.sex = data->value("sex", 0);
+        s_dataForEncounter.sex = jsonutil::getInt(*data, "sex", 0);
         s_dataForEncounter.ability = data->value("ability", 0);
-        s_dataForEncounter.nature = data->value("nature", 0);
+        s_dataForEncounter.nature = jsonutil::getInt(*data, "nature", 0);
         s_dataForEncounter.level = data->value("level", 1);
         s_dataForEncounter.iv[0] = data->value("iv0", 0);
         s_dataForEncounter.iv[1] = data->value("iv1", 0);
@@ -73,7 +77,68 @@ extern "C" {
         s_dataForEncounter.moves[1] = data->value("move1", 2);
         s_dataForEncounter.moves[2] = data->value("move2", 3);
         s_dataForEncounter.moves[3] = data->value("move3", 4);
+    }
 
+    void hook_setWeather(const char* weather) {
+        gfl::StringView holder = gfl::StringView::Create(weather);
+        gfa::EventContext ctx = gfa::EventContext::make(&holder);
+        ik::EventSystemCallFunctions::FixWeather(&ctx);
+    }
+
+    static nlohmann::json pokeData;
+    nlohmann::json* hook_loadPartyData(int index) {
+        auto party = cmn::GameData::GetPlayerParty();
+        auto ptr = party.m_ptr->GetMemberPtr(index);
+
+        if (ptr.m_ptr != nullptr) {
+            auto pp = ptr.m_ptr->fields.m_pp->castTo<pml::pokepara::CoreParam>();
+            auto acc = pp->fields.m_accessor;
+            acc->StartFastMode();
+
+            pokeData = {};
+            pokeData["level"] = acc->calcData->level;
+
+            acc->EndFastMode();
+        } else {
+            pokeData = nullptr;
+        }
+
+        return &pokeData;
+    }
+
+    void hook_savePartyData(int index, nlohmann::json* data) {
+        auto party = cmn::GameData::GetPlayerParty();
+        auto ptr = party.m_ptr->GetMemberPtr(index);
+
+        if (ptr.m_ptr != nullptr && !pokeData.is_null()) {
+            auto pp = ptr.m_ptr->fields.m_pp->castTo<pml::pokepara::CoreParam>();
+            auto acc = pp->fields.m_accessor;
+            acc->StartFastMode();
+
+            acc->calcData->level = pokeData["level"];
+
+            pp->UpdateCalcDatas(true);
+            acc->EndFastMode();
+        }
+    }
+
+    void hook_fixPartyData(int index) {
+        auto party = cmn::GameData::GetPlayerParty();
+        auto ptr = party.m_ptr->GetMemberPtr(index);
+
+        if (ptr.m_ptr != nullptr && !pokeData.is_null()) {
+            auto pp = ptr.m_ptr->fields.m_pp->castTo<pml::pokepara::CoreParam>();
+            auto acc = pp->fields.m_accessor;
+            acc->StartFastMode();
+            if (acc->coreData->badEgg) {
+                auto& b = acc->GetCoreDataBlockB();
+
+                acc->coreData->badEgg = false;
+                b.egg = false;
+                pp->UpdateCalcDatas(true);
+            }
+            acc->EndFastMode();
+        }
     }
 }
 

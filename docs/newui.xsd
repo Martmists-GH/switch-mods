@@ -134,7 +134,7 @@
          8 - ImGuiOldColumnFlags_NoForceWithinWindow
         16 - ImGuiOldColumnFlags_GrowParentContentsSize
         -->
-        <xs:attribute name="flags" type="xs:int" default="0" />
+        <xs:attribute name="flags" type="xs:int" default="1" />
       </xs:extension>
      </xs:complexContent>
   </xs:complexType>
@@ -285,6 +285,7 @@
     <xs:attribute name="label" type="xs:string" use="required" />
     <xs:attribute name="key" type="xs:string" default="" />
     <xs:attribute name="preview" type="xs:string" default="" />
+    <xs:attribute name="default" type="xs:string" default="" />
     <!--
     Flags:
       1 - ImGuiComboFlags_PopupAlignLeft

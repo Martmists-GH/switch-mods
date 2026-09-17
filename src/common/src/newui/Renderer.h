@@ -51,6 +51,8 @@ namespace newui {
 
     template <>
     inline int CachedRenderNode::get<int>(std::string_view key, int defaultValue) {
+        // return jsonutil::getInt(node, key, defaultValue);
+
         auto& el = cache[key];
         if (el.is_null()) {
             auto value = jsonutil::getInt(node, key, defaultValue);
@@ -62,6 +64,8 @@ namespace newui {
 
     template <>
     inline float CachedRenderNode::get<float>(std::string_view key, float defaultValue) {
+        // return jsonutil::getFloat(node, key, defaultValue);
+
         auto& el = cache[key];
         if (el.is_null()) {
             auto value = jsonutil::getFloat(node, key, defaultValue);
@@ -73,6 +77,8 @@ namespace newui {
 
     template <>
     inline bool CachedRenderNode::get<bool>(std::string_view key, bool defaultValue) {
+        // return jsonutil::getBool(node, key, defaultValue);
+
         auto& el = cache[key];
         if (el.is_null()) {
             auto value = jsonutil::getBool(node, key, defaultValue);
@@ -84,6 +90,8 @@ namespace newui {
 
     template <>
     inline std::string_view CachedRenderNode::get<std::string_view>(std::string_view key, std::string_view defaultValue) {
+        // return jsonutil::getString(node, key, defaultValue);
+
         auto& el = cache[key];
         if (el.is_null()) {
             auto value = jsonutil::getString(node, key, defaultValue);
@@ -289,7 +297,7 @@ namespace newui {
         }
 
         void init(const char* path);
-        bool needsUpdate();
+        bool needsUpdate() const;
         void markNeedsUpdate();
 
         void render();

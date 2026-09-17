@@ -19,13 +19,14 @@ namespace newui {
 
     NEWUI_ELEMENT(Combo) {
         auto label = node.get<std::string_view>("label", "<% ERROR: Missing attribute 'label' %>");
+        auto defaultValue = node.get<std::string_view>("default", "");
         auto key = node.get<std::string_view>("key", "");
         auto preview = node.get<std::string_view>("preview", "");
         auto flags = node.get<int>("flags", 0);
 
         if (preview.empty()) {
             if (!key.empty()) {
-                auto value = jsonutil::getString(context, key, "");
+                auto value = jsonutil::getString(context, key, defaultValue);
 
                 if (!value.empty()) {
                     for (auto& cachedChild : node.children) {
@@ -99,13 +100,13 @@ namespace newui {
             auto current = jsonutil::getBool(context, key, defaultValue);
             auto value = current;
 
-            ImGui::BeginDisabled(!enabled);
+            //ImGui::BeginDisabled(!enabled);
             if (ImGui::Checkbox(label.data(), &value)) {
                 renderer.invokeCallback(onChange, "onchange", context, current, value);
                 jsonutil::assignPath(context, key, value);
                 renderer.markNeedsUpdate();
             }
-            ImGui::EndDisabled();
+            //ImGui::EndDisabled();
         }
     }
 

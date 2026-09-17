@@ -84,8 +84,54 @@
       <Checkbox label="100% Shiny Rate" key="encount.forceShiny" />
       <SliderInt label="Shiny Rate Multiplier" key="encount.shinyRateMultiplier" max="60" default="1" enabled="{{ default(encount.forceShiny, false) == false }}" />
       <Checkbox label="100% Alpha Rate" key="encount.forceAlpha" />
+      <Checkbox label="Force Change Encounter" key="encount.forceChange" default="false" />
       <Include source="{{ ROM_MOUNT }}:/ui/part/poke_editor.xml" context='{"editor_type": "encount", "editor_extra_settings": false}' />
       <Callback onframe="API:saveEncounterData(context.encount)" />
+    </CollapsingHeader>
+
+    <CollapsingHeader label="Party">
+      <InputInt label="Party Index" key="party.selectedIndex" max="5" />
+      <Checkbox label="Enable" key="party.forceChange" />
+      <Callback onframe="API:loadPartyData(context['party'])" />
+      {% if default(party.isBadEgg, false) %}
+      <Row>
+        <Text content="Bad Egg detected!" />
+        <Button label="Fix" onclick="API:fixPartyData(context['party'])" />
+      </Row>
+      {% endif %}
+      <Include source="{{ ROM_MOUNT }}:/ui/part/poke_editor.xml" context='{"editor_type": "party", "editor_extra_settings": true}' />
+      <Callback onframe="API:savePartyData(context['party'])" />
+    </CollapsingHeader>
+
+    <CollapsingHeader label="Bag">
+      {% if GAME_VERSION == '2.0.0' or  GAME_VERSION == '2.0.1' or  GAME_VERSION == '2.0.2' %}
+        <InputInt label="Item ID" key="bag_item_id" min="1" default="1" max="2684" />
+      {% else %}
+        <InputInt label="Item ID" key="bag_item_id" min="1" default="1" max="2634" />
+      {% endif %}
+      <Row>
+        <Text contentscript="API:getInternalItemName(context.bag_item_id or 1)" />
+        <Text contentscript="API:getItemName(context.bag_item_id or 1)" />
+      </Row>
+      <Row>
+        <Button label="Add 1"   onclick="ffi._ZN2ik5event24IkkakuEventScriptCommand7AddItemEjj(context.bag_item_id or 1,   1)" />
+        <Button label="Add 10"  onclick="ffi._ZN2ik5event24IkkakuEventScriptCommand7AddItemEjj(context.bag_item_id or 1,  10)" />
+        <Button label="Add 100" onclick="ffi._ZN2ik5event24IkkakuEventScriptCommand7AddItemEjj(context.bag_item_id or 1, 100)" />
+      </Row>
+      <Row>
+        <Button label="Remove 1"   onclick="ffi._ZN2ik5event24IkkakuEventScriptCommand7AddItemEjj(context.bag_item_id or 1,   -1)" />
+        <Button label="Remove 10"  onclick="ffi._ZN2ik5event24IkkakuEventScriptCommand7AddItemEjj(context.bag_item_id or 1,  -10)" />
+        <Button label="Remove 100" onclick="ffi._ZN2ik5event24IkkakuEventScriptCommand7AddItemEjj(context.bag_item_id or 1, -100)" />
+      </Row>
+    </CollapsingHeader>
+
+    <CollapsingHeader label="Weather">
+      <Button label="Reset" onclick="ffi._ZN2ik24EventSystemCallFunctions17ReleaseFixWeatherEv()" />
+      {% for weather in ["Sunny", "Cloudy", "Rain", "Storm", "Snow", "Snowstorm", "Diamonddust", "Sandstorm", "Mist"] %}
+        {% if loop.index % 3 == 0 %}<Row>{% endif %}
+        <Button label="{{ weather }}" onclick="ffi.hook_setWeather('{{ lower(weather) }}')" />
+        {% if loop.index % 3 == 2 %}</Row>{% endif %}
+      {% endfor %}
     </CollapsingHeader>
   </Window>
 
@@ -94,5 +140,15 @@
     <custom:PerformanceFPS key="perfWindow" />
     <SeparatorText content="Memory" />
     <custom:PerformanceMemory />
+  </Window>
+
+  <Window label="Party Inspector" open="win_party">
+    <InputInt label="Party Index" key="party_details.selectedIndex" max="5" />
+    <Callback onframe="API:loadPartyData(context['party_details'])" />
+    <Text content="WIP" />
+  </Window>
+
+  <Window label="Quest Inspector" open="win_quest">
+    <Text content="WIP" />
   </Window>
 </Root>

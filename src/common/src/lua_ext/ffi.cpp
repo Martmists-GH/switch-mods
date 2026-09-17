@@ -3,8 +3,10 @@
 #include "hk/ro/RoUtil.h"
 #include <vector>
 
+#include "json.h"
 #include "hk/sail/detail.h"
 #include "logger/logger.h"
+#include "nlohmann/json_fwd.hpp"
 
 static int ffi_int(lua_State* L) {
     if (lua_isnil(L, 1)) {
@@ -46,6 +48,16 @@ static int ffi_string(lua_State* L) {
     return luaL_error(L, "ffi.string: expected lightuserdata");
 }
 
+static int ffi_json(lua_State* L) {
+    if (lua_islightuserdata(L, 1)) {
+        auto raw = static_cast<nlohmann::json*>(lua_touserdata(L, 1));
+        lua_pushjson(L, *raw);
+        return 1;
+    }
+
+    return luaL_error(L, "ffi.json: expected lightuserdata");
+}
+
 static int ffi_getptr(lua_State* L) {
     auto symbol = luaL_checkstring(L, 1);
     auto symbol_addr = hk::ro::lookupSymbol(symbol);
@@ -80,6 +92,7 @@ static luaL_Reg ffi_funcs[] = {
     {"int", ffi_int},
     {"float", ffi_float},
     {"string", ffi_string},
+    {"json", ffi_json},
     {"getptr", ffi_getptr},
     {"readptr", ffi_readptr},
     {nullptr},

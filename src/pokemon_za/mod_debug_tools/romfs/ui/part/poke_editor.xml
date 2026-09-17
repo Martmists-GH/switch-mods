@@ -15,7 +15,7 @@
   </Row>
   <SeparatorText content="Stats" />
   <Row>
-    <Combo label="Sex" key="{{ editor_type }}.sex" weight="1">
+    <Combo label="Sex" key="{{ editor_type }}.sex" default="0" weight="1">
       {% for sex in ["msg_zkn_07_02", "msg_zkn_07_03", "-"] %}
         {% if loop.index == 2 %}
           <Selectable label="{{ sex }}" key="{{ editor_type }}.sex" value="{{ loop.index }}" />
@@ -26,7 +26,7 @@
       {% endfor %}
     </Combo>
 
-    <Combo label="Nature" key="{{ editor_type }}.nature" weight="1">
+    <Combo label="Nature" key="{{ editor_type }}.nature" default="0" weight="1">
       {% for i in range(25) %}
         {% set natureName = lua("GetMessage('seikaku', ('SEIKAKU_%03d'):format(" + string(i) + "))") %}
         <Selectable label="{{ natureName }}" key="{{ editor_type }}.nature" value="{{ loop.index }}" />

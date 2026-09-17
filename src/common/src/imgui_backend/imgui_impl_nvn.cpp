@@ -556,7 +556,7 @@ namespace ImguiNvnBackend {
             memcpy(bd->vtxBuffer->GetMemPtr() + vtxOffset, cmdList->VtxBuffer.Data, vtxSize);
             memcpy(bd->idxBuffer->GetMemPtr() + idxOffset, cmdList->IdxBuffer.Data, idxSize);
 
-            for (auto cmd: cmdList->CmdBuffer) {
+            for (auto& cmd: cmdList->CmdBuffer) {
 
                 // im not exactly sure this scaling is a good solution,
                 // for some reason imgui clipping coords are relative to 720p instead of whatever I set for disp size.

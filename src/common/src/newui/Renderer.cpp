@@ -1,5 +1,6 @@
 #include "Renderer.h"
 
+#include "checks.hpp"
 #include "game_constants.h"
 #include "imgui.h"
 #include "newui.h"
@@ -54,6 +55,21 @@ namespace newui {
     void Renderer::initContext() {
         context["ROM_MOUNT"] = ROM_MOUNT;
         context["MODULE_NAME"] = STR(MODULE_NAME_SPACES);
+        u64 id;
+        hk::svc::GetInfo(&id, hk::svc::InfoType::InfoType_ProgramId, 0xFFFF8001, 0);
+        context["GAME_ID"] = id;
+        context["GAME_VERSION"] = get_version();
+        switch (get_host()) {
+        case HARDWARE:
+            context["HOST"] = "SWITCH";
+            break;
+        case RYUJINX:
+            context["HOST"] = "RYUJINX";
+            break;
+        case YUZU:
+            context["HOST"] = "YUZU";
+            break;
+        }
 
         env.add_callback("string", 1, [](const inja::Arguments& args) {
             return nlohmann::to_string(*args[0]);
@@ -176,7 +192,7 @@ namespace newui {
         render(context);
     }
 
-    bool Renderer::needsUpdate() {
+    bool Renderer::needsUpdate() const {
         if (parent != nullptr && parent->needsUpdate()) {
             return true;
         }
@@ -200,7 +216,7 @@ namespace newui {
                 return;
             }
 
-            cachedRoot = std::move(buildCache(doc.root()));
+            cachedRoot = std::move(buildCache(doc.first_child()));
             m_needsUpdate = false;
         }
 
@@ -213,7 +229,6 @@ namespace newui {
 
     CachedRenderNode Renderer::buildCache(const pugi::xml_node& node) {
         auto type = substringAfter(const_cast<char*>(node.name()), ':');
-        // Logger::log("Building %s", node.name());
 
         auto& rootRenderer = root();
         auto it = rootRenderer.renderers.find(type);
@@ -227,7 +242,6 @@ namespace newui {
         std::vector<CachedRenderNode> children;
         for (auto& el : node.children()) {
             if (el.type() != pugi::node_element) continue;
-            // Logger::log("Building child of %s: %s", node.name(), el.type());
             children.emplace_back(buildCache(el));
         }
 
@@ -241,7 +255,7 @@ namespace newui {
 
     void Renderer::render(CachedRenderNode& node, nlohmann::json& ctx) {
         ImGui::PushID(node.node.internal_object());
-        node.cachedCallback(*this, node, ctx);
+        node.cachedCallback(root(), node, ctx);
         ImGui::PopID();
     }
 }

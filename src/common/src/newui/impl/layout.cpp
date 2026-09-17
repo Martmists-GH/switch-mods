@@ -60,16 +60,14 @@ namespace newui {
 
     NEWUI_ELEMENT(Columns) {
         auto cols = node.get<int>("columns", 2);
-        auto flags = node.get<int>("flags", 0);
+        auto flags = node.get<int>("flags", ImGuiOldColumnFlags_NoBorder);
 
-        ImGui::PushID(&node);
-        ImGui::BeginColumns("", cols, flags);
+        ImGui::BeginColumns(node.node.path().c_str(), cols, flags);
         for (auto& child : node.children) {
             renderer.render(child, context);
             ImGui::NextColumn();
         }
         ImGui::EndColumns();
-        ImGui::PopID();
     }
 
     NEWUI_ELEMENT(Row) {
@@ -92,12 +90,10 @@ namespace newui {
 
         if (totalWeight == 0.0f) {
             auto i = 0;
-            ImGui::BeginGroup();
             for (auto& child : node.children) {
                 if (i++ != 0) ImGui::SameLine(offset, spacing);
                 renderer.render(child, context);
             }
-            ImGui::EndGroup();
             return;
         }
 
@@ -110,7 +106,6 @@ namespace newui {
         float usableWidth = std::max(0.0f, availWidth - totalSpacing - 0.0001f);
 
         auto i = 0;
-        ImGui::BeginGroup();
         for (auto& child : node.children) {
             float childWeight = child.get<float>("weight", 0.0f);
             float allocatedWidth = (totalWeight > 0.0f) ? (usableWidth * (childWeight / totalWeight)) : 0.0f;
@@ -123,7 +118,6 @@ namespace newui {
             }
             ImGui::EndChild();
         }
-        ImGui::EndGroup();
     }
 
     NEWUI_ELEMENT(Column) {
